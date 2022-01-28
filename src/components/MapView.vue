@@ -53,14 +53,15 @@ export default {
                 const autotileImage = new Image();
                 autotileImage.src = require(`@/assets/autotiles/${autotile}.png`);
                 this.autotiles.push(autotileImage);
+                console.log(autotileImage);
             }
         });
         console.log(this.maps[this.activeMap]);
         console.log(this.autotiles);
+        console.log(this.tileset);
         this.tileset.onload = () => {
             this.draw();
         }
-        AUTOTILES[0]
     },
 
     methods: {
@@ -69,15 +70,23 @@ export default {
             ctx.clearRect(0, 0, this.width, this.height);
             
             this.maps[this.activeMap].data.forEach((layer) => {
-
                 layer.forEach((tile, index) => {
+                    const mapRow = parseInt(index / this.maps[this.activeMap].width);
+                    const mapCol = index % this.maps[this.activeMap].width;
                     if (tile >= 384) { // 일반 타일
                         const tileNum = tile - 384; // 오프셋
                         const tileRow = parseInt(tileNum / 8);
                         const tileCol = tileNum % 8;
-                        const mapRow = parseInt(index / this.maps[this.activeMap].width);
-                        const mapCol = index % this.maps[this.activeMap].width;
                         ctx.drawImage(this.tileset, tileCol * TILESIZE, tileRow * TILESIZE, TILESIZE, TILESIZE, mapCol * TILESIZE, mapRow * TILESIZE, TILESIZE, TILESIZE);
+                    } else if (tile > 0) { // 오토타일
+                        const autotileId = parseInt(tile / 48) - 1;
+                        console.log(autotileId);
+                        const tileNum = tile % 48;
+                        const tiles = AUTOTILES[parseInt(tileNum / 8)][tileNum % 8];
+                        for (let i = 0; i < 5; i++) {
+                          const tile_position = tiles[i] - 1;
+                          ctx.drawImage(this.autotiles[autotileId], tile_position % 6 * 16, parseInt(tile_position / 6) * 16, 16, 16, mapCol * TILESIZE + (i % 2 * 16), mapRow * TILESIZE + (parseInt(i / 2) * 16), 16, 16);
+                        }
                     }
                 });
             });
