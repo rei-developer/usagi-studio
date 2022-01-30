@@ -40,6 +40,7 @@ export default {
         height: 0,
         tileset: null,
         autotiles: [],
+        activeLayer: 1,
     }),
 
     watch: {
@@ -74,10 +75,12 @@ export default {
             const ctx = this.getContext();
             ctx.clearRect(0, 0, this.width, this.height);
             
-            this.maps[this.activeMap].data.forEach((layer) => {
+            this.maps[this.activeMap].data.forEach((layer, index) => {
+                ctx.globalAlpha = (index + 1) === this.activeLayer ? 1 : 0.3;
                 layer.forEach((tile, index) => {
                     const mapRow = parseInt(index / this.maps[this.activeMap].width);
                     const mapCol = index % this.maps[this.activeMap].width;
+                    if (this.activeLayer === 4) this.drawTiles(ctx, mapCol, mapRow);
                     if (tile >= 384) { // 일반 타일
                         const tileNum = tile - 384; // 오프셋
                         const tileRow = parseInt(tileNum / 8);
@@ -92,6 +95,7 @@ export default {
                           ctx.drawImage(this.autotiles[autotileId], tile_position % 6 * 16, parseInt(tile_position / 6) * 16, 16, 16, mapCol * TILESIZE + (i % 2 * 16), mapRow * TILESIZE + (parseInt(i / 2) * 16), 16, 16);
                         }
                     }
+                    
                 });
             });
         },
@@ -99,7 +103,15 @@ export default {
         getContext() {
             const canvas = this.$el.querySelector('#mapCanvas');
             return canvas.getContext('2d');
-        }
+        },
+
+        drawTiles(ctx, x, y) {
+            ctx.beginPath();
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.rect(x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE);
+            ctx.stroke();
+        },
     }
 }
 </script>
