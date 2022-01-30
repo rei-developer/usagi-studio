@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="tileset-wrapper">
         <canvas
             id="tilesetCanvas"
             :width="width"
@@ -23,14 +23,43 @@ export default {
     data: () => ({
         width: 0,
         height: 0,
+        tileset: null,
     }),
 
     created() {
-        console.log(this.tilesetName);
+        this.init();
     },
 
     methods: {
+        init() {
+            this.tileset = new Image();
+            this.tileset.src = require(`@/assets/tilesets/${this.tilesetName}.png`);
+            this.tileset.onload = () => {
+                this.draw();
+            };
+        },
 
+        draw() {
+            this.width = this.tileset.width;
+            this.height = this.tileset.height;
+
+            const ctx = this.getContext();
+            ctx.clearRect(0, 0, this.width, this.height);
+
+            ctx.drawImage(this.tileset, 0, 0, this.width, this.height);
+        },
+
+        getContext() {
+            const canvas = this.$el.querySelector('#tilesetCanvas');
+            return canvas.getContext('2d');
+        }
     },
 }
 </script>
+
+<style>
+.tileset-wrapper {
+    height: 800px;
+    overflow-y: auto;
+}
+</style>

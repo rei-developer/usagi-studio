@@ -5,11 +5,15 @@
                 <MapTools />
             </v-row>
             <v-row>
-                <v-col col="2">
-                    <TilesetView :tilesetName="tilesetName"/>
+                <v-col cols="3">
+                    <v-card>
+                        <TilesetView :tilesetName="tilesetName"/>
+                    </v-card>
                 </v-col>
-                <v-col col="10">
-                    <MapView :activeMap="activeMap" :maps="maps" />
+                <v-col cols="9">
+                    <v-card>
+                        <MapView :activeMap="activeMap" :maps="maps" />
+                    </v-card>
                 </v-col>
             </v-row>
         </v-container>

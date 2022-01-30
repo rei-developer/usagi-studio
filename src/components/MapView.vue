@@ -67,7 +67,7 @@ export default {
             });
             this.tileset.onload = () => {
                 this.draw();
-            }
+            };
         },
 
         draw() {
@@ -107,7 +107,7 @@ export default {
 <style>
 .canvas-wrapper {
     width: 100%;
-    border: 1px solid #ccc;
+    height: 800px;
     overflow: auto;
 }
 </style>
