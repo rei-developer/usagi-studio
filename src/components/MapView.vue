@@ -93,3 +93,11 @@ export default {
     }
 }
 </script>
+
+<style>
+.canvas-wrapper {
+    width: 100%;
+    border: 1px solid #ccc;
+    overflow: auto;
+}
+</style>
