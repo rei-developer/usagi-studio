@@ -1,26 +1,14 @@
 <template>
-    <div>
-        <v-container>
-            <v-row>
-                <v-col>
-                    <v-card outlined>
-                        <MapTools />
-                    </v-card>
-                </v-col>
-            </v-row>
-            <v-row>
-                <v-col cols="3">
-                    <v-card outlined>
-                        <TilesetView :tilesetName="tilesetName"/>
-                    </v-card>
-                </v-col>
-                <v-col cols="9">
-                    <v-card outlined>
-                        <MapView :activeMap="activeMap" :maps="maps" />
-                    </v-card>
-                </v-col>
-            </v-row>
-        </v-container>
+    <div class="container">
+        <div class="maptools-container border">
+            <MapTools />
+        </div>
+        <div class="border">
+            <TilesetView :tilesetName="tilesetName"/>
+        </div>
+        <div class="border">
+            <MapView :activeMap="activeMap" :maps="maps" />
+        </div>
     </div>
 </template>
 
@@ -51,3 +39,23 @@ export default {
     },
 }
 </script>
+
+<style>
+.container {
+    margin: 20px auto;
+    width: 95%;
+    display: grid;
+    grid-template-rows: 50px 800px;
+    grid-template-columns: 256px 900px;
+    gap: 20px;
+}
+
+.maptools-container {
+    grid-column: 1 / span 2;
+}
+
+.border {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+</style>
