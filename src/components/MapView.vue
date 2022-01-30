@@ -42,24 +42,34 @@ export default {
         autotiles: [],
     }),
 
+    watch: {
+        maps() {
+            this.init();
+        },
+    },
+
     created() {
-        this.width = this.maps[this.activeMap].width * TILESIZE;
-        this.height = this.maps[this.activeMap].height * TILESIZE;
-        this.tileset = new Image();
-        this.tileset.src = require(`@/assets/tilesets/${this.maps[this.activeMap].tileset}.png`);
-        this.maps[this.activeMap].autotiles.forEach((autotile) => {
-            if (autotile) {
-                const autotileImage = new Image();
-                autotileImage.src = require(`@/assets/autotiles/${autotile}.png`);
-                this.autotiles.push(autotileImage);
-            }
-        });
-        this.tileset.onload = () => {
-            this.draw();
-        }
+        this.init();
     },
 
     methods: {
+        init() {
+            this.width = this.maps[this.activeMap].width * TILESIZE;
+            this.height = this.maps[this.activeMap].height * TILESIZE;
+            this.tileset = new Image();
+            this.tileset.src = require(`@/assets/tilesets/${this.maps[this.activeMap].tileset}.png`);
+            this.maps[this.activeMap].autotiles.forEach((autotile) => {
+                if (autotile) {
+                    const autotileImage = new Image();
+                    autotileImage.src = require(`@/assets/autotiles/${autotile}.png`);
+                    this.autotiles.push(autotileImage);
+                }
+            });
+            this.tileset.onload = () => {
+                this.draw();
+            }
+        },
+
         draw() {
             const ctx = this.getContext();
             ctx.clearRect(0, 0, this.width, this.height);
