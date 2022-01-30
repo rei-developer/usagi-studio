@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="canvas-wrapper">
         <canvas
             id="mapCanvas"
             :width="width"
