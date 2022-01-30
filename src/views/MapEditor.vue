@@ -2,16 +2,20 @@
     <div>
         <v-container>
             <v-row>
-                <MapTools />
+                <v-col>
+                    <v-card outlined>
+                        <MapTools />
+                    </v-card>
+                </v-col>
             </v-row>
             <v-row>
                 <v-col cols="3">
-                    <v-card>
+                    <v-card outlined>
                         <TilesetView :tilesetName="tilesetName"/>
                     </v-card>
                 </v-col>
                 <v-col cols="9">
-                    <v-card>
+                    <v-card outlined>
                         <MapView :activeMap="activeMap" :maps="maps" />
                     </v-card>
                 </v-col>

@@ -34,18 +34,18 @@ export default {
         init() {
             this.tileset = new Image();
             this.tileset.src = require(`@/assets/tilesets/${this.tilesetName}.png`);
+            this.width = this.tileset.width;
+            this.height = this.tileset.height;
+
             this.tileset.onload = () => {
                 this.draw();
             };
         },
 
         draw() {
-            this.width = this.tileset.width;
-            this.height = this.tileset.height;
-
             const ctx = this.getContext();
+            console.log(this.width, this.height);
             ctx.clearRect(0, 0, this.width, this.height);
-
             ctx.drawImage(this.tileset, 0, 0, this.width, this.height);
         },
 
