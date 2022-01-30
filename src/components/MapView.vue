@@ -11,8 +11,6 @@
 </template>
 
 <script>
-import maps from '../assets/maps/Map001.json'; // 임시
-
 const TILESIZE = 32;
 const AUTOTILES = [
     [ [27, 28, 33, 34], [ 5, 28, 33, 34], [27,  6, 33, 34], [ 5,  6, 33, 34],
@@ -32,18 +30,19 @@ const AUTOTILES = [
 export default {
     name: 'MapView',
 
+    props: {
+        activeMap: String,
+        maps: Object,
+    },
+
     data: () => ({
         width: 0,
         height: 0,
-        maps: {},
-        activeMap: '',
         tileset: null,
         autotiles: [],
     }),
 
-    mounted() {
-        this.activeMap = 'Map001'; // 임시
-        this.maps[this.activeMap] = maps;
+    created() {
         this.width = this.maps[this.activeMap].width * TILESIZE;
         this.height = this.maps[this.activeMap].height * TILESIZE;
         this.tileset = new Image();
@@ -53,12 +52,8 @@ export default {
                 const autotileImage = new Image();
                 autotileImage.src = require(`@/assets/autotiles/${autotile}.png`);
                 this.autotiles.push(autotileImage);
-                console.log(autotileImage);
             }
         });
-        console.log(this.maps[this.activeMap]);
-        console.log(this.autotiles);
-        console.log(this.tileset);
         this.tileset.onload = () => {
             this.draw();
         }
@@ -80,7 +75,6 @@ export default {
                         ctx.drawImage(this.tileset, tileCol * TILESIZE, tileRow * TILESIZE, TILESIZE, TILESIZE, mapCol * TILESIZE, mapRow * TILESIZE, TILESIZE, TILESIZE);
                     } else if (tile > 0) { // 오토타일
                         const autotileId = parseInt(tile / 48) - 1;
-                        console.log(autotileId);
                         const tileNum = tile % 48;
                         const tiles = AUTOTILES[parseInt(tileNum / 8)][tileNum % 8];
                         for (let i = 0; i < 5; i++) {
