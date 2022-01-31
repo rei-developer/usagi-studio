@@ -33,6 +33,7 @@ export default {
     props: {
         activeMap: String,
         maps: Object,
+        selectedTile: Array,
     },
 
     data: () => ({
@@ -40,17 +41,41 @@ export default {
         height: 0,
         tileset: null,
         autotiles: [],
-        activeLayer: 0,
+        activeLayer: 1,
+        tileAddStart: false,
     }),
 
     watch: {
         maps() {
             this.init();
         },
+
+        selectedTile() {
+            console.log(this.selectedTile);
+        }
     },
 
     created() {
         this.init();
+    },
+
+    mounted() {
+        this.$el.querySelector('#mapCanvas').addEventListener('pointerdown', (e) => {
+            this.tileAddStart = true;
+            this.addSelectedTile(e);
+        });
+        this.$el.querySelector('#mapCanvas').addEventListener('pointermove', (e) => {
+            if (this.selectedTile.length) {
+                this.draw();
+                this.previewSelectedTile(e);
+                if (this.tileAddStart) {
+                    this.addSelectedTile(e);
+                }
+            }
+        });
+        this.$el.querySelector('#mapCanvas').addEventListener('pointerup', () => {
+            this.tileAddStart = false;
+        });
     },
 
     methods: {
@@ -79,6 +104,7 @@ export default {
                 layer.forEach((tile, index) => {
                     const mapRow = parseInt(index / this.maps[this.activeMap].width);
                     const mapCol = index % this.maps[this.activeMap].width;
+                    ctx.globalAlpha = 1;
                     if (this.activeLayer >= 1 && this.activeLayer <= 3) {
                         ctx.globalAlpha = (lindex + 1) === this.activeLayer ? 1 : 0.3;
                     } else if (this.activeLayer === 4) {
@@ -114,6 +140,39 @@ export default {
             ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
             ctx.rect(x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE);
             ctx.stroke();
+        },
+
+        getTileLocation(event) {
+            const { x, y } = event.target.getBoundingClientRect();
+            const tx = Math.floor(Math.max(event.clientX - x, 0) / TILESIZE);
+            const ty = Math.floor(Math.max(event.clientY - y, 0) / TILESIZE);
+            return {tx, ty};
+        },
+
+        previewSelectedTile(event) {
+            const { tx, ty } = this.getTileLocation(event);
+            const ix = this.selectedTile[0].x;
+            const iy = this.selectedTile[0].y;
+            if (this.activeLayer >= 1 && this.activeLayer <= 3) {
+                const ctx = this.getContext();
+                ctx.globalAlpha = 0.7;
+                this.selectedTile.forEach((tile) => {
+                    ctx.drawImage(this.tileset, tile.x * TILESIZE, tile.y * TILESIZE, TILESIZE, TILESIZE, (tx + tile.x - ix) * TILESIZE, (ty + tile.y - iy) * TILESIZE, TILESIZE, TILESIZE);
+                });
+            }
+        },
+
+        addSelectedTile(event) {
+            const { tx, ty } = this.getTileLocation(event);
+            const ix = this.selectedTile[0].x;
+            const iy = this.selectedTile[0].y;
+
+            if (this.activeLayer >= 1 && this.activeLayer <= 3) {
+                this.selectedTile.forEach((tile) => {
+                    const index = (tx + tile.x - ix) + (ty + tile.y - iy) * this.maps[this.activeMap].width;
+                    this.maps[this.activeMap].data[this.activeLayer - 1][index] = tile.id;
+                });
+            }
         },
     }
 }

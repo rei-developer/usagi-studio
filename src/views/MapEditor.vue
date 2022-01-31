@@ -4,10 +4,17 @@
             <MapTools />
         </div>
         <div class="border">
-            <TilesetView :tilesetName="tilesetName"/>
+            <TilesetView
+                :tilesetName="tilesetName"
+                @selectionChanged="getSelectedTile"
+            />
         </div>
         <div class="border">
-            <MapView :activeMap="activeMap" :maps="maps" />
+            <MapView
+                :activeMap="activeMap"
+                :maps="maps"
+                :selectedTile="selectedTile"
+            />
         </div>
     </div>
 </template>
@@ -30,12 +37,19 @@ export default {
         activeMap: '',
         maps: {},
         tilesetName: '',
+        selectedTile: [],
     }),
 
     created() {
         this.activeMap = 'Map001';
         this.maps[this.activeMap] = map1;
         this.tilesetName = this.maps[this.activeMap].tileset;
+    },
+
+    methods: {
+        getSelectedTile(event) {
+            this.selectedTile = event;
+        },
     },
 }
 </script>

@@ -42,6 +42,7 @@ export default {
                 const width = this.selection[this.selection.length - 1].x - this.selection[0].x + 1
                 const height = this.selection[this.selection.length - 1].y - this.selection[0].y + 1
                 this.drawSelectedTile(this.selection[0].x, this.selection[0].y, width, height);
+                this.$emit('selectionChanged', this.selection);
             }
         });
         this.$el.querySelector('#tilesetCanvas').addEventListener('pointerup', (e) => {
@@ -50,6 +51,7 @@ export default {
             const width = this.selection[this.selection.length - 1].x - this.selection[0].x + 1
             const height = this.selection[this.selection.length - 1].y - this.selection[0].y + 1
             this.drawSelectedTile(this.selection[0].x, this.selection[0].y, width, height);
+            this.$emit('selectionChanged', this.selection);
         });
     },
 
@@ -85,15 +87,15 @@ export default {
             if (this.tileSelectStart) {
                 for (let ix = this.tileSelectStart.x; ix < tx + 1; ix++) {
                     for (let iy = this.tileSelectStart.y; iy < ty + 1; iy++) {
-                        const data = iy * 8 + ix + offset;
-                        newSelection.push({...data, x: ix, y: iy});
+                        const tileid = iy * 8 + ix + offset;
+                        newSelection.push({id: tileid, x: ix, y: iy});
                     }
                 }
             }
             if (newSelection.length > 0) return newSelection;
 
-            const data = ty * 8 + tx + offset;
-            return [{...data, x: tx, y: ty}]
+            const tileid = ty * 8 + tx + offset;
+            return [{id: tileid, x: tx, y: ty}]
         },
 
         drawSelectedTile(x, y, width, height) {
