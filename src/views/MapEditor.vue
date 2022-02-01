@@ -1,11 +1,14 @@
 <template>
     <div class="container">
         <div class="maptools-container border">
-            <MapTools />
+            <MapTools
+                @toolSelected="getSelectedTool"
+            />
         </div>
         <div class="border">
             <TilesetView
                 :tilesetName="tilesetName"
+                :autotiles="autotiles"
                 @selectionChanged="getSelectedTile"
             />
         </div>
@@ -13,7 +16,9 @@
             <MapView
                 :activeMap="activeMap"
                 :maps="maps"
+                :autotiles="autotiles"
                 :selectedTile="selectedTile"
+                :mode="activeTool"
             />
         </div>
     </div>
@@ -38,18 +43,31 @@ export default {
         maps: {},
         tilesetName: '',
         selectedTile: [],
+        autotiles: [],
+        activeTool: 0,
     }),
 
     created() {
         this.activeMap = 'Map001';
         this.maps[this.activeMap] = map1;
         this.tilesetName = this.maps[this.activeMap].tileset;
+        this.maps[this.activeMap].autotiles.forEach((autotile) => {
+            if (autotile) {
+                const atImage = new Image();
+                atImage.src = require(`@/assets/autotiles/${autotile}.png`);
+                this.autotiles.push(atImage);
+            }
+        });
     },
 
     methods: {
         getSelectedTile(event) {
             this.selectedTile = event;
         },
+
+        getSelectedTool(event) {
+            this.activeTool = event;
+        }
     },
 }
 </script>

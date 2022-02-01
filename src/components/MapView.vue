@@ -12,6 +12,11 @@
 
 <script>
 const TILESIZE = 32;
+const TOOLS = {
+    BRUSH: 0,
+    PAN: 1,
+    FILL: 2,
+}
 const AUTOTILES = [
     [ [27, 28, 33, 34], [ 5, 28, 33, 34], [27,  6, 33, 34], [ 5,  6, 33, 34],
       [27, 28, 33, 12], [ 5, 28, 33, 12], [27,  6, 33, 12], [ 5,  6, 33, 12] ],
@@ -27,6 +32,7 @@ const AUTOTILES = [
       [37, 42, 43, 48], [17, 18, 47, 48], [13, 18, 43, 48], [ 1,  2,  7,  8] ]
 ];
 
+
 export default {
     name: 'MapView',
 
@@ -34,25 +40,19 @@ export default {
         activeMap: String,
         maps: Object,
         selectedTile: Array,
+        autotiles: Array,
+        mode: Number,
     },
 
     data: () => ({
         width: 0,
         height: 0,
         tileset: null,
-        autotiles: [],
-        activeLayer: 1,
+        activeLayer: 0,
         tileAddStart: false,
     }),
 
     watch: {
-        maps() {
-            this.init();
-        },
-
-        selectedTile() {
-            console.log(this.selectedTile);
-        }
     },
 
     created() {
@@ -61,15 +61,20 @@ export default {
 
     mounted() {
         this.$el.querySelector('#mapCanvas').addEventListener('pointerdown', (e) => {
-            this.tileAddStart = true;
-            this.addSelectedTile(e);
+            if (this.mode === TOOLS.BRUSH) {
+                this.tileAddStart = true;
+                this.addSelectedTile(e);
+            }
         });
         this.$el.querySelector('#mapCanvas').addEventListener('pointermove', (e) => {
             if (this.selectedTile.length) {
                 this.draw();
-                this.previewSelectedTile(e);
-                if (this.tileAddStart) {
-                    this.addSelectedTile(e);
+                console.log(this.mode);
+                if (this.mode === TOOLS.BRUSH) {
+                    this.previewSelectedTile(e);
+                    if (this.tileAddStart) {
+                        this.addSelectedTile(e);
+                    }
                 }
             }
         });
@@ -84,13 +89,6 @@ export default {
             this.height = this.maps[this.activeMap].height * TILESIZE;
             this.tileset = new Image();
             this.tileset.src = require(`@/assets/tilesets/${this.maps[this.activeMap].tileset}.png`);
-            this.maps[this.activeMap].autotiles.forEach((autotile) => {
-                if (autotile) {
-                    const autotileImage = new Image();
-                    autotileImage.src = require(`@/assets/autotiles/${autotile}.png`);
-                    this.autotiles.push(autotileImage);
-                }
-            });
             this.tileset.onload = () => {
                 this.draw();
             };
@@ -120,8 +118,8 @@ export default {
                         const tileNum = tile % 48;
                         const tiles = AUTOTILES[parseInt(tileNum / 8)][tileNum % 8];
                         for (let i = 0; i < 5; i++) {
-                          const tile_position = tiles[i] - 1;
-                          ctx.drawImage(this.autotiles[autotileId], tile_position % 6 * 16, parseInt(tile_position / 6) * 16, 16, 16, mapCol * TILESIZE + (i % 2 * 16), mapRow * TILESIZE + (parseInt(i / 2) * 16), 16, 16);
+                            const tile_position = tiles[i] - 1;
+                            ctx.drawImage(this.autotiles[autotileId], tile_position % 6 * 16, parseInt(tile_position / 6) * 16, 16, 16, mapCol * TILESIZE + (i % 2 * 16), mapRow * TILESIZE + (parseInt(i / 2) * 16), 16, 16);
                         }
                     }
                     
@@ -157,7 +155,14 @@ export default {
                 const ctx = this.getContext();
                 ctx.globalAlpha = 0.7;
                 this.selectedTile.forEach((tile) => {
-                    ctx.drawImage(this.tileset, tile.x * TILESIZE, tile.y * TILESIZE, TILESIZE, TILESIZE, (tx + tile.x - ix) * TILESIZE, (ty + tile.y - iy) * TILESIZE, TILESIZE, TILESIZE);
+                    if (tile.id >= 384) {
+                        ctx.drawImage(this.tileset, tile.x * TILESIZE, tile.y * TILESIZE, TILESIZE, TILESIZE, (tx + tile.x - ix) * TILESIZE, (ty + tile.y - iy) * TILESIZE, TILESIZE, TILESIZE);
+                    } else if (tile.id > 0) {
+                        const autotileId = tile.id - 1;
+                        if (this.autotiles[autotileId]) {
+                            ctx.drawImage(this.autotiles[autotileId], 0, 0, TILESIZE, TILESIZE, tx * TILESIZE, ty * TILESIZE, TILESIZE, TILESIZE);
+                        }
+                    }
                 });
             }
         },
@@ -166,12 +171,100 @@ export default {
             const { tx, ty } = this.getTileLocation(event);
             const ix = this.selectedTile[0].x;
             const iy = this.selectedTile[0].y;
+            const layer = this.maps[this.activeMap].data[this.activeLayer - 1];
 
             if (this.activeLayer >= 1 && this.activeLayer <= 3) {
                 this.selectedTile.forEach((tile) => {
-                    const index = (tx + tile.x - ix) + (ty + tile.y - iy) * this.maps[this.activeMap].width;
-                    this.maps[this.activeMap].data[this.activeLayer - 1][index] = tile.id;
+                    if (tile.id === 384) {
+                        const index = tx + ty * this.maps[this.activeMap].width;
+                        layer[index] = 0;
+                    } else if (tile.id > 384) {
+                        const index = (tx + tile.x - ix) + (ty + tile.y - iy) * this.maps[this.activeMap].width;
+                        layer[index] = tile.id;
+                    } else if (tile.id > 0) {
+                        const index = tx + ty * this.maps[this.activeMap].width;
+                        layer[index] = this.getAutotileId(tx, ty);
+                        const d = [
+                            [tx + (ty - 1) * this.maps[this.activeMap].width, tx, ty - 1],
+                            [(tx - 1) + ty * this.maps[this.activeMap].width, tx - 1, ty],
+                            [(tx + 1) + ty * this.maps[this.activeMap].width, tx + 1, ty],
+                            [tx + (ty + 1) * this.maps[this.activeMap].width, tx, ty + 1],
+                            [tx - 1 + (ty - 1) * this.maps[this.activeMap].width, tx - 1, ty - 1],
+                            [tx + 1 + (ty - 1) * this.maps[this.activeMap].width, tx + 1, ty - 1],
+                            [tx - 1 + (ty + 1) * this.maps[this.activeMap].width, tx - 1, ty + 1],
+                            [tx + 1 + (ty + 1) * this.maps[this.activeMap].width, tx + 1, ty + 16],
+                        ];
+                        d.forEach((item) => {
+                            if (tile.id === parseInt(layer[item[0]] / 48)) {
+                                layer[item[0]] = this.getAutotileId(item[1], item[2]);
+                            }
+                        });
+                    } 
                 });
+            }
+        },
+
+        getAutotileId(x, y) { // 주변 타일을 비교하여 오토타일 id를 부여합니다.
+            const NW = Math.pow(2, 0);
+            const N = Math.pow(2, 1);
+            const NE = Math.pow(2, 2);
+            const W = Math.pow(2, 3);
+            const E = Math.pow(2, 4);
+            const SW = Math.pow(2, 5);
+            const S = Math.pow(2, 6);
+            const SE = Math.pow(2, 7);
+            const BITMASK =  {
+                254:  1,  251:  2,  250:  3,  127:  4,
+                219:  5,  123:  6,  122:  7,  223:  8,
+                222:  9,  94:   10, 218:  11, 95:   12,
+                126:  13, 91:   14, 90:   15, 214:  16,
+                210:  17, 86:   18, 82:   19, 248:  20,
+                120:  21, 216:  22, 88:   23, 107:  24,
+                75:   25, 106:  26, 74:   27, 31:   28,
+                30:   29, 27:   30, 26:   31, 66:   32,
+                24:   33, 208:  34, 80:   35, 104:  36,
+                72:   37, 11:   38, 10:   39, 22:   40,
+                18:   41, 64:   42, 16:   43, 2:    44,
+                8:    45, 256:  46, 0:    47, 255:  0,
+            };
+            const layer = this.maps[this.activeMap].data[this.activeLayer - 1];
+            const d = [
+                x + (y - 1) * this.maps[this.activeMap].width,
+                (x - 1) + y * this.maps[this.activeMap].width,
+                (x + 1) + y * this.maps[this.activeMap].width,
+                x + (y + 1) * this.maps[this.activeMap].width,
+                x - 1 + (y - 1) * this.maps[this.activeMap].width,
+                x + 1 + (y - 1) * this.maps[this.activeMap].width,
+                x - 1 + (y + 1) * this.maps[this.activeMap].width,
+                x + 1 + (y + 1) * this.maps[this.activeMap].width,
+            ];
+            const _id = this.selectedTile[0].id;
+            
+            const checkAutotile = (id) => {
+                return _id === parseInt(id / 48) || id === 0;
+            };
+
+            let sum = 0;
+            let n = false, e = false, s = false, w = false;
+            if (!layer[x + y * this.maps[this.activeMap].width]) return 48 * _id;
+            if (y > 0 && checkAutotile(layer[d[0]]) || y === 0) { n = true; sum += N }
+            if (x > 0 && checkAutotile(layer[d[1]]) || x === 0) { w = true; sum += W }
+            if (x < this.maps[this.activeMap].width && checkAutotile(layer[d[2]]) || x === this.maps[this.activeMap].width) { e = true; sum += E }
+            if (y < this.maps[this.activeMap].height && checkAutotile(layer[d[3]]) || y === this.maps[this.activeMap].height) { s = true; sum += S }
+            if ((n && w && y > 0 && x > 0 && checkAutotile(layer[d[4]])) || (y === 0 && x === 0)) sum += NW;
+            if ((n && e && y > 0 && x < this.maps[this.activeMap].width && checkAutotile(layer[d[5]])) || (y === 0 && x === this.maps[this.activeMap].width)) sum += NE;
+            if ((s && w && y < this.maps[this.activeMap].height && x > 0 && checkAutotile(layer[d[6]])) || (y === this.maps[this.activeMap].height && x === 0)) sum += SW;
+            if ((s && e && x < this.maps[this.activeMap].width && y < this.maps[this.activeMap].height && checkAutotile(layer[d[7]])) || x === this.maps[this.activeMap].width && y === this.maps[this.activeMap].height) sum += SE;
+            return BITMASK[sum] + 48 * _id;
+        },
+
+        removeTile(event) {
+            const { tx, ty } = this.getTileLocation(event);
+            const layer = this.maps[this.activeMap].data[this.activeLayer - 1];
+            const index = tx + ty * this.maps[this.activeMap].width;
+
+            if (this.activeLayer >= 1 && this.activeLayer <= 3) {
+                layer[index] = 0;
             }
         },
     }

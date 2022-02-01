@@ -10,10 +10,6 @@
             </v-btn>
 
             <v-btn>
-                <v-icon>mdi-eraser</v-icon>
-            </v-btn>
-
-            <v-btn>
                 <v-icon>mdi-square-rounded-outline</v-icon>
             </v-btn>
         </v-btn-toggle>
@@ -22,16 +18,6 @@
 
 <script>
 import { mapMutations } from 'vuex';
-/*
-const TOOLS = {
-    BRUSH: 0,
-    ERASE: 1,
-    PAN: 2,
-    PICK: 3,
-    RAND: 4,
-    FILL: 5,
-}
-*/
 
 export default {
     name: 'MapTools',
@@ -40,15 +26,16 @@ export default {
         ACTIVE_TOOL: 0,
     }),
 
+    watch: {
+        ACTIVE_TOOL() {
+            this.$emit('toolSelected', this.ACTIVE_TOOL);
+        },
+    },
+
     methods: {
         ...mapMutations([
             'updateFields',
         ]),
-
-        setActiveTool(index) {
-            this.ACTIVE_TOOL = index;
-            this.updateFields(this.ACTIVE_TOOL);
-        },
     }
 }
 </script>
