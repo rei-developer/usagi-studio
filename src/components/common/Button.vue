@@ -52,7 +52,7 @@
 
 <script>
 export default {
-  name: "UIButton",
+  name: "UiButton",
   props: {
     variant: {
       type: String,
@@ -64,7 +64,7 @@ export default {
     },
     icon: {
       type: String,
-      default: null,
+      default: "user-secret",
     },
     label: {
       type: String,

@@ -1,12 +1,16 @@
 <template>
-  <div>BUTTONS</div>
+  <div>
+    <ui-button size="lg" />
+  </div>
 </template>
 
 <script>
 import { mapMutations } from "vuex";
+import UiButton from "@/components/common/Button";
 
 export default {
   name: "MapTools",
+  components: { UiButton },
   data: () => ({
     ACTIVE_TOOL: 0,
   }),

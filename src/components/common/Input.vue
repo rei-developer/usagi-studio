@@ -74,7 +74,7 @@ input.ui-input {
 
 <script>
 export default {
-  name: "UIInput",
+  name: "UiInput",
   props: {
     size: {
       type: String,

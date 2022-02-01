@@ -44,7 +44,7 @@
 
 <script>
 export default {
-  name: "UISelect",
+  name: "UiSelect",
   props: {
     value: {
       type: String,

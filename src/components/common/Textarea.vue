@@ -26,7 +26,7 @@ textarea.e-textarea {
 
 <script>
 export default {
-  name: "UITextarea",
+  name: "UiTextarea",
   props: {
     rows: {
       type: Number,
