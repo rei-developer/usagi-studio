@@ -1,8 +1,14 @@
 import { createStore } from "vuex";
 
 export default createStore({
-  state: {},
-  mutations: {},
+  state: {
+    data: {},
+  },
+  mutations: {
+    updateFields(state, data) {
+      state.data = { ...state.data, ...data };
+    },
+  },
   actions: {},
   modules: {},
 });
