@@ -48,7 +48,7 @@ export default {
         width: 0,
         height: 0,
         tileset: null,
-        activeLayer: 0,
+        activeLayer: 1,
         tileAddStart: false,
     }),
 

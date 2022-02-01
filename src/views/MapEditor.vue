@@ -29,7 +29,7 @@ import MapTools from '../components/MapTools.vue';
 import MapView from '../components/MapView.vue';
 import TilesetView from '../components/TilesetView.vue';
 
-import map1 from '../assets/maps/Map001.json'; // 임시
+import map1 from '../assets/maps/Map079.json'; // 임시
 
 export default {
     name: 'MapEditor',
@@ -48,7 +48,7 @@ export default {
     }),
 
     created() {
-        this.activeMap = 'Map001';
+        this.activeMap = 'Map079';
         this.maps[this.activeMap] = map1;
         this.tilesetName = this.maps[this.activeMap].tileset;
         this.maps[this.activeMap].autotiles.forEach((autotile) => {
