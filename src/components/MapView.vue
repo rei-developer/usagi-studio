@@ -118,7 +118,6 @@ export default {
       .addEventListener("pointermove", (e) => {
         if (this.selectedTile.length) {
           this.draw();
-          console.log(this.mode);
           if (this.mode === TOOLS.BRUSH) {
             this.previewSelectedTile(e);
             if (this.tileAddStart) {
@@ -294,11 +293,11 @@ export default {
               [
                 tx + 1 + (ty + 1) * this.maps[this.activeMap].width,
                 tx + 1,
-                ty + 16,
+                ty + 1,
               ],
             ];
             d.forEach((item) => {
-              if (tile.id === parseInt(layer[item[0]] / 48)) {
+              if (tile.id === parseInt(layer[item[0]] / 48) && layer[item[0]]) {
                 layer[item[0]] = this.getAutotileId(item[1], item[2]);
               }
             });
@@ -321,15 +320,15 @@ export default {
         251: 2,
         250: 3,
         127: 4,
-        219: 5,
+        126: 5,
         123: 6,
         122: 7,
         223: 8,
         222: 9,
-        94: 10,
+        219: 10,
         218: 11,
         95: 12,
-        126: 13,
+        94: 13,
         91: 14,
         90: 15,
         214: 16,
@@ -397,21 +396,22 @@ export default {
       }
       if (
         (x < this.maps[this.activeMap].width && checkAutotile(layer[d[2]])) ||
-        x === this.maps[this.activeMap].width
+        x === this.maps[this.activeMap].width - 1
       ) {
         e = true;
         sum += E;
       }
       if (
         (y < this.maps[this.activeMap].height && checkAutotile(layer[d[3]])) ||
-        y === this.maps[this.activeMap].height
+        y === this.maps[this.activeMap].height - 1
       ) {
         s = true;
         sum += S;
       }
       if (
         (n && w && y > 0 && x > 0 && checkAutotile(layer[d[4]])) ||
-        (y === 0 && x === 0)
+        y === 0 ||
+        x === 0
       )
         sum += NW;
       if (
@@ -420,7 +420,8 @@ export default {
           y > 0 &&
           x < this.maps[this.activeMap].width &&
           checkAutotile(layer[d[5]])) ||
-        (y === 0 && x === this.maps[this.activeMap].width)
+        y === 0 ||
+        x === this.maps[this.activeMap].width - 1
       )
         sum += NE;
       if (
@@ -429,7 +430,8 @@ export default {
           y < this.maps[this.activeMap].height &&
           x > 0 &&
           checkAutotile(layer[d[6]])) ||
-        (y === this.maps[this.activeMap].height && x === 0)
+        y === this.maps[this.activeMap].height - 1 ||
+        x === 0
       )
         sum += SW;
       if (
@@ -438,8 +440,8 @@ export default {
           x < this.maps[this.activeMap].width &&
           y < this.maps[this.activeMap].height &&
           checkAutotile(layer[d[7]])) ||
-        (x === this.maps[this.activeMap].width &&
-          y === this.maps[this.activeMap].height)
+        x === this.maps[this.activeMap].width - 1 ||
+        y === this.maps[this.activeMap].height - 1
       )
         sum += SE;
       return BITMASK[sum] + 48 * _id;

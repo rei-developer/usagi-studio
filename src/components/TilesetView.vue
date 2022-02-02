@@ -73,7 +73,6 @@ export default {
       .addEventListener("pointermove", (e) => {
         if (this.tileSelectStart) {
           this.selection = this.getSelectedAutotile(e);
-          console.log(this.selection);
           this.drawSelectedAutotile(this.selection[0].x, this.selection[0].y);
           this.$emit("selectionChanged", this.selection);
         }
