@@ -97,8 +97,10 @@ export default {
     width: 0,
     height: 0,
     tileset: null,
-    activeLayer: 1,
+    activeLayer: 2,
     tileAddStart: false,
+    ix: 0,
+    iy: 0,
   }),
   watch: {},
   created() {
@@ -108,6 +110,8 @@ export default {
     this.getEventHandler("#mapCanvas", "pointerdown", (e) => {
       if (this.mode === TOOLS.BRUSH) {
         this.tileAddStart = true;
+        this.ix = this.getTileLocation(e).tx;
+        this.iy = this.getTileLocation(e).ty;
         this.addSelectedTile(e);
       }
     });
@@ -257,11 +261,35 @@ export default {
             const index = tx + ty * this.maps[this.activeMap].width;
             layer[index] = 0;
           } else if (tile.id > 384) {
+            const tileOffsetX = tile.x - ix;
+            const tileOffsetY = tile.y - iy;
+            const width =
+              Math.max.apply(
+                null,
+                this.selectedTile.map((item) => item.x)
+              ) -
+              Math.min.apply(
+                null,
+                this.selectedTile.map((item) => item.x)
+              ) +
+              1;
+            const height =
+              Math.max.apply(
+                null,
+                this.selectedTile.map((item) => item.y)
+              ) -
+              Math.min.apply(
+                null,
+                this.selectedTile.map((item) => item.y)
+              ) +
+              1;
+            const repeatX = (tx - this.ix) % width;
+            const repeatY = (ty - this.iy) % height;
             const index =
               tx +
-              tile.x -
-              ix +
-              (ty + tile.y - iy) * this.maps[this.activeMap].width;
+              tileOffsetX -
+              repeatX +
+              (ty + tileOffsetY - repeatY) * this.maps[this.activeMap].width;
             layer[index] = tile.id;
           } else if (tile.id > 0) {
             const index = tx + ty * this.maps[this.activeMap].width;
