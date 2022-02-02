@@ -206,7 +206,7 @@ export default {
         TILESIZE
       );
     },
-    drawRect(canvasId, x, y, width, height, style = "rgba(0, 0, 0, 1") {
+    drawRect(canvasId, x, y, width, height, style = "rgba(0, 0, 0, 1)") {
       const ctx = this.getContext(canvasId);
       ctx.beginPath();
       ctx.lineWidth = 1;
