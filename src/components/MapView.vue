@@ -257,9 +257,9 @@ export default {
       const layer = this.maps[this.activeMap].data[this.activeLayer - 1];
       if (this.activeLayer >= 1 && this.activeLayer <= 3) {
         this.selectedTile.forEach((tile) => {
-          if (tile.id === 384) {
+          if (tile.id === 0) {
             layer[ty][tx] = 0;
-          } else if (tile.id > 384) {
+          } else if (tile.id >= 384) {
             const tileOffsetX = tile.x - ix;
             const tileOffsetY = tile.y - iy;
             const width =
@@ -382,6 +382,7 @@ export default {
       };
       const layer = this.maps[this.activeMap].data[this.activeLayer - 1];
       const _id = this.selectedTile[0].id;
+      if (!this.autotiles[_id]) return 0;
       const checkAutotile = (id) => {
         return _id === parseInt(id / 48) || id === 0;
       };
