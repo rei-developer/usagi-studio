@@ -148,6 +148,7 @@ export default {
       const ctx = this.getContext();
       ctx.clearRect(0, 0, this.width, this.height);
       this.maps[this.activeMap].data.forEach((layer, lindex) => {
+        ctx.globalAlpha = 1;
         if (this.activeLayer >= 1 && this.activeLayer <= 3) {
           if (lindex + 1 > this.activeLayer) {
             ctx.globalAlpha = 0.3;
@@ -158,7 +159,6 @@ export default {
         for (let y = 0; y < this.maps[this.activeMap].height; y++) {
           for (let x = 0; x < this.maps[this.activeMap].width; x++) {
             const tile = layer[y][x];
-            ctx.globalAlpha = 1;
             if (this.activeLayer === 4) {
               this.drawTiles(ctx, x, y);
             }
