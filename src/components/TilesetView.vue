@@ -139,7 +139,6 @@ export default {
         : this.$el.querySelector("#tilesetCanvas");
       return canvas.getContext("2d");
     },
-    // TODO: 우에서 좌로 드래그
     getSelectedTile(event) {
       const offset = 384;
       const { x, y } = event.target.getBoundingClientRect();
@@ -147,8 +146,16 @@ export default {
       const ty = Math.floor(Math.max(event.clientY - y, 0) / TILESIZE);
       const newSelection = [];
       if (this.tileSelectStart) {
-        for (let ix = this.tileSelectStart.x; ix < tx + 1; ix++) {
-          for (let iy = this.tileSelectStart.y; iy < ty + 1; iy++) {
+        for (
+          let ix = Math.min(this.tileSelectStart.x, tx);
+          ix < Math.max(this.tileSelectStart.x, tx) + 1;
+          ix++
+        ) {
+          for (
+            let iy = Math.min(this.tileSelectStart.y, ty);
+            iy < Math.max(this.tileSelectStart.y, ty) + 1;
+            iy++
+          ) {
             const tileid = iy * 8 + ix + offset;
             newSelection.push({ id: tileid, x: ix, y: iy });
           }
