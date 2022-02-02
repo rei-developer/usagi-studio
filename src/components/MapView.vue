@@ -105,28 +105,24 @@ export default {
     this.init();
   },
   mounted() {
-    this.$el
-      .querySelector("#mapCanvas")
-      .addEventListener("pointerdown", (e) => {
+    this.getEventHandler("#mapCanvas", "pointerdown", (e) => {
+      if (this.mode === TOOLS.BRUSH) {
+        this.tileAddStart = true;
+        this.addSelectedTile(e);
+      }
+    });
+    this.getEventHandler("#mapCanvas", "pointermove", (e) => {
+      if (this.selectedTile.length) {
+        this.draw();
         if (this.mode === TOOLS.BRUSH) {
-          this.tileAddStart = true;
-          this.addSelectedTile(e);
-        }
-      });
-    this.$el
-      .querySelector("#mapCanvas")
-      .addEventListener("pointermove", (e) => {
-        if (this.selectedTile.length) {
-          this.draw();
-          if (this.mode === TOOLS.BRUSH) {
-            this.previewSelectedTile(e);
-            if (this.tileAddStart) {
-              this.addSelectedTile(e);
-            }
+          this.previewSelectedTile(e);
+          if (this.tileAddStart) {
+            this.addSelectedTile(e);
           }
         }
-      });
-    this.$el.querySelector("#mapCanvas").addEventListener("pointerup", () => {
+      }
+    });
+    this.getEventHandler("#mapCanvas", "pointerup", () => {
       this.tileAddStart = false;
     });
   },
@@ -453,6 +449,9 @@ export default {
       if (this.activeLayer >= 1 && this.activeLayer <= 3) {
         layer[index] = 0;
       }
+    },
+    getEventHandler(id, event, callback) {
+      return this.$el.querySelector(id).addEventListener(event, callback);
     },
   },
 };
