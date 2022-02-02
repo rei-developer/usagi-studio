@@ -109,40 +109,16 @@ export default {
     this.init();
   },
   mounted() {
-    this.getEventHandler("#mapCanvas", "pointerdown", (e) => {
-      if (this.mode === TOOLS.BRUSH) {
-        this.tileAddStart = true;
-        this.mouseX = this.getTileLocation(e).tx;
-        this.mouseY = this.getTileLocation(e).ty;
-        this.ix = this.mouseX;
-        this.iy = this.mouseY;
-        this.addSelectedTile(e);
-      }
-    });
-    this.getEventHandler("#mapCanvas", "pointermove", (e) => {
-      if (
-        this.selectedTile.length &&
-        (this.mouseX !== this.getTileLocation(e).tx ||
-          this.mouseY !== this.getTileLocation(e).ty)
-      ) {
-        console.log("마우스 움직임");
-        this.mouseX = this.getTileLocation(e).tx;
-        this.mouseY = this.getTileLocation(e).ty;
-        this.draw();
-        if (this.mode === TOOLS.BRUSH) {
-          this.previewSelectedTile(e);
-          if (this.tileAddStart) {
-            this.addSelectedTile(e);
-          }
-        }
-      }
-    });
-    this.getEventHandler("#mapCanvas", "pointerup", () => {
-      this.tileAddStart = false;
-    });
-    this.getEventHandler("#mapCanvas", "mouseleave", () => {
-      this.draw();
-    });
+    this.getEventHandler("#mapCanvas", "pointerdown", this.pointerDownEvent);
+    this.getEventHandler("#mapCanvas", "pointermove", this.pointerMoveEvent);
+    this.getEventHandler("#mapCanvas", "pointerup", this.pointerUpEvent);
+    this.getEventHandler("#mapCanvas", "mouseleave", this.draw);
+  },
+  beforeUnmount() {
+    this.removeEventHandler("#mapCanvas", "pointerdown", this.pointerDownEvent);
+    this.removeEventHandler("#mapCanvas", "pointermove", this.pointerMoveEvent);
+    this.removeEventHandler("#mapCanvas", "pointerup", this.pointerUpEvent);
+    this.removeEventHandler("#mapCanvas", "mouseleave", this.draw);
   },
   methods: {
     init() {
@@ -511,6 +487,9 @@ export default {
     getEventHandler(id, event, callback) {
       return this.$el.querySelector(id).addEventListener(event, callback);
     },
+    removeEventHandler(id, event, callback) {
+      return this.$el.querySelector(id).removeEventListener(event, callback);
+    },
     drawRect(canvasId, x, y, width, height, style = "rgba(0, 0, 0, 1") {
       const ctx = this.getContext(canvasId);
       ctx.beginPath();
@@ -518,6 +497,36 @@ export default {
       ctx.strokeStyle = style;
       ctx.rect(x, y, width, height);
       ctx.stroke();
+    },
+    pointerDownEvent(e) {
+      if (this.mode === TOOLS.BRUSH) {
+        this.tileAddStart = true;
+        this.mouseX = this.getTileLocation(e).tx;
+        this.mouseY = this.getTileLocation(e).ty;
+        this.ix = this.mouseX;
+        this.iy = this.mouseY;
+        this.addSelectedTile(e);
+      }
+    },
+    pointerMoveEvent(e) {
+      if (
+        this.selectedTile.length &&
+        (this.mouseX !== this.getTileLocation(e).tx ||
+          this.mouseY !== this.getTileLocation(e).ty)
+      ) {
+        this.mouseX = this.getTileLocation(e).tx;
+        this.mouseY = this.getTileLocation(e).ty;
+        this.draw();
+        if (this.mode === TOOLS.BRUSH) {
+          this.previewSelectedTile(e);
+          if (this.tileAddStart) {
+            this.addSelectedTile(e);
+          }
+        }
+      }
+    },
+    pointerUpEvent() {
+      this.tileAddStart = false;
     },
   },
 };
