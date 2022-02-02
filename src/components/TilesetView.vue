@@ -18,7 +18,7 @@
 
 <script>
 const TILESET_CANVAS_ID = "#tilesetCanvas";
-const AUTOTILESET_CANVAS_ID = "#autotileCanvas";
+const AUTOTILE_CANVAS_ID = "#autotileCanvas";
 
 const TILESIZE = 32;
 
@@ -44,7 +44,7 @@ export default {
       this.tilesetPointerDownEvent
     );
     this.getEventHandler(
-      AUTOTILESET_CANVAS_ID,
+      AUTOTILE_CANVAS_ID,
       "pointerdown",
       this.tilesetPointerDownEvent
     );
@@ -54,7 +54,7 @@ export default {
       this.tilesetPointerMoveEvent
     );
     this.getEventHandler(
-      AUTOTILESET_CANVAS_ID,
+      AUTOTILE_CANVAS_ID,
       "pointermove",
       this.autotilePointerMoveEvent
     );
@@ -64,7 +64,7 @@ export default {
       this.tilesetPointerUpEvent
     );
     this.getEventHandler(
-      AUTOTILESET_CANVAS_ID,
+      AUTOTILE_CANVAS_ID,
       "pointerup",
       this.autotilePointerUpEvent
     );
@@ -76,7 +76,7 @@ export default {
       this.tilesetPointerDownEvent
     );
     this.removeEventHandler(
-      AUTOTILESET_CANVAS_ID,
+      AUTOTILE_CANVAS_ID,
       "pointerdown",
       this.tilesetPointerDownEvent
     );
@@ -86,7 +86,7 @@ export default {
       this.tilesetPointerMoveEvent
     );
     this.removeEventHandler(
-      AUTOTILESET_CANVAS_ID,
+      AUTOTILE_CANVAS_ID,
       "pointermove",
       this.autotilePointerMoveEvent
     );
@@ -96,7 +96,7 @@ export default {
       this.tilesetPointerUpEvent
     );
     this.removeEventHandler(
-      AUTOTILESET_CANVAS_ID,
+      AUTOTILE_CANVAS_ID,
       "pointerup",
       this.autotilePointerUpEvent
     );
@@ -124,7 +124,7 @@ export default {
     },
     draw() {
       const ctx = this.getContext();
-      const atctx = this.getContext(AUTOTILESET_CANVAS_ID);
+      const atctx = this.getContext(AUTOTILE_CANVAS_ID);
       ctx.clearRect(0, 0, this.width, this.height);
       atctx.clearRect(0, 0, 256, 32);
       ctx.fillStyle = this.backgroundColor;
@@ -199,7 +199,7 @@ export default {
     drawSelectedAutotile(x, y) {
       this.draw();
       this.drawRect(
-        AUTOTILESET_CANVAS_ID,
+        AUTOTILE_CANVAS_ID,
         x * TILESIZE,
         y * TILESIZE,
         TILESIZE,
