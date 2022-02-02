@@ -67,6 +67,10 @@ export default {
   created() {
     this.activeMap = "Map001";
     this.maps[this.activeMap] = map1;
+    this.maps[this.activeMap].data = this.getMaps(
+      this.maps[this.activeMap].data,
+      this.maps[this.activeMap].width
+    );
     this.tilesetName = this.maps[this.activeMap].tileset;
     this.maps[this.activeMap].autotiles.forEach((autotile) => {
       if (autotile) {
@@ -82,6 +86,20 @@ export default {
     },
     getSelectedTool(event) {
       this.activeTool = event;
+    },
+    getMaps(data, width) {
+      let datas = [];
+      data.forEach((layer) => {
+        const len = layer.length;
+        const cnt =
+          Math.floor(len / width) + (Math.floor(len % width) > 0 ? 1 : 0);
+        let temp = [];
+        for (let i = 0; i < cnt; i++) {
+          temp.push(layer.splice(0, width));
+        }
+        datas.push(temp);
+      });
+      return datas;
     },
   },
 };
