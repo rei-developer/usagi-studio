@@ -15,6 +15,8 @@
 </style>
 
 <script>
+const MAP_CANVAS_ID = "#mapCanvas";
+
 const TILESIZE = 32;
 const TOOLS = {
   BRUSH: 0,
@@ -109,16 +111,24 @@ export default {
     this.init();
   },
   mounted() {
-    this.getEventHandler("#mapCanvas", "pointerdown", this.pointerDownEvent);
-    this.getEventHandler("#mapCanvas", "pointermove", this.pointerMoveEvent);
-    this.getEventHandler("#mapCanvas", "pointerup", this.pointerUpEvent);
-    this.getEventHandler("#mapCanvas", "mouseleave", this.mouseLeaveEvent);
+    this.getEventHandler(MAP_CANVAS_ID, "pointerdown", this.pointerDownEvent);
+    this.getEventHandler(MAP_CANVAS_ID, "pointermove", this.pointerMoveEvent);
+    this.getEventHandler(MAP_CANVAS_ID, "pointerup", this.pointerUpEvent);
+    this.getEventHandler(MAP_CANVAS_ID, "mouseleave", this.mouseLeaveEvent);
   },
   beforeUnmount() {
-    this.removeEventHandler("#mapCanvas", "pointerdown", this.pointerDownEvent);
-    this.removeEventHandler("#mapCanvas", "pointermove", this.pointerMoveEvent);
-    this.removeEventHandler("#mapCanvas", "pointerup", this.pointerUpEvent);
-    this.removeEventHandler("#mapCanvas", "mouseleave", this.mouseLeaveEvent);
+    this.removeEventHandler(
+      MAP_CANVAS_ID,
+      "pointerdown",
+      this.pointerDownEvent
+    );
+    this.removeEventHandler(
+      MAP_CANVAS_ID,
+      "pointermove",
+      this.pointerMoveEvent
+    );
+    this.removeEventHandler(MAP_CANVAS_ID, "pointerup", this.pointerUpEvent);
+    this.removeEventHandler(MAP_CANVAS_ID, "mouseleave", this.mouseLeaveEvent);
   },
   methods: {
     init() {
@@ -201,7 +211,7 @@ export default {
       });
     },
     getContext() {
-      const canvas = this.$el.querySelector("#mapCanvas");
+      const canvas = this.$el.querySelector(MAP_CANVAS_ID);
       return canvas.getContext("2d");
     },
     drawTiles(ctx, x, y) {
@@ -263,7 +273,7 @@ export default {
           this.selectedTile[0].y +
           1;
         this.drawRect(
-          "#mapCanvas",
+          MAP_CANVAS_ID,
           tx * TILESIZE,
           ty * TILESIZE,
           width * TILESIZE,
@@ -488,7 +498,7 @@ export default {
     removeEventHandler(id, event, callback) {
       return this.$el.querySelector(id).removeEventListener(event, callback);
     },
-    drawRect(canvasId, x, y, width, height, style = "rgba(0, 0, 0, 1") {
+    drawRect(canvasId, x, y, width, height, style = "rgba(0, 0, 0, 1)") {
       const ctx = this.getContext(canvasId);
       ctx.beginPath();
       ctx.lineWidth = 1;
