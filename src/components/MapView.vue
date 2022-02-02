@@ -97,7 +97,7 @@ export default {
     width: 0,
     height: 0,
     tileset: null,
-    activeLayer: 1,
+    activeLayer: 2,
     tileAddStart: false,
     ix: 0,
     iy: 0,
@@ -128,6 +128,9 @@ export default {
     this.getEventHandler("#mapCanvas", "pointerup", () => {
       this.tileAddStart = false;
     });
+    this.getEventHandler("#mapCanvas", "mouseleave", () => {
+      this.draw();
+    });
   },
   methods: {
     init() {
@@ -145,13 +148,18 @@ export default {
       const ctx = this.getContext();
       ctx.clearRect(0, 0, this.width, this.height);
       this.maps[this.activeMap].data.forEach((layer, lindex) => {
+        if (this.activeLayer >= 1 && this.activeLayer <= 3) {
+          if (lindex + 1 > this.activeLayer) {
+            ctx.globalAlpha = 0.3;
+          } else if (lindex + 1 === this.activeLayer) {
+            ctx.globalAlpha = 1;
+          }
+        }
         for (let y = 0; y < this.maps[this.activeMap].height; y++) {
           for (let x = 0; x < this.maps[this.activeMap].width; x++) {
             const tile = layer[y][x];
             ctx.globalAlpha = 1;
-            if (this.activeLayer >= 1 && this.activeLayer <= 3) {
-              ctx.globalAlpha = lindex + 1 === this.activeLayer ? 1 : 0.3;
-            } else if (this.activeLayer === 4) {
+            if (this.activeLayer === 4) {
               this.drawTiles(ctx, x, y);
             }
             if (tile >= 384) {
@@ -191,6 +199,10 @@ export default {
               }
             }
           }
+        }
+        if (this.activeLayer >= 1 && this.activeLayer <= 3 && lindex + 1 < this.activeLayer) {
+          ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+          ctx.fillRect(0, 0, this.width, this.height);
         }
       });
     },
@@ -248,6 +260,21 @@ export default {
             }
           }
         });
+        const width =
+          this.selectedTile[this.selectedTile.length - 1].x -
+          this.selectedTile[0].x +
+          1;
+        const height =
+          this.selectedTile[this.selectedTile.length - 1].y -
+          this.selectedTile[0].y +
+          1;
+        this.drawRect(
+          "#mapCanvas",
+          tx * TILESIZE,
+          ty * TILESIZE,
+          width * TILESIZE,
+          height * TILESIZE
+        );
       }
     },
     addSelectedTile(event) {
@@ -463,6 +490,14 @@ export default {
     },
     getEventHandler(id, event, callback) {
       return this.$el.querySelector(id).addEventListener(event, callback);
+    },
+    drawRect(canvasId, x, y, width, height, style = "rgba(0, 0, 0, 1") {
+      const ctx = this.getContext(canvasId);
+      ctx.beginPath();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = style;
+      ctx.rect(x, y, width, height);
+      ctx.stroke();
     },
   },
 };
