@@ -102,8 +102,8 @@ export default {
     tileAddStart: false,
     ix: 0,
     iy: 0,
-    mouseX: 0,
-    mouseY: 0,
+    mouseX: undefined,
+    mouseY: undefined,
   }),
   created() {
     this.init();
@@ -112,13 +112,13 @@ export default {
     this.getEventHandler("#mapCanvas", "pointerdown", this.pointerDownEvent);
     this.getEventHandler("#mapCanvas", "pointermove", this.pointerMoveEvent);
     this.getEventHandler("#mapCanvas", "pointerup", this.pointerUpEvent);
-    this.getEventHandler("#mapCanvas", "mouseleave", this.draw);
+    this.getEventHandler("#mapCanvas", "mouseleave", this.mouseLeaveEvent);
   },
   beforeUnmount() {
     this.removeEventHandler("#mapCanvas", "pointerdown", this.pointerDownEvent);
     this.removeEventHandler("#mapCanvas", "pointermove", this.pointerMoveEvent);
     this.removeEventHandler("#mapCanvas", "pointerup", this.pointerUpEvent);
-    this.removeEventHandler("#mapCanvas", "mouseleave", this.draw);
+    this.removeEventHandler("#mapCanvas", "mouseleave", this.mouseLeaveEvent);
   },
   methods: {
     init() {
@@ -510,23 +510,31 @@ export default {
     },
     pointerMoveEvent(e) {
       if (
-        this.selectedTile.length &&
-        (this.mouseX !== this.getTileLocation(e).tx ||
-          this.mouseY !== this.getTileLocation(e).ty)
+        this.mouseX !== this.getTileLocation(e).tx ||
+        this.mouseY !== this.getTileLocation(e).ty
       ) {
         this.mouseX = this.getTileLocation(e).tx;
         this.mouseY = this.getTileLocation(e).ty;
-        this.draw();
-        if (this.mode === TOOLS.BRUSH) {
-          this.previewSelectedTile(e);
-          if (this.tileAddStart) {
-            this.addSelectedTile(e);
+        this.$emit("pointerChanged", [this.mouseX, this.mouseY]);
+        if (this.selectedTile.length) {
+          this.draw();
+          if (this.mode === TOOLS.BRUSH) {
+            this.previewSelectedTile(e);
+            if (this.tileAddStart) {
+              this.addSelectedTile(e);
+            }
           }
         }
       }
     },
     pointerUpEvent() {
       this.tileAddStart = false;
+    },
+    mouseLeaveEvent() {
+      this.draw();
+      this.mouseX = undefined;
+      this.mouseY = undefined;
+      this.$emit("pointerChanged", [this.mouseX, this.mouseY]);
     },
   },
 };

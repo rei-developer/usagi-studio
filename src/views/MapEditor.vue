@@ -1,7 +1,12 @@
 <template>
   <div class="container">
     <div class="maptools-container border">
-      <map-tools @toolSelected="getSelectedTool" />
+      <map-tools
+        :pointer="mouse"
+        :width="maps[activeMap].width"
+        :height="maps[activeMap].height"
+        @toolSelected="getSelectedTool"
+      />
     </div>
     <div class="border">
       <tileset-view
@@ -19,6 +24,7 @@
         :selectedTile="selectedTile"
         :mode="activeTool"
         :backgroundColor="backgroundColor"
+        @pointerChanged="getPointer"
       />
     </div>
   </div>
@@ -49,7 +55,7 @@ import MapTools from "@/components/MapTools.vue";
 import MapView from "@/components/MapView.vue";
 import TilesetView from "@/components/TilesetView.vue";
 
-import map1 from "@/assets/maps/Map079.json"; // 임시
+//import map1 from "@/assets/maps/Map079.json"; // 임시
 
 export default {
   name: "MapEditor",
@@ -62,14 +68,16 @@ export default {
     activeMap: "",
     maps: {},
     tilesetName: "",
+    tileset: null,
     selectedTile: [],
     autotiles: [],
     activeTool: 0,
     backgroundColor: "rgba(255,255,255,1)",
+    mouse: [],
   }),
   created() {
     this.activeMap = "Map001";
-    this.maps[this.activeMap] = map1;
+    this.maps[this.activeMap] = require("@/assets/maps/Map079.json");
     this.maps[this.activeMap].data = this.getMaps(
       this.maps[this.activeMap].data,
       this.maps[this.activeMap].width
@@ -103,6 +111,9 @@ export default {
         datas.push(temp);
       });
       return datas;
+    },
+    getPointer(e) {
+      this.mouse = e;
     },
   },
 };

@@ -3,7 +3,7 @@
     <canvas id="autotileCanvas" width="256" height="32">
       자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해 주세요.
     </canvas>
-    <canvas id="tilesetCanvas" :width="width" :height="height">
+    <canvas id="tilesetCanvas" width="256" :height="height">
       자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해 주세요.
     </canvas>
   </div>
@@ -101,7 +101,7 @@ export default {
     );
   },
   methods: {
-    init() {
+    async init() {
       this.tileset = new Image();
       this.tileset.src = require(`@/assets/tilesets/${this.tilesetName}.png`);
       this.width = this.tileset.width;
