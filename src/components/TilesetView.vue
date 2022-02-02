@@ -141,9 +141,7 @@ export default {
     },
     getSelectedTile(event) {
       const offset = 384;
-      const { x, y } = event.target.getBoundingClientRect();
-      const tx = Math.floor(Math.max(event.clientX - x, 0) / TILESIZE);
-      const ty = Math.floor(Math.max(event.clientY - y, 0) / TILESIZE);
+      const { tx, ty } = this.getTileLocation(event);
       const newSelection = [];
       if (this.tileSelectStart) {
         for (
@@ -166,27 +164,41 @@ export default {
       return [{ id: tileid, x: tx, y: ty }];
     },
     getSelectedAutotile(event) {
+      const { tx, ty } = this.getTileLocation(event);
+      return [{ id: tx, x: tx, y: ty }];
+    },
+    getTileLocation(event) {
       const { x, y } = event.target.getBoundingClientRect();
       const tx = Math.floor(Math.max(event.clientX - x, 0) / TILESIZE);
       const ty = Math.floor(Math.max(event.clientY - y, 0) / TILESIZE);
-      return [{ id: tx, x: tx, y: ty }];
+      return { tx, ty };
     },
     drawSelectedTile(x, y, width, height) {
-      const ctx = this.getContext();
       this.draw();
-      ctx.beginPath();
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = "rgba(0, 0, 0, 1)";
-      ctx.rect(x * TILESIZE, y * TILESIZE, width * TILESIZE, height * TILESIZE);
-      ctx.stroke();
+      this.drawRect(
+        "#tilesetCanvas",
+        x * TILESIZE,
+        y * TILESIZE,
+        width * TILESIZE,
+        height * TILESIZE
+      );
     },
     drawSelectedAutotile(x, y) {
-      const ctx = this.getContext("#autotileCanvas");
       this.draw();
+      this.drawRect(
+        "#autotileCanvas",
+        x * TILESIZE,
+        y * TILESIZE,
+        TILESIZE,
+        TILESIZE
+      );
+    },
+    drawRect(canvasId, x, y, width, height, style = "rgba(0, 0, 0, 1") {
+      const ctx = this.getContext(canvasId);
       ctx.beginPath();
       ctx.lineWidth = 1;
-      ctx.strokeStyle = "rgba(0, 0, 0, 1)";
-      ctx.rect(x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE);
+      ctx.strokeStyle = style;
+      ctx.rect(x, y, width, height);
       ctx.stroke();
     },
   },
