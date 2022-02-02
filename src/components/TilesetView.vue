@@ -36,52 +36,15 @@ export default {
     this.init();
   },
   mounted() {
-    this.$el
-      .querySelector("#tilesetCanvas")
-      .addEventListener("pointerdown", (e) => {
-        this.tileSelectStart = this.getSelectedTile(e)[0];
-      });
-    this.$el
-      .querySelector("#autotileCanvas")
-      .addEventListener("pointerdown", (e) => {
-        this.tileSelectStart = this.getSelectedAutotile(e)[0];
-      });
-    this.$el
-      .querySelector("#tilesetCanvas")
-      .addEventListener("pointermove", (e) => {
-        if (this.tileSelectStart) {
-          this.selection = this.getSelectedTile(e);
-          const width =
-            this.selection[this.selection.length - 1].x -
-            this.selection[0].x +
-            1;
-          const height =
-            this.selection[this.selection.length - 1].y -
-            this.selection[0].y +
-            1;
-          this.drawSelectedTile(
-            this.selection[0].x,
-            this.selection[0].y,
-            width,
-            height
-          );
-          this.$emit("selectionChanged", this.selection);
-        }
-      });
-    this.$el
-      .querySelector("#autotileCanvas")
-      .addEventListener("pointermove", (e) => {
-        if (this.tileSelectStart) {
-          this.selection = this.getSelectedAutotile(e);
-          this.drawSelectedAutotile(this.selection[0].x, this.selection[0].y);
-          this.$emit("selectionChanged", this.selection);
-        }
-      });
-    this.$el
-      .querySelector("#tilesetCanvas")
-      .addEventListener("pointerup", (e) => {
+    this.getEventHandler("#tilesetCanvas", "pointerdown", (e) => {
+      this.tileSelectStart = this.getSelectedTile(e)[0];
+    });
+    this.getEventHandler("#autotileCanvas", "pointerdown", (e) => {
+      this.tileSelectStart = this.getSelectedAutotile(e)[0];
+    });
+    this.getEventHandler("#tilesetCanvas", "pointermove", (e) => {
+      if (this.tileSelectStart) {
         this.selection = this.getSelectedTile(e);
-        this.tileSelectStart = null;
         const width =
           this.selection[this.selection.length - 1].x - this.selection[0].x + 1;
         const height =
@@ -93,15 +56,36 @@ export default {
           height
         );
         this.$emit("selectionChanged", this.selection);
-      });
-    this.$el
-      .querySelector("#autotileCanvas")
-      .addEventListener("pointerup", (e) => {
+      }
+    });
+    this.getEventHandler("#autotileCanvas", "pointermove", (e) => {
+      if (this.tileSelectStart) {
         this.selection = this.getSelectedAutotile(e);
-        this.tileSelectStart = null;
         this.drawSelectedAutotile(this.selection[0].x, this.selection[0].y);
         this.$emit("selectionChanged", this.selection);
-      });
+      }
+    });
+    this.getEventHandler("#tilesetCanvas", "pointerup", (e) => {
+      this.selection = this.getSelectedTile(e);
+      this.tileSelectStart = null;
+      const width =
+        this.selection[this.selection.length - 1].x - this.selection[0].x + 1;
+      const height =
+        this.selection[this.selection.length - 1].y - this.selection[0].y + 1;
+      this.drawSelectedTile(
+        this.selection[0].x,
+        this.selection[0].y,
+        width,
+        height
+      );
+      this.$emit("selectionChanged", this.selection);
+    });
+    this.getEventHandler("#autotileCanvas", "pointerup", (e) => {
+      this.selection = this.getSelectedAutotile(e);
+      this.tileSelectStart = null;
+      this.drawSelectedAutotile(this.selection[0].x, this.selection[0].y);
+      this.$emit("selectionChanged", this.selection);
+    });
   },
   methods: {
     init() {
@@ -200,6 +184,9 @@ export default {
       ctx.strokeStyle = style;
       ctx.rect(x, y, width, height);
       ctx.stroke();
+    },
+    getEventHandler(id, event, callback) {
+      return this.$el.querySelector(id).addEventListener(event, callback);
     },
   },
 };
