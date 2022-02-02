@@ -7,16 +7,18 @@
       <tileset-view
         :tilesetName="tilesetName"
         :autotiles="autotiles"
+        :backgroundColor="backgroundColor"
         @selectionChanged="getSelectedTile"
       />
     </div>
-    <div class="border">
+    <div class="border" style="background-color: #ccc">
       <map-view
         :activeMap="activeMap"
         :maps="maps"
         :autotiles="autotiles"
         :selectedTile="selectedTile"
         :mode="activeTool"
+        :backgroundColor="backgroundColor"
       />
     </div>
   </div>
@@ -47,7 +49,7 @@ import MapTools from "@/components/MapTools.vue";
 import MapView from "@/components/MapView.vue";
 import TilesetView from "@/components/TilesetView.vue";
 
-import map1 from "@/assets/maps/Map001.json"; // 임시
+import map1 from "@/assets/maps/Map079.json"; // 임시
 
 export default {
   name: "MapEditor",
@@ -63,6 +65,7 @@ export default {
     selectedTile: [],
     autotiles: [],
     activeTool: 0,
+    backgroundColor: "rgba(255,255,255,1)",
   }),
   created() {
     this.activeMap = "Map001";

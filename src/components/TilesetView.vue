@@ -24,6 +24,7 @@ export default {
   props: {
     tilesetName: String,
     autotiles: Array,
+    backgroundColor: String,
   },
   data: () => ({
     width: 0,
@@ -102,6 +103,10 @@ export default {
       const atctx = this.getContext("#autotileCanvas");
       ctx.clearRect(0, 0, this.width, this.height);
       atctx.clearRect(0, 0, 256, 32);
+      ctx.fillStyle = this.backgroundColor;
+      ctx.fillRect(0, 0, this.width, this.height);
+      atctx.fillStyle = this.backgroundColor;
+      atctx.fillRect(0, 0, 256, 32);
       ctx.drawImage(this.tileset, 0, 0, this.width, this.height);
       this.autotiles.forEach((autotile, index) => {
         atctx.drawImage(

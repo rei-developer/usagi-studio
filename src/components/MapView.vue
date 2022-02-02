@@ -92,15 +92,18 @@ export default {
     selectedTile: Array,
     autotiles: Array,
     mode: Number,
+    backgroundColor: String,
   },
   data: () => ({
     width: 0,
     height: 0,
     tileset: null,
-    activeLayer: 2,
+    activeLayer: 1,
     tileAddStart: false,
     ix: 0,
     iy: 0,
+    mouseX: 0,
+    mouseY: 0,
   }),
   created() {
     this.init();
@@ -109,13 +112,22 @@ export default {
     this.getEventHandler("#mapCanvas", "pointerdown", (e) => {
       if (this.mode === TOOLS.BRUSH) {
         this.tileAddStart = true;
-        this.ix = this.getTileLocation(e).tx;
-        this.iy = this.getTileLocation(e).ty;
+        this.mouseX = this.getTileLocation(e).tx;
+        this.mouseY = this.getTileLocation(e).ty;
+        this.ix = this.mouseX;
+        this.iy = this.mouseY;
         this.addSelectedTile(e);
       }
     });
     this.getEventHandler("#mapCanvas", "pointermove", (e) => {
-      if (this.selectedTile.length) {
+      if (
+        this.selectedTile.length &&
+        (this.mouseX !== this.getTileLocation(e).tx ||
+          this.mouseY !== this.getTileLocation(e).ty)
+      ) {
+        console.log("마우스 움직임");
+        this.mouseX = this.getTileLocation(e).tx;
+        this.mouseY = this.getTileLocation(e).ty;
         this.draw();
         if (this.mode === TOOLS.BRUSH) {
           this.previewSelectedTile(e);
@@ -149,6 +161,10 @@ export default {
       ctx.clearRect(0, 0, this.width, this.height);
       this.maps[this.activeMap].data.forEach((layer, lindex) => {
         ctx.globalAlpha = 1;
+        if (lindex + 1 === 1) {
+          ctx.fillStyle = this.backgroundColor;
+          ctx.fillRect(0, 0, this.width, this.height);
+        }
         if (this.activeLayer >= 1 && this.activeLayer <= 3) {
           if (lindex + 1 > this.activeLayer) {
             ctx.globalAlpha = 0.3;
@@ -200,8 +216,12 @@ export default {
             }
           }
         }
-        if (this.activeLayer >= 1 && this.activeLayer <= 3 && lindex + 1 < this.activeLayer) {
-          ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+        if (
+          this.activeLayer >= 1 &&
+          this.activeLayer <= 3 &&
+          lindex + 1 < this.activeLayer
+        ) {
+          ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
           ctx.fillRect(0, 0, this.width, this.height);
         }
       });
