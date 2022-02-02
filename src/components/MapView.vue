@@ -125,9 +125,7 @@ export default {
       this.width = this.maps[this.activeMap].width * TILESIZE;
       this.height = this.maps[this.activeMap].height * TILESIZE;
       this.tileset = new Image();
-      this.tileset.src = require(`@/assets/tilesets/${
-        this.maps[this.activeMap].tileset
-      }.png`);
+      this.tileset.src = `/tilesets/${this.maps[this.activeMap].tileset}.png`;
       this.tileset.onload = () => {
         this.draw();
       };

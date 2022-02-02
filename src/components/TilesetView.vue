@@ -17,6 +17,9 @@
 </style>
 
 <script>
+const TILESET_CANVAS_ID = "#tilesetCanvas";
+const AUTOTILESET_CANVAS_ID = "#autotileCanvas";
+
 const TILESIZE = 32;
 
 export default {
@@ -27,8 +30,6 @@ export default {
     backgroundColor: String,
   },
   data: () => ({
-    width: 0,
-    height: 0,
     tileset: null,
     tileSelectStart: null,
     selection: [],
@@ -38,81 +39,92 @@ export default {
   },
   mounted() {
     this.getEventHandler(
-      "#tilesetCanvas",
+      TILESET_CANVAS_ID,
       "pointerdown",
       this.tilesetPointerDownEvent
     );
     this.getEventHandler(
-      "#autotileCanvas",
+      AUTOTILESET_CANVAS_ID,
       "pointerdown",
       this.tilesetPointerDownEvent
     );
     this.getEventHandler(
-      "#tilesetCanvas",
+      TILESET_CANVAS_ID,
       "pointermove",
       this.tilesetPointerMoveEvent
     );
     this.getEventHandler(
-      "#autotileCanvas",
+      AUTOTILESET_CANVAS_ID,
       "pointermove",
       this.autotilePointerMoveEvent
     );
     this.getEventHandler(
-      "#tilesetCanvas",
+      TILESET_CANVAS_ID,
       "pointerup",
       this.tilesetPointerUpEvent
     );
     this.getEventHandler(
-      "#autotileCanvas",
+      AUTOTILESET_CANVAS_ID,
       "pointerup",
       this.autotilePointerUpEvent
     );
   },
   beforeUnmount() {
     this.removeEventHandler(
-      "#tilesetCanvas",
+      TILESET_CANVAS_ID,
       "pointerdown",
       this.tilesetPointerDownEvent
     );
     this.removeEventHandler(
-      "#autotileCanvas",
+      AUTOTILESET_CANVAS_ID,
       "pointerdown",
       this.tilesetPointerDownEvent
     );
     this.removeEventHandler(
-      "#tilesetCanvas",
+      TILESET_CANVAS_ID,
       "pointermove",
       this.tilesetPointerMoveEvent
     );
     this.removeEventHandler(
-      "#autotileCanvas",
+      AUTOTILESET_CANVAS_ID,
       "pointermove",
       this.autotilePointerMoveEvent
     );
     this.removeEventHandler(
-      "#tilesetCanvas",
+      TILESET_CANVAS_ID,
       "pointerup",
       this.tilesetPointerUpEvent
     );
     this.removeEventHandler(
-      "#autotileCanvas",
+      AUTOTILESET_CANVAS_ID,
       "pointerup",
       this.autotilePointerUpEvent
     );
   },
+  computed: {
+    width() {
+      return this.tileset?.width;
+    },
+    height() {
+      return this.tileset?.height;
+    },
+  },
   methods: {
-    async init() {
-      this.tileset = new Image();
-      this.tileset.src = require(`@/assets/tilesets/${this.tilesetName}.png`);
-      this.width = this.tileset.width;
-      this.height = this.tileset.height;
-      this.tileset.onload = () => {
-        this.draw();
+    init() {
+      let tileset = new Image();
+      tileset.src = `/tilesets/${this.tilesetName}.png`;
+      tileset.onload = () => {
+        this.tileset = new Image(tileset.width, tileset.height);
+        this.tileset.src = tileset.src;
+        this.tileset.onload = () => {
+          this.draw();
+          tileset = null;
+        };
       };
     },
     draw() {
       const ctx = this.getContext();
-      const atctx = this.getContext("#autotileCanvas");
+      const atctx = this.getContext(AUTOTILESET_CANVAS_ID);
       ctx.clearRect(0, 0, this.width, this.height);
       atctx.clearRect(0, 0, 256, 32);
       ctx.fillStyle = this.backgroundColor;
@@ -137,7 +149,7 @@ export default {
     getContext(id) {
       const canvas = id
         ? this.$el.querySelector(id)
-        : this.$el.querySelector("#tilesetCanvas");
+        : this.$el.querySelector(TILESET_CANVAS_ID);
       return canvas.getContext("2d");
     },
     getSelectedTile(event) {
@@ -177,7 +189,7 @@ export default {
     drawSelectedTile(x, y, width, height) {
       this.draw();
       this.drawRect(
-        "#tilesetCanvas",
+        TILESET_CANVAS_ID,
         x * TILESIZE,
         y * TILESIZE,
         width * TILESIZE,
@@ -187,7 +199,7 @@ export default {
     drawSelectedAutotile(x, y) {
       this.draw();
       this.drawRect(
-        "#autotileCanvas",
+        AUTOTILESET_CANVAS_ID,
         x * TILESIZE,
         y * TILESIZE,
         TILESIZE,

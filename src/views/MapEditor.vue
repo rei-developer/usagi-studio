@@ -86,7 +86,7 @@ export default {
     this.maps[this.activeMap].autotiles.forEach((autotile) => {
       if (autotile) {
         const atImage = new Image();
-        atImage.src = require(`@/assets/autotiles/${autotile}.png`);
+        atImage.src = `/autotiles/${autotile}.png`;
         this.autotiles.push(atImage);
       }
     });
