@@ -195,14 +195,15 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(["updateFields"]),
+    ...mapMutations(["updateFields", "setLoading"]),
     init() {
       this.width = this.maps[this.activeMap].width * TILESIZE;
       this.height = this.maps[this.activeMap].height * TILESIZE;
       this.tileset = new Image();
       this.tileset.src = `/tilesets/${this.maps[this.activeMap].tileset}.png`;
-      this.tileset.onload = () => {
+      this.tileset.onload = async () => {
         this.draw();
+        await this.setLoading();
       };
     },
     draw() {
