@@ -112,6 +112,11 @@ export default {
       this.draw();
     },
   },
+  computed: {
+    drawable() {
+      return this.activeLayer >= 1 && this.activeLayer <= 3;
+    },
+  },
   created() {
     this.init();
   },
@@ -154,7 +159,7 @@ export default {
           ctx.fillStyle = this.backgroundColor;
           ctx.fillRect(0, 0, this.width, this.height);
         }
-        if (this.activeLayer >= 1 && this.activeLayer <= 3) {
+        if (this.drawable) {
           if (lindex + 1 > this.activeLayer) {
             ctx.globalAlpha = 0.3;
           } else if (lindex + 1 === this.activeLayer) {
@@ -205,11 +210,7 @@ export default {
             }
           }
         }
-        if (
-          this.activeLayer >= 1 &&
-          this.activeLayer <= 3 &&
-          lindex + 1 < this.activeLayer
-        ) {
+        if (this.drawable && lindex + 1 < this.activeLayer) {
           ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
           ctx.fillRect(0, 0, this.width, this.height);
         }
@@ -236,7 +237,7 @@ export default {
       const { tx, ty } = this.getTileLocation(event);
       const ix = this.selectedTile[0].x;
       const iy = this.selectedTile[0].y;
-      if (this.activeLayer >= 1 && this.activeLayer <= 3) {
+      if (this.drawable) {
         const ctx = this.getContext();
         ctx.globalAlpha = 0.7;
         this.selectedTile.forEach((tile) => {
@@ -291,7 +292,7 @@ export default {
       const ix = this.selectedTile[0].x;
       const iy = this.selectedTile[0].y;
       const layer = this.maps[this.activeMap].data[this.activeLayer - 1];
-      if (this.activeLayer >= 1 && this.activeLayer <= 3) {
+      if (this.drawable) {
         this.selectedTile.forEach((tile) => {
           if (tile.id === 0) {
             layer[ty][tx] = 0;
@@ -493,7 +494,7 @@ export default {
     removeTile(event) {
       const { tx, ty } = this.getTileLocation(event);
       const layer = this.maps[this.activeMap].data[this.activeLayer - 1];
-      if (this.activeLayer >= 1 && this.activeLayer <= 3) {
+      if (this.drawable) {
         layer[ty][tx] = 0;
       }
     },
@@ -512,7 +513,7 @@ export default {
       ctx.stroke();
     },
     pointerDownEvent(e) {
-      if (this.mode === TOOLS.BRUSH) {
+      if (this.mode === TOOLS.BRUSH && this.drawable) {
         this.tileAddStart = true;
         this.mouseX = this.getTileLocation(e).tx;
         this.mouseY = this.getTileLocation(e).ty;
