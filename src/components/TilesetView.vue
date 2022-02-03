@@ -1,18 +1,40 @@
 <template>
-  <div class="tileset-wrapper">
-    <canvas id="autotileCanvas" width="256" height="32">
-      자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해 주세요.
-    </canvas>
-    <canvas id="tilesetCanvas" width="256" :height="height">
-      자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해 주세요.
-    </canvas>
+  <div class="tileset-view-wrapper">
+    <div class="content custom-scroll-box">
+      <canvas id="autotileCanvas" width="256" height="32">
+        자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해 주세요.
+      </canvas>
+      <canvas id="tilesetCanvas" width="256" :height="height">
+        자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해 주세요.
+      </canvas>
+    </div>
+    <div class="bottom">1: {{ mapName }} ({{ width }} x {{ height }})</div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.tileset-wrapper {
-  height: 800px;
-  overflow-y: auto;
+.tileset-view-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 266px;
+  height: calc(100vh - 100px);
+  > .content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #000;
+    overflow-y: auto;
+  }
+  > .bottom {
+    display: flex;
+    justify-content: flex-end;
+    height: 19px;
+    line-height: 21px;
+    padding: 0 4px;
+    font-size: 14px;
+    border-top: 1px solid #333;
+    background: var(--primary);
+  }
 }
 </style>
 
@@ -27,6 +49,9 @@ const TILESIZE = 32;
 export default {
   name: "TilesetView",
   props: {
+    mapName: String,
+    mapWidth: Number,
+    mapHeight: Number,
     tilesetName: String,
     autotiles: Array,
     backgroundColor: String,

@@ -1,11 +1,8 @@
 <template>
-  <div>
+  <div class="map-tools-wrapper">
     <ui-button size="lg" />
     <div>
-      <span>{{
-        `현재 레이어: ${ACTIVE_LAYER}, 너비: ${width}, 높이: ${height}`
-      }}</span>
-      <span v-if="isInside">{{ ` / 마우스 좌표: (${x}, ${y})` }}</span>
+      <span>{{ `현재 레이어: ${ACTIVE_LAYER}` }}</span>
     </div>
     <div class="btn-group">
       <ui-button @click="setActiveLayer(0)">레이어 0(preview)</ui-button>
@@ -17,7 +14,14 @@
   </div>
 </template>
 
-<style>
+<style lang="scss" scoped>
+.map-tools-wrapper {
+  width: 100%;
+  height: 99px;
+  border-bottom: 1px solid #333;
+  background: var(--primary);
+}
+
 .btn-group {
   width: 460px;
   border: 1px solid #ccc;
@@ -34,11 +38,6 @@ import UiButton from "@/components/common/Button";
 export default {
   name: "MapTools",
   components: { UiButton },
-  props: {
-    pointer: Array,
-    width: Number,
-    height: Number,
-  },
   data: () => ({
     ACTIVE_TOOL: 0,
     ACTIVE_LAYER: 1,
@@ -49,17 +48,6 @@ export default {
     },
     ACTIVE_LAYER() {
       this.$emit("activeLayer", this.ACTIVE_LAYER);
-    },
-  },
-  computed: {
-    x() {
-      return this.pointer[0];
-    },
-    y() {
-      return this.pointer[1];
-    },
-    isInside() {
-      return this.x !== undefined && this.y !== undefined;
     },
   },
   methods: {

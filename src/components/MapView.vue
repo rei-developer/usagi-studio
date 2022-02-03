@@ -1,16 +1,45 @@
 <template>
-  <div class="canvas-wrapper">
-    <canvas id="mapCanvas" :width="width" :height="height">
-      자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해주세요.
-    </canvas>
+  <div class="map-view-wrapper">
+    <div class="content custom-scroll-box">
+      <canvas id="mapCanvas" :width="width" :height="height">
+        자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해주세요.
+      </canvas>
+    </div>
+    <div class="bottom">
+      <div class="item">
+        <span v-if="isInside">{{ x }}, {{ y }}</span>
+      </div>
+      <div class="item">1: 이벤트 이름</div>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.canvas-wrapper {
-  width: 100%;
-  height: 800px;
-  overflow: auto;
+.map-view-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 267px);
+  height: calc(100vh - 100px);
+  border-left: 1px solid #333;
+  > .content {
+    background: #000;
+    overflow: auto;
+  }
+  > .bottom {
+    display: flex;
+    justify-content: flex-end;
+    height: 19px;
+    line-height: 21px;
+    font-size: 14px;
+    border-top: 1px solid #333;
+    background: var(--primary);
+    > .item {
+      padding: 0 4px;
+    }
+    > .item:not(:last-child) {
+      border-right: 1px solid #33333333;
+    }
+  }
 }
 </style>
 
@@ -114,19 +143,6 @@ export default {
       this.draw();
     },
   },
-  computed: {
-    drawable() {
-      return this.activeLayer >= 1 && this.activeLayer <= 3;
-    },
-    layer() {
-      return this.drawable
-        ? this.maps[this.activeMap].data[this.activeLayer - 1]
-        : null;
-    },
-    selectedTiles() {
-      return this.$store.state.data.selectedTiles || [];
-    },
-  },
   created() {
     this.init();
   },
@@ -155,6 +171,28 @@ export default {
       "contextmenu",
       this.contextMenuEvent
     );
+  },
+  computed: {
+    drawable() {
+      return this.activeLayer >= 1 && this.activeLayer <= 3;
+    },
+    layer() {
+      return this.drawable
+        ? this.maps[this.activeMap].data[this.activeLayer - 1]
+        : null;
+    },
+    selectedTiles() {
+      return this.$store.state.data.selectedTiles || [];
+    },
+    x() {
+      return this.mouseX.toString().padStart(3, "0");
+    },
+    y() {
+      return this.mouseY.toString().padStart(3, "0");
+    },
+    isInside() {
+      return this.mouseX !== undefined && this.mouseY !== undefined;
+    },
   },
   methods: {
     ...mapMutations(["updateFields"]),
@@ -230,7 +268,7 @@ export default {
           }
         }
         if (this.drawable && lindex + 1 === this.activeLayer - 1) {
-          ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+          ctx.fillStyle = "rgba(0, 0, 0, .5)";
           ctx.fillRect(0, 0, this.width, this.height);
         }
       });
@@ -643,7 +681,6 @@ export default {
       ) {
         this.mouseX = this.getTileLocation(e).tx;
         this.mouseY = this.getTileLocation(e).ty;
-        this.$emit("pointerChanged", [this.mouseX, this.mouseY]);
         // 마우스 우클릭
         if (e.buttons === 2 || e.which === 3) {
           if (this.tileSelectStart) {
@@ -689,7 +726,6 @@ export default {
       this.draw();
       this.mouseX = undefined;
       this.mouseY = undefined;
-      this.$emit("pointerChanged", [this.mouseX, this.mouseY]);
     },
     contextMenuEvent(e) {
       e.preventDefault();

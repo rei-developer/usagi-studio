@@ -1,23 +1,21 @@
 <template>
   <div class="container">
-    <div class="maptools-container border">
+    <div class="row">
       <map-tools
-        :pointer="mouse"
-        :width="maps[activeMap].width"
-        :height="maps[activeMap].height"
         @toolSelected="getSelectedTool"
         @activeLayer="getActiveLayer"
       />
     </div>
-    <div class="border">
+    <div class="row">
       <tileset-view
+        :mapName="mapName"
+        :mapWidth="maps[activeMap].width"
+        :mapHeight="maps[activeMap].height"
         :tilesetName="tilesetName"
         :autotiles="autotiles"
         :backgroundColor="backgroundColor"
         @selectionChanged="getSelectedTile"
       />
-    </div>
-    <div class="border" style="background-color: #ccc">
       <map-view
         :activeMap="activeMap"
         :activeLayer="activeLayer"
@@ -25,7 +23,6 @@
         :autotiles="autotiles"
         :mode="activeTool"
         :backgroundColor="backgroundColor"
-        @pointerChanged="getPointer"
       />
     </div>
   </div>
@@ -33,21 +30,11 @@
 
 <style lang="scss" scoped>
 .container {
-  margin: 20px auto;
-  width: 95%;
-  display: grid;
-  grid-template-rows: 80px 800px;
-  grid-template-columns: 256px 900px;
-  gap: 20px;
-}
-
-.maptools-container {
-  grid-column: 1 / span 2;
-}
-
-.border {
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  > .row {
+    display: flex;
+  }
 }
 </style>
 
@@ -68,22 +55,23 @@ export default {
   data: () => ({
     activeMap: "",
     maps: {},
+    mapName: "",
     tilesetName: "",
     tileset: null,
     selectedTile: [],
     autotiles: [],
     activeTool: 0,
     activeLayer: 1,
-    backgroundColor: "rgba(255,255,255,1)",
-    mouse: [],
+    backgroundColor: "#333",
   }),
   created() {
-    this.activeMap = "Map001";
-    this.maps[this.activeMap] = require("@/assets/maps/Map001.json");
+    this.activeMap = "Map079";
+    this.maps[this.activeMap] = require("@/assets/maps/Map079.json");
     this.maps[this.activeMap].data = this.getMaps(
       this.maps[this.activeMap].data,
       this.maps[this.activeMap].width
     );
+    this.mapName = this.maps[this.activeMap].name;
     this.tilesetName = this.maps[this.activeMap].tileset;
     this.maps[this.activeMap].autotiles.forEach((autotile) => {
       if (autotile) {
@@ -113,9 +101,6 @@ export default {
         datas.push(temp);
       });
       return datas;
-    },
-    getPointer(e) {
-      this.mouse = e;
     },
     getActiveLayer(e) {
       this.activeLayer = e;
