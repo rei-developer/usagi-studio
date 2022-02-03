@@ -90,6 +90,7 @@ export default {
   name: "MapView",
   props: {
     activeMap: String,
+    activeLayer: Number,
     maps: Object,
     selectedTile: Array,
     autotiles: Array,
@@ -100,13 +101,17 @@ export default {
     width: 0,
     height: 0,
     tileset: null,
-    activeLayer: 1,
     tileAddStart: false,
     ix: 0,
     iy: 0,
     mouseX: undefined,
     mouseY: undefined,
   }),
+  watch: {
+    activeLayer() {
+      this.draw();
+    },
+  },
   created() {
     this.init();
   },

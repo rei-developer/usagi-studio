@@ -6,6 +6,7 @@
         :width="maps[activeMap].width"
         :height="maps[activeMap].height"
         @toolSelected="getSelectedTool"
+        @activeLayer="getActiveLayer"
       />
     </div>
     <div class="border">
@@ -19,6 +20,7 @@
     <div class="border" style="background-color: #ccc">
       <map-view
         :activeMap="activeMap"
+        :activeLayer="activeLayer"
         :maps="maps"
         :autotiles="autotiles"
         :selectedTile="selectedTile"
@@ -35,7 +37,7 @@
   margin: 20px auto;
   width: 95%;
   display: grid;
-  grid-template-rows: 50px 800px;
+  grid-template-rows: 80px 800px;
   grid-template-columns: 256px 900px;
   gap: 20px;
 }
@@ -72,6 +74,7 @@ export default {
     selectedTile: [],
     autotiles: [],
     activeTool: 0,
+    activeLayer: 0,
     backgroundColor: "rgba(255,255,255,1)",
     mouse: [],
   }),
@@ -114,6 +117,9 @@ export default {
     },
     getPointer(e) {
       this.mouse = e;
+    },
+    getActiveLayer(e) {
+      this.activeLayer = e;
     },
   },
 };
