@@ -344,28 +344,20 @@ export default {
             iy < Math.max(this.tileSelectStart.y, ty) + 1;
             iy++
           ) {
-            /*
-            const tileid =
-              this.layer[iy][ix] >= offset
-                ? this.layer[iy][ix]
-                : this.layer[iy][ix] !== 0
-                ? parseInt(this.layer[iy][ix] / 48)
-                : 0;
-            */
-            newSelection.push({ id: this.layer[iy][ix], x: ix, y: iy });
+            newSelection.push({
+              id: this.layer[iy][ix],
+              x: ix,
+              y: iy,
+              shiftKey: event.shiftKey,
+            });
           }
         }
       }
+      console.log(newSelection);
       if (newSelection.length > 0) return newSelection;
-      /*
-      const tileid =
-        this.layer[ty][tx] >= offset
-          ? this.layer[ty][tx]
-          : this.layer[ty][tx] !== 0
-          ? parseInt(this.layer[ty][tx] / 48)
-          : 0;
-      */
-      return [{ id: this.layer[ty][tx], x: tx, y: ty }];
+      return [
+        { id: this.layer[ty][tx], x: tx, y: ty, shiftKey: event.shiftKey },
+      ];
     },
     drawSelectedTile(x, y, width, height) {
       this.draw();
@@ -407,22 +399,22 @@ export default {
             1;
           const repeatX = (tx - this.ix) % width;
           const repeatY = (ty - this.iy) % height;
+          const dx =
+            tileOffsetX - repeatX < 0
+              ? width + tileOffsetX - repeatX
+              : tileOffsetX - repeatX >= width
+              ? width - tileOffsetX + repeatX
+              : tileOffsetX - repeatX;
+          const dy =
+            tileOffsetY - repeatY < 0
+              ? height + tileOffsetY - repeatY
+              : tileOffsetY - repeatY >= height
+              ? height - tileOffsetY + repeatY
+              : tileOffsetY - repeatY;
           if (tile.id === 0) {
             this.layer[ty][tx] = 0;
           } else {
             // TODO: 세 칸 이상부터 패턴 파괴
-            const dx =
-              tileOffsetX - repeatX < 0
-                ? width + tileOffsetX - repeatX
-                : tileOffsetX - repeatX >= width
-                ? width - tileOffsetX + repeatX
-                : tileOffsetX - repeatX;
-            const dy =
-              tileOffsetY - repeatY < 0
-                ? height + tileOffsetY - repeatY
-                : tileOffsetY - repeatY >= height
-                ? height - tileOffsetY + repeatY
-                : tileOffsetY - repeatY;
             if (
               ty >= 0 &&
               tx >= 0 &&
@@ -430,8 +422,10 @@ export default {
               tx + dx < this.maps[this.activeMap].width
             ) {
               this.layer[ty + dy][tx + dx] =
-                tile.id >= 384
+                tile.id >= 384 || tile.shiftKey
                   ? tile.id
+                  : event.shiftKey
+                  ? parseInt(tile.id / 48) * 48
                   : this.getAutotileId(
                       parseInt(tile.id / 48),
                       tx + dx,
@@ -440,10 +434,9 @@ export default {
               tile.id;
             }
           }
-          this.updateAutotile(
-            tx + tileOffsetX - repeatX,
-            ty + tileOffsetY - repeatY
-          );
+          if (!event.shiftKey && !tile.shiftKey) {
+            this.updateAutotile(tx + dx, ty + dy);
+          }
         });
       }
     },
