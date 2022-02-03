@@ -23,7 +23,6 @@
         :activeLayer="activeLayer"
         :maps="maps"
         :autotiles="autotiles"
-        :selectedTile="selectedTile"
         :mode="activeTool"
         :backgroundColor="backgroundColor"
         @pointerChanged="getPointer"
@@ -74,7 +73,7 @@ export default {
     selectedTile: [],
     autotiles: [],
     activeTool: 0,
-    activeLayer: 0,
+    activeLayer: 1,
     backgroundColor: "rgba(255,255,255,1)",
     mouse: [],
   }),

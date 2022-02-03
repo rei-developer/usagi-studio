@@ -15,6 +15,8 @@
 </style>
 
 <script>
+import { mapMutations } from "vuex";
+
 const MAP_CANVAS_ID = "#mapCanvas";
 
 const TILESIZE = 32;
@@ -92,7 +94,6 @@ export default {
     activeMap: String,
     activeLayer: Number,
     maps: Object,
-    selectedTile: Array,
     autotiles: Array,
     mode: Number,
     backgroundColor: String,
@@ -102,6 +103,7 @@ export default {
     height: 0,
     tileset: null,
     tileAddStart: false,
+    tileSelectStart: {},
     ix: 0,
     iy: 0,
     mouseX: undefined,
@@ -116,6 +118,14 @@ export default {
     drawable() {
       return this.activeLayer >= 1 && this.activeLayer <= 3;
     },
+    layer() {
+      return this.drawable
+        ? this.maps[this.activeMap].data[this.activeLayer - 1]
+        : null;
+    },
+    selectedTiles() {
+      return this.$store.state.data.selectedTiles || [];
+    },
   },
   created() {
     this.init();
@@ -125,6 +135,7 @@ export default {
     this.getEventHandler(MAP_CANVAS_ID, "pointermove", this.pointerMoveEvent);
     this.getEventHandler(MAP_CANVAS_ID, "pointerup", this.pointerUpEvent);
     this.getEventHandler(MAP_CANVAS_ID, "mouseleave", this.mouseLeaveEvent);
+    this.getEventHandler(MAP_CANVAS_ID, "contextmenu", this.contextMenuEvent);
   },
   beforeUnmount() {
     this.removeEventHandler(
@@ -139,8 +150,14 @@ export default {
     );
     this.removeEventHandler(MAP_CANVAS_ID, "pointerup", this.pointerUpEvent);
     this.removeEventHandler(MAP_CANVAS_ID, "mouseleave", this.mouseLeaveEvent);
+    this.removeEventHandler(
+      MAP_CANVAS_ID,
+      "contextmenu",
+      this.contextMenuEvent
+    );
   },
   methods: {
+    ...mapMutations(["updateFields"]),
     init() {
       this.width = this.maps[this.activeMap].width * TILESIZE;
       this.height = this.maps[this.activeMap].height * TILESIZE;
@@ -170,7 +187,9 @@ export default {
           for (let x = 0; x < this.maps[this.activeMap].width; x++) {
             const tile = layer[y][x];
             if (this.activeLayer === 4) {
+              ctx.globalAlpha = 0.6;
               this.drawTiles(ctx, x, y);
+              ctx.globalAlpha = 1;
             }
             if (tile >= 384) {
               // 일반 타일
@@ -210,7 +229,7 @@ export default {
             }
           }
         }
-        if (this.drawable && lindex + 1 < this.activeLayer) {
+        if (this.drawable && lindex + 1 === this.activeLayer - 1) {
           ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
           ctx.fillRect(0, 0, this.width, this.height);
         }
@@ -222,7 +241,7 @@ export default {
     },
     drawTiles(ctx, x, y) {
       ctx.beginPath();
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 0.5;
       ctx.strokeStyle = "rgba(0, 0, 0, 0.4)";
       ctx.rect(x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE);
       ctx.stroke();
@@ -235,17 +254,20 @@ export default {
     },
     previewSelectedTile(event) {
       const { tx, ty } = this.getTileLocation(event);
-      const ix = this.selectedTile[0].x;
-      const iy = this.selectedTile[0].y;
+      const ix = this.selectedTiles[0].x;
+      const iy = this.selectedTiles[0].y;
       if (this.drawable) {
         const ctx = this.getContext();
         ctx.globalAlpha = 0.7;
-        this.selectedTile.forEach((tile) => {
+        this.selectedTiles.forEach((tile) => {
           if (tile.id >= 384) {
+            const tileNum = tile.id - 384; // 오프셋
+            const tileRow = parseInt(tileNum / 8);
+            const tileCol = tileNum % 8;
             ctx.drawImage(
               this.tileset,
-              tile.x * TILESIZE,
-              tile.y * TILESIZE,
+              tileCol * TILESIZE,
+              tileRow * TILESIZE,
               TILESIZE,
               TILESIZE,
               (tx + tile.x - ix) * TILESIZE,
@@ -253,6 +275,26 @@ export default {
               TILESIZE,
               TILESIZE
             );
+          } else if (tile.id > 8) {
+            const autotileId = parseInt(tile.id / 48) - 1;
+            if (this.autotiles[autotileId]) {
+              const tileNum = tile.id % 48;
+              const tiles = AUTOTILES[parseInt(tileNum / 8)][tileNum % 8];
+              for (let i = 0; i < 5; i++) {
+                const tile_position = tiles[i] - 1;
+                ctx.drawImage(
+                  this.autotiles[autotileId],
+                  (tile_position % 6) * 16,
+                  parseInt(tile_position / 6) * 16,
+                  16,
+                  16,
+                  (tx + tile.x - ix) * TILESIZE + (i % 2) * 16,
+                  (ty + tile.y - iy) * TILESIZE + parseInt(i / 2) * 16,
+                  16,
+                  16
+                );
+              }
+            }
           } else if (tile.id > 0) {
             const autotileId = tile.id - 1;
             if (this.autotiles[autotileId]) {
@@ -262,8 +304,8 @@ export default {
                 0,
                 TILESIZE,
                 TILESIZE,
-                tx * TILESIZE,
-                ty * TILESIZE,
+                (tx + tile.x - ix) * TILESIZE,
+                (ty + tile.y - iy) * TILESIZE,
                 TILESIZE,
                 TILESIZE
               );
@@ -271,12 +313,12 @@ export default {
           }
         });
         const width =
-          this.selectedTile[this.selectedTile.length - 1].x -
-          this.selectedTile[0].x +
+          this.selectedTiles[this.selectedTiles.length - 1].x -
+          this.selectedTiles[0].x +
           1;
         const height =
-          this.selectedTile[this.selectedTile.length - 1].y -
-          this.selectedTile[0].y +
+          this.selectedTiles[this.selectedTiles.length - 1].y -
+          this.selectedTiles[0].y +
           1;
         this.drawRect(
           MAP_CANVAS_ID,
@@ -287,77 +329,154 @@ export default {
         );
       }
     },
+    getSelectedTile(event) {
+      // const offset = 384;
+      const { tx, ty } = this.getTileLocation(event);
+      const newSelection = [];
+      if (this.tileSelectStart) {
+        for (
+          let ix = Math.min(this.tileSelectStart.x, tx);
+          ix < Math.max(this.tileSelectStart.x, tx) + 1;
+          ix++
+        ) {
+          for (
+            let iy = Math.min(this.tileSelectStart.y, ty);
+            iy < Math.max(this.tileSelectStart.y, ty) + 1;
+            iy++
+          ) {
+            /*
+            const tileid =
+              this.layer[iy][ix] >= offset
+                ? this.layer[iy][ix]
+                : this.layer[iy][ix] !== 0
+                ? parseInt(this.layer[iy][ix] / 48)
+                : 0;
+            */
+            newSelection.push({ id: this.layer[iy][ix], x: ix, y: iy });
+          }
+        }
+      }
+      if (newSelection.length > 0) return newSelection;
+      /*
+      const tileid =
+        this.layer[ty][tx] >= offset
+          ? this.layer[ty][tx]
+          : this.layer[ty][tx] !== 0
+          ? parseInt(this.layer[ty][tx] / 48)
+          : 0;
+      */
+      return [{ id: this.layer[ty][tx], x: tx, y: ty }];
+    },
+    drawSelectedTile(x, y, width, height) {
+      this.draw();
+      this.drawRect(
+        MAP_CANVAS_ID,
+        x * TILESIZE,
+        y * TILESIZE,
+        width * TILESIZE,
+        height * TILESIZE
+      );
+    },
     addSelectedTile(event) {
       const { tx, ty } = this.getTileLocation(event);
-      const ix = this.selectedTile[0].x;
-      const iy = this.selectedTile[0].y;
-      const layer = this.maps[this.activeMap].data[this.activeLayer - 1];
-      if (this.drawable) {
-        this.selectedTile.forEach((tile) => {
+      const ix = this.selectedTiles[0]?.x;
+      const iy = this.selectedTiles[0]?.y;
+      if (this.drawable && this.selectedTiles.length) {
+        this.selectedTiles.forEach((tile) => {
+          const tileOffsetX = tile.x - ix;
+          const tileOffsetY = tile.y - iy;
+          const width =
+            Math.max.apply(
+              null,
+              this.selectedTiles.map((item) => item.x)
+            ) -
+            Math.min.apply(
+              null,
+              this.selectedTiles.map((item) => item.x)
+            ) +
+            1;
+          const height =
+            Math.max.apply(
+              null,
+              this.selectedTiles.map((item) => item.y)
+            ) -
+            Math.min.apply(
+              null,
+              this.selectedTiles.map((item) => item.y)
+            ) +
+            1;
+          const repeatX = (tx - this.ix) % width;
+          const repeatY = (ty - this.iy) % height;
           if (tile.id === 0) {
-            layer[ty][tx] = 0;
-          } else if (tile.id >= 384) {
-            const tileOffsetX = tile.x - ix;
-            const tileOffsetY = tile.y - iy;
-            const width =
-              Math.max.apply(
-                null,
-                this.selectedTile.map((item) => item.x)
-              ) -
-              Math.min.apply(
-                null,
-                this.selectedTile.map((item) => item.x)
-              ) +
-              1;
-            const height =
-              Math.max.apply(
-                null,
-                this.selectedTile.map((item) => item.y)
-              ) -
-              Math.min.apply(
-                null,
-                this.selectedTile.map((item) => item.y)
-              ) +
-              1;
-            const repeatX = (tx - this.ix) % width;
-            const repeatY = (ty - this.iy) % height;
-            layer[ty + tileOffsetY - repeatY][tx + tileOffsetX - repeatX] =
+            this.layer[ty][tx] = 0;
+          } else {
+            // TODO: 세 칸 이상부터 패턴 파괴
+            const dx =
+              tileOffsetX - repeatX < 0
+                ? width + tileOffsetX - repeatX
+                : tileOffsetX - repeatX >= width
+                ? width - tileOffsetX + repeatX
+                : tileOffsetX - repeatX;
+            const dy =
+              tileOffsetY - repeatY < 0
+                ? height + tileOffsetY - repeatY
+                : tileOffsetY - repeatY >= height
+                ? height - tileOffsetY + repeatY
+                : tileOffsetY - repeatY;
+            if (
+              ty >= 0 &&
+              tx >= 0 &&
+              ty + dy < this.maps[this.activeMap].height &&
+              tx + dx < this.maps[this.activeMap].width
+            ) {
+              this.layer[ty + dy][tx + dx] =
+                tile.id >= 384
+                  ? tile.id
+                  : this.getAutotileId(
+                      parseInt(tile.id / 48),
+                      tx + dx,
+                      ty + dy
+                    );
               tile.id;
-          } else if (tile.id > 0) {
-            layer[ty][tx] = this.getAutotileId(tx, ty);
-            const d = [
-              [tx, ty - 1],
-              [tx - 1, ty],
-              [tx + 1, ty],
-              [tx, ty + 1],
-              [tx - 1, ty - 1],
-              [tx + 1, ty - 1],
-              [tx - 1, ty + 1],
-              [tx + 1, ty + 1],
-            ];
-            d.forEach((item) => {
-              if (
-                item[0] > 0 &&
-                item[1] > 0 &&
-                item[0] < this.maps[this.activeMap].width &&
-                item[1] < this.maps[this.activeMap].height
-              ) {
-                if (
-                  tile.id === parseInt(layer[item[1]][item[0]] / 48) &&
-                  layer[item[1]][item[0]]
-                ) {
-                  layer[item[1]][item[0]] = this.getAutotileId(
-                    item[0],
-                    item[1]
-                  );
-                }
-              }
-            });
+            }
           }
+          this.updateAutotile(
+            tx + tileOffsetX - repeatX,
+            ty + tileOffsetY - repeatY
+          );
         });
       }
     },
-    getAutotileId(x, y) {
+    updateAutotile(x, y) {
+      const d = [
+        [x, y],
+        [x, y - 1],
+        [x - 1, y],
+        [x + 1, y],
+        [x, y + 1],
+        [x - 1, y - 1],
+        [x + 1, y - 1],
+        [x - 1, y + 1],
+        [x + 1, y + 1],
+      ];
+      d.forEach((item) => {
+        if (
+          item[0] >= 0 &&
+          item[1] >= 0 &&
+          item[0] < this.maps[this.activeMap].width &&
+          item[1] < this.maps[this.activeMap].height &&
+          this.layer[item[1]][item[0]] > 0 &&
+          this.layer[item[1]][item[0]] < 384
+        ) {
+          this.layer[item[1]][item[0]] = this.getAutotileId(
+            parseInt(this.layer[item[1]][item[0]] / 48),
+            item[0],
+            item[1]
+          );
+        }
+      });
+    },
+    getAutotileId(_id, x, y) {
       // 주변 타일을 비교하여 오토타일 id를 부여합니다.
       const NW = Math.pow(2, 0);
       const N = Math.pow(2, 1);
@@ -417,85 +536,83 @@ export default {
         0: 47,
         255: 0,
       };
-      const layer = this.maps[this.activeMap].data[this.activeLayer - 1];
-      const _id = this.selectedTile[0].id;
-      if (!this.autotiles[_id]) return 0;
+      if (!this.autotiles[_id - 1]) return 0;
       const checkAutotile = (id) => {
-        return _id === parseInt(id / 48) || id === 0;
+        return _id === parseInt(id / 48);
       };
       let sum = 0;
       let n = false,
         e = false,
         s = false,
         w = false;
-      if (!layer[y][x]) return 48 * _id;
-      if ((y > 0 && checkAutotile(layer[y - 1][x])) || y === 0) {
+      if ((y > 0 && checkAutotile(this.layer[y - 1][x])) || y === 0) {
         n = true;
         sum += N;
       }
-      if ((x > 0 && checkAutotile(layer[y][x - 1])) || x === 0) {
+      if ((x > 0 && checkAutotile(this.layer[y][x - 1])) || x === 0) {
         w = true;
         sum += W;
       }
       if (
-        (x < this.maps[this.activeMap].width &&
-          checkAutotile(layer[y][x + 1])) ||
+        (x < this.maps[this.activeMap].width - 1 &&
+          checkAutotile(this.layer[y][x + 1])) ||
         x === this.maps[this.activeMap].width - 1
       ) {
         e = true;
         sum += E;
       }
       if (
-        (y < this.maps[this.activeMap].height &&
-          checkAutotile(layer[y + 1][x])) ||
+        (y < this.maps[this.activeMap].height - 1 &&
+          checkAutotile(this.layer[y + 1][x])) ||
         y === this.maps[this.activeMap].height - 1
       ) {
         s = true;
         sum += S;
       }
       if (
-        (n && w && y > 0 && x > 0 && checkAutotile(layer[y - 1][x - 1])) ||
-        y === 0 ||
-        x === 0
+        n &&
+        w &&
+        ((y > 0 && x > 0 && checkAutotile(this.layer[y - 1][x - 1])) ||
+          y === 0 ||
+          x === 0)
       )
         sum += NW;
       if (
-        (n &&
-          e &&
-          y > 0 &&
-          x < this.maps[this.activeMap].width &&
-          checkAutotile(layer[y - 1][x + 1])) ||
-        y === 0 ||
-        x === this.maps[this.activeMap].width - 1
+        n &&
+        e &&
+        ((y > 0 &&
+          x < this.maps[this.activeMap].width - 1 &&
+          checkAutotile(this.layer[y - 1][x + 1])) ||
+          y === 0 ||
+          x === this.maps[this.activeMap].width - 1)
       )
         sum += NE;
       if (
-        (s &&
-          w &&
-          y < this.maps[this.activeMap].height &&
+        s &&
+        w &&
+        ((y < this.maps[this.activeMap].height - 1 &&
           x > 0 &&
-          checkAutotile(layer[y + 1][x - 1])) ||
-        y === this.maps[this.activeMap].height - 1 ||
-        x === 0
+          checkAutotile(this.layer[y + 1][x - 1])) ||
+          y === this.maps[this.activeMap].height - 1 ||
+          x === 0)
       )
         sum += SW;
       if (
-        (s &&
-          e &&
-          x < this.maps[this.activeMap].width &&
-          y < this.maps[this.activeMap].height &&
-          checkAutotile(layer[y + 1][x + 1])) ||
-        x === this.maps[this.activeMap].width - 1 ||
-        y === this.maps[this.activeMap].height - 1
+        s &&
+        e &&
+        ((x < this.maps[this.activeMap].width - 1 &&
+          y < this.maps[this.activeMap].height - 1 &&
+          checkAutotile(this.layer[y + 1][x + 1])) ||
+          x === this.maps[this.activeMap].width - 1 ||
+          y === this.maps[this.activeMap].height - 1)
       )
         sum += SE;
       return BITMASK[sum] + 48 * _id;
     },
     removeTile(event) {
       const { tx, ty } = this.getTileLocation(event);
-      const layer = this.maps[this.activeMap].data[this.activeLayer - 1];
       if (this.drawable) {
-        layer[ty][tx] = 0;
+        this.layer[ty][tx] = 0;
       }
     },
     getEventHandler(id, event, callback) {
@@ -514,12 +631,16 @@ export default {
     },
     pointerDownEvent(e) {
       if (this.mode === TOOLS.BRUSH && this.drawable) {
-        this.tileAddStart = true;
         this.mouseX = this.getTileLocation(e).tx;
         this.mouseY = this.getTileLocation(e).ty;
-        this.ix = this.mouseX;
-        this.iy = this.mouseY;
-        this.addSelectedTile(e);
+        if (e.button === 2 || e.which === 3) {
+          this.tileSelectStart = this.getSelectedTile(e)[0];
+        } else {
+          this.tileAddStart = true;
+          this.ix = this.mouseX;
+          this.iy = this.mouseY;
+          this.addSelectedTile(e);
+        }
       }
     },
     pointerMoveEvent(e) {
@@ -530,25 +651,55 @@ export default {
         this.mouseX = this.getTileLocation(e).tx;
         this.mouseY = this.getTileLocation(e).ty;
         this.$emit("pointerChanged", [this.mouseX, this.mouseY]);
-        if (this.selectedTile.length) {
-          this.draw();
-          if (this.mode === TOOLS.BRUSH) {
-            this.previewSelectedTile(e);
-            if (this.tileAddStart) {
-              this.addSelectedTile(e);
+        // 마우스 우클릭
+        if (e.buttons === 2 || e.which === 3) {
+          if (this.tileSelectStart) {
+            const selection = this.getSelectedTile(e);
+            const width =
+              selection[selection.length - 1].x - selection[0].x + 1;
+            const height =
+              selection[selection.length - 1].y - selection[0].y + 1;
+            this.drawSelectedTile(
+              selection[0].x,
+              selection[0].y,
+              width,
+              height
+            );
+            this.updateFields({ selectedTiles: selection });
+          }
+        } else {
+          if (this.selectedTiles.length) {
+            this.draw();
+            if (this.mode === TOOLS.BRUSH && this.drawable) {
+              this.previewSelectedTile(e);
+              if (this.tileAddStart) {
+                this.addSelectedTile(e);
+              }
             }
           }
         }
       }
     },
-    pointerUpEvent() {
+    pointerUpEvent(e) {
       this.tileAddStart = false;
+      // 마우스 우클릭
+      if (e.button === 2 || e.which === 3) {
+        const selection = this.getSelectedTile(e);
+        this.tileSelectStart = null;
+        const width = selection[selection.length - 1].x - selection[0].x + 1;
+        const height = selection[selection.length - 1].y - selection[0].y + 1;
+        this.drawSelectedTile(selection[0].x, selection[0].y, width, height);
+        this.updateFields({ selectedTiles: selection });
+      }
     },
     mouseLeaveEvent() {
       this.draw();
       this.mouseX = undefined;
       this.mouseY = undefined;
       this.$emit("pointerChanged", [this.mouseX, this.mouseY]);
+    },
+    contextMenuEvent(e) {
+      e.preventDefault();
     },
   },
 };

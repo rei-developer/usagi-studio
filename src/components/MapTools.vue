@@ -41,7 +41,7 @@ export default {
   },
   data: () => ({
     ACTIVE_TOOL: 0,
-    ACTIVE_LAYER: 0,
+    ACTIVE_LAYER: 1,
   }),
   watch: {
     ACTIVE_TOOL() {

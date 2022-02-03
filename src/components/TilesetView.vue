@@ -17,6 +17,8 @@
 </style>
 
 <script>
+import { mapMutations } from "vuex";
+
 const TILESET_CANVAS_ID = "#tilesetCanvas";
 const AUTOTILE_CANVAS_ID = "#autotileCanvas";
 
@@ -32,7 +34,6 @@ export default {
   data: () => ({
     tileset: null,
     tileSelectStart: null,
-    selection: [],
   }),
   created() {
     this.init();
@@ -108,8 +109,12 @@ export default {
     height() {
       return this.tileset?.height;
     },
+    selectedTiles() {
+      return this.$store.state.data.selectedTiles;
+    },
   },
   methods: {
+    ...mapMutations(["updateFields"]),
     init() {
       let tileset = new Image();
       tileset.src = `/tilesets/${this.tilesetName}.png`;
@@ -118,6 +123,8 @@ export default {
         this.tileset.src = tileset.src;
         this.tileset.onload = () => {
           this.draw();
+          this.drawSelectedAutotile(0, 0);
+          this.updateFields({ selectedTiles: [{ id: 0, x: 0, y: 0 }] });
           tileset = null;
         };
       };
@@ -178,7 +185,7 @@ export default {
     },
     getSelectedAutotile(event) {
       const { tx, ty } = this.getTileLocation(event);
-      return [{ id: tx, x: tx, y: ty }];
+      return [{ id: tx * 48 + 47, x: tx, y: ty }];
     },
     getTileLocation(event) {
       const { x, y } = event.target.getBoundingClientRect();
@@ -225,47 +232,37 @@ export default {
     },
     tilesetPointerMoveEvent(e) {
       if (this.tileSelectStart) {
-        this.selection = this.getSelectedTile(e);
-        const width =
-          this.selection[this.selection.length - 1].x - this.selection[0].x + 1;
-        const height =
-          this.selection[this.selection.length - 1].y - this.selection[0].y + 1;
-        this.drawSelectedTile(
-          this.selection[0].x,
-          this.selection[0].y,
-          width,
-          height
-        );
-        this.$emit("selectionChanged", this.selection);
+        const selection = this.getSelectedTile(e);
+        const width = selection[selection.length - 1].x - selection[0].x + 1;
+        const height = selection[selection.length - 1].y - selection[0].y + 1;
+        this.drawSelectedTile(selection[0].x, selection[0].y, width, height);
+        this.updateFields({ selectedTiles: selection });
+        this.$emit("selectionChanged", selection);
       }
     },
     tilesetPointerUpEvent(e) {
-      this.selection = this.getSelectedTile(e);
+      const selection = this.getSelectedTile(e);
       this.tileSelectStart = null;
-      const width =
-        this.selection[this.selection.length - 1].x - this.selection[0].x + 1;
-      const height =
-        this.selection[this.selection.length - 1].y - this.selection[0].y + 1;
-      this.drawSelectedTile(
-        this.selection[0].x,
-        this.selection[0].y,
-        width,
-        height
-      );
-      this.$emit("selectionChanged", this.selection);
+      const width = selection[selection.length - 1].x - selection[0].x + 1;
+      const height = selection[selection.length - 1].y - selection[0].y + 1;
+      this.drawSelectedTile(selection[0].x, selection[0].y, width, height);
+      this.updateFields({ selectedTiles: selection });
+      this.$emit("selectionChanged", selection);
     },
     autotilePointerMoveEvent(e) {
       if (this.tileSelectStart) {
-        this.selection = this.getSelectedAutotile(e);
-        this.drawSelectedAutotile(this.selection[0].x, this.selection[0].y);
-        this.$emit("selectionChanged", this.selection);
+        const selection = this.getSelectedAutotile(e);
+        this.drawSelectedAutotile(selection[0].x, selection[0].y);
+        this.updateFields({ selectedTiles: selection });
+        this.$emit("selectionChanged", selection);
       }
     },
     autotilePointerUpEvent(e) {
-      this.selection = this.getSelectedAutotile(e);
+      const selection = this.getSelectedAutotile(e);
       this.tileSelectStart = null;
-      this.drawSelectedAutotile(this.selection[0].x, this.selection[0].y);
-      this.$emit("selectionChanged", this.selection);
+      this.drawSelectedAutotile(selection[0].x, selection[0].y);
+      this.updateFields({ selectedTiles: selection });
+      this.$emit("selectionChanged", selection);
     },
   },
 };
