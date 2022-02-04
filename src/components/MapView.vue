@@ -10,6 +10,9 @@
         <span v-if="isInside">{{ x }}, {{ y }}</span>
       </div>
       <div class="item">1: 이벤트 이름</div>
+      <div class="item">
+        <input v-model="zoom" type="range" max="1.4" min="0.4" step="0.1" />
+      </div>
     </div>
   </div>
 </template>
@@ -51,8 +54,9 @@ const MAP_CANVAS_ID = "#mapCanvas";
 const TILESIZE = 32;
 const TOOLS = {
   BRUSH: 0,
-  PAN: 1,
-  FILL: 2,
+  SQUARE: 1,
+  CIRCLE: 2,
+  FILL: 3,
 };
 const AUTOTILES = [
   [
@@ -128,8 +132,7 @@ export default {
     backgroundColor: String,
   },
   data: () => ({
-    width: 0,
-    height: 0,
+    zoom: 1.0,
     tileset: null,
     tileAddStart: false,
     tileSelectStart: {},
@@ -140,6 +143,9 @@ export default {
   }),
   watch: {
     activeLayer() {
+      this.draw();
+    },
+    zoom() {
       this.draw();
     },
   },
@@ -173,16 +179,11 @@ export default {
     );
   },
   computed: {
-    drawable() {
-      return this.activeLayer >= 1 && this.activeLayer <= 3;
+    width() {
+      return this.maps[this.activeMap].width * TILESIZE * this.zoom;
     },
-    layer() {
-      return this.drawable
-        ? this.maps[this.activeMap].data[this.activeLayer - 1]
-        : null;
-    },
-    selectedTiles() {
-      return this.$store.state.data.selectedTiles || [];
+    height() {
+      return this.maps[this.activeMap].height * TILESIZE * this.zoom;
     },
     x() {
       return this.mouseX.toString().padStart(3, "0");
@@ -190,15 +191,24 @@ export default {
     y() {
       return this.mouseY.toString().padStart(3, "0");
     },
+    layer() {
+      return this.drawable
+        ? this.maps[this.activeMap].data[this.activeLayer - 1]
+        : null;
+    },
+    drawable() {
+      return this.activeLayer >= 1 && this.activeLayer <= 3;
+    },
     isInside() {
       return this.mouseX !== undefined && this.mouseY !== undefined;
+    },
+    selectedTiles() {
+      return this.$store.state.data.selectedTiles || [];
     },
   },
   methods: {
     ...mapMutations(["updateFields", "setLoading"]),
     init() {
-      this.width = this.maps[this.activeMap].width * TILESIZE;
-      this.height = this.maps[this.activeMap].height * TILESIZE;
       this.tileset = new Image();
       this.tileset.src = `/tilesets/${this.maps[this.activeMap].tileset}.png`;
       this.tileset.onload = async () => {
@@ -241,10 +251,10 @@ export default {
                 tileRow * TILESIZE,
                 TILESIZE,
                 TILESIZE,
-                x * TILESIZE,
-                y * TILESIZE,
-                TILESIZE,
-                TILESIZE
+                x * TILESIZE * this.zoom,
+                y * TILESIZE * this.zoom,
+                TILESIZE * this.zoom,
+                TILESIZE * this.zoom
               );
             } else if (tile > 0) {
               // 오토타일
@@ -259,10 +269,10 @@ export default {
                   parseInt(tile_position / 6) * 16,
                   16,
                   16,
-                  x * TILESIZE + (i % 2) * 16,
-                  y * TILESIZE + parseInt(i / 2) * 16,
-                  16,
-                  16
+                  (x * TILESIZE + (i % 2) * 16) * this.zoom,
+                  (y * TILESIZE + parseInt(i / 2) * 16) * this.zoom,
+                  16 * this.zoom,
+                  16 * this.zoom
                 );
               }
             }
@@ -282,13 +292,22 @@ export default {
       ctx.beginPath();
       ctx.lineWidth = 0.5;
       ctx.strokeStyle = "rgba(0, 0, 0, 0.4)";
-      ctx.rect(x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE);
+      ctx.rect(
+        x * TILESIZE * this.zoom,
+        y * TILESIZE * this.zoom,
+        TILESIZE * this.zoom,
+        TILESIZE * this.zoom
+      );
       ctx.stroke();
     },
     getTileLocation(event) {
       const { x, y } = event.target.getBoundingClientRect();
-      const tx = Math.floor(Math.max(event.clientX - x, 0) / TILESIZE);
-      const ty = Math.floor(Math.max(event.clientY - y, 0) / TILESIZE);
+      const tx = Math.floor(
+        Math.max(event.clientX - x, 0) / (TILESIZE * this.zoom)
+      );
+      const ty = Math.floor(
+        Math.max(event.clientY - y, 0) / (TILESIZE * this.zoom)
+      );
       return { tx, ty };
     },
     previewSelectedTile(event) {
@@ -309,10 +328,10 @@ export default {
               tileRow * TILESIZE,
               TILESIZE,
               TILESIZE,
-              (tx + tile.x - ix) * TILESIZE,
-              (ty + tile.y - iy) * TILESIZE,
-              TILESIZE,
-              TILESIZE
+              (tx + tile.x - ix) * TILESIZE * this.zoom,
+              (ty + tile.y - iy) * TILESIZE * this.zoom,
+              TILESIZE * this.zoom,
+              TILESIZE * this.zoom
             );
           } else if (tile.id > 8) {
             const autotileId = parseInt(tile.id / 48) - 1;
@@ -327,10 +346,11 @@ export default {
                   parseInt(tile_position / 6) * 16,
                   16,
                   16,
-                  (tx + tile.x - ix) * TILESIZE + (i % 2) * 16,
-                  (ty + tile.y - iy) * TILESIZE + parseInt(i / 2) * 16,
-                  16,
-                  16
+                  ((tx + tile.x - ix) * TILESIZE + (i % 2) * 16) * this.zoom,
+                  ((ty + tile.y - iy) * TILESIZE + parseInt(i / 2) * 16) *
+                    this.zoom,
+                  16 * this.zoom,
+                  16 * this.zoom
                 );
               }
             }
@@ -343,10 +363,10 @@ export default {
                 0,
                 TILESIZE,
                 TILESIZE,
-                (tx + tile.x - ix) * TILESIZE,
-                (ty + tile.y - iy) * TILESIZE,
-                TILESIZE,
-                TILESIZE
+                (tx + tile.x - ix) * TILESIZE * this.zoom,
+                (ty + tile.y - iy) * TILESIZE * this.zoom,
+                TILESIZE * this.zoom,
+                TILESIZE * this.zoom
               );
             }
           }
@@ -361,10 +381,10 @@ export default {
           1;
         this.drawRect(
           MAP_CANVAS_ID,
-          tx * TILESIZE,
-          ty * TILESIZE,
-          width * TILESIZE,
-          height * TILESIZE
+          tx * TILESIZE * this.zoom,
+          ty * TILESIZE * this.zoom,
+          width * TILESIZE * this.zoom,
+          height * TILESIZE * this.zoom
         );
       }
     },
@@ -402,10 +422,10 @@ export default {
       this.draw();
       this.drawRect(
         MAP_CANVAS_ID,
-        x * TILESIZE,
-        y * TILESIZE,
-        width * TILESIZE,
-        height * TILESIZE
+        x * TILESIZE * this.zoom,
+        y * TILESIZE * this.zoom,
+        width * TILESIZE * this.zoom,
+        height * TILESIZE * this.zoom
       );
     },
     addSelectedTile(event) {
