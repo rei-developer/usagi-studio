@@ -1,5 +1,8 @@
 <template>
-  <div :class="['ui-button', variant, size, block && 'block']" @click="onClick">
+  <div
+    :class="['ui-button', variant, size, active && 'active', block && 'block']"
+    @click="onClick"
+  >
     <font-awesome-icon :icon="icon" v-if="icon" />
     <slot />
   </div>
@@ -12,8 +15,11 @@
   line-height: 18px;
   padding: 0 5px;
   color: #333;
-  font-size: 13px;
+  font-size: 11px;
   cursor: default;
+  > svg {
+    margin-right: 4px;
+  }
   &.primary {
     background-color: var(--primary);
     &:hover {
@@ -33,6 +39,10 @@
     &:active {
       background-color: var(--primary-hover);
     }
+  }
+  &.active {
+    color: #fff;
+    background-color: var(--primary-hover);
   }
   &.block {
     width: 100%;
@@ -60,7 +70,7 @@ export default {
     },
     size: {
       type: String,
-      default: "md",
+      default: null,
     },
     icon: {
       type: String,
@@ -69,6 +79,10 @@ export default {
     label: {
       type: String,
       default: null,
+    },
+    active: {
+      type: Boolean,
+      default: false,
     },
     block: {
       type: Boolean,

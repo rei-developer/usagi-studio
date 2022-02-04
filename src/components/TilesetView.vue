@@ -19,7 +19,7 @@
   display: flex;
   flex-direction: column;
   width: 266px;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 50px);
   > .content {
     display: flex;
     flex-direction: column;

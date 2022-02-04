@@ -11,7 +11,7 @@
       </div>
       <div class="item">1: 이벤트 이름</div>
       <div class="item">
-        <div @click="onClickZoomDowner">
+        <div class="icon-wrapper" @click="onClickZoomDowner">
           <font-awesome-icon icon="search-minus" />
         </div>
         <div class="range-wrapper">
@@ -25,8 +25,11 @@
         <div class="label-wrapper">
           {{ zoomLabel }}
         </div>
-        <div @click="onClickZoomUpper">
+        <div class="icon-wrapper" @click="onClickZoomUpper">
           <font-awesome-icon icon="search-plus" />
+        </div>
+        <div class="icon-wrapper" @click="onClickZoomClear">
+          <font-awesome-icon icon="bullseye" />
         </div>
       </div>
     </div>
@@ -38,7 +41,7 @@
   display: flex;
   flex-direction: column;
   width: calc(100% - 267px);
-  height: calc(100vh - 100px);
+  height: calc(100vh - 50px);
   border-left: 1px solid #333;
   > .content {
     height: inherit;
@@ -56,6 +59,12 @@
     > .item {
       display: flex;
       padding: 0 4px;
+      > .icon-wrapper {
+        cursor: pointer;
+        &:last-child {
+          margin-left: 2px;
+        }
+      }
       > .label-wrapper {
         padding: 0 3px 0 2px;
       }
@@ -827,6 +836,9 @@ export default {
     },
     onClickZoomDowner() {
       if (this.zoom > 0.1) this.zoom = +(this.zoom - 0.1).toFixed(12);
+    },
+    onClickZoomClear() {
+      this.zoom = 1.0;
     },
     onInputZoom(zoom) {
       this.zoom = zoom;

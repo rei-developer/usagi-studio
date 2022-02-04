@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="row">
-      <map-tools
+      <tools
         @toolSelected="getSelectedTool"
         @activeLayer="getActiveLayer"
       />
@@ -39,7 +39,7 @@
 </style>
 
 <script>
-import MapTools from "@/components/MapTools.vue";
+import Tools from "@/components/Tools.vue";
 import MapView from "@/components/MapView.vue";
 import TilesetView from "@/components/TilesetView.vue";
 
@@ -48,7 +48,7 @@ import TilesetView from "@/components/TilesetView.vue";
 export default {
   name: "MapEditor",
   components: {
-    MapTools,
+    Tools,
     MapView,
     TilesetView,
   },
