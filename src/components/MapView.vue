@@ -11,21 +11,21 @@
       </div>
       <div class="item">1: 이벤트 이름</div>
       <div class="item">
-        <div>
+        <div @click="onClickZoomDowner">
           <font-awesome-icon icon="search-minus" />
         </div>
         <div class="range-wrapper">
           <ui-input-range
             :value="zoom"
-            :min="0.4"
-            :max="1.4"
+            :min="0.1"
+            :max="1.0"
             @onInputRange="onInputZoom"
           />
         </div>
         <div class="label-wrapper">
           {{ zoom }}
         </div>
-        <div>
+        <div @click="onClickZoomUpper">
           <font-awesome-icon icon="search-plus" />
         </div>
       </div>
@@ -41,6 +41,7 @@
   height: calc(100vh - 100px);
   border-left: 1px solid #333;
   > .content {
+    height: inherit;
     background: #000;
     overflow: auto;
   }
@@ -775,6 +776,12 @@ export default {
     },
     contextMenuEvent(e) {
       e.preventDefault();
+    },
+    onClickZoomUpper() {
+      if (this.zoom < 1) this.zoom = +(this.zoom + 0.1).toFixed(12);
+    },
+    onClickZoomDowner() {
+      if (this.zoom > 0.1) this.zoom = +(this.zoom - 0.1).toFixed(12);
     },
     onInputZoom(zoom) {
       this.zoom = zoom;
