@@ -23,7 +23,7 @@
           />
         </div>
         <div class="label-wrapper">
-          {{ zoom }}
+          {{ zoomLabel }}
         </div>
         <div @click="onClickZoomUpper">
           <font-awesome-icon icon="search-plus" />
@@ -221,6 +221,9 @@ export default {
       return this.drawable
         ? this.maps[this.activeMap].data[this.activeLayer - 1]
         : null;
+    },
+    zoomLabel() {
+      return this.zoom.toFixed(1);
     },
     drawable() {
       return this.activeLayer >= 1 && this.activeLayer <= 3;

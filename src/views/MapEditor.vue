@@ -65,8 +65,8 @@ export default {
     backgroundColor: "#333",
   }),
   created() {
-    this.activeMap = "Map079";
-    this.maps[this.activeMap] = require("@/assets/maps/Map079.json");
+    this.activeMap = "Map001";
+    this.maps[this.activeMap] = require("@/assets/maps/Map001.json");
     this.maps[this.activeMap].data = this.getMaps(
       this.maps[this.activeMap].data,
       this.maps[this.activeMap].width
