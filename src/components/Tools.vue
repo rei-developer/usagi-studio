@@ -1,59 +1,20 @@
 <template>
   <div class="tools-wrapper">
     <div class="row">
+      <div v-for="(menu, menuIndex) in menuGroup" :key="menuIndex" class="item">
+        <ui-button-group>
+          <ui-button
+            v-for="(item, index) in menu"
+            :key="index"
+            :icon="item.icon"
+            :active="item.active"
+            @click="item.click"
+          >
+            {{ item.label }}
+          </ui-button>
+        </ui-button-group>
+      </div>
       <div class="item">테스트</div>
-      <div class="item">
-        <ui-button-group>
-          <ui-button
-            v-for="(item, index) in fileMenus"
-            :key="index"
-            :icon="item.icon"
-            :active="item.active"
-            @click="item.click"
-          >
-            {{ item.label }}
-          </ui-button>
-        </ui-button-group>
-      </div>
-      <div class="item">
-        <ui-button-group>
-          <ui-button
-            v-for="(item, index) in editMenus"
-            :key="index"
-            :icon="item.icon"
-            :active="item.active"
-            @click="item.click"
-          >
-            {{ item.label }}
-          </ui-button>
-        </ui-button-group>
-      </div>
-      <div class="item">
-        <ui-button-group>
-          <ui-button
-            v-for="(item, index) in layerMenus"
-            :key="index"
-            :icon="item.icon"
-            :active="item.active"
-            @click="item.click"
-          >
-            {{ item.label }}
-          </ui-button>
-        </ui-button-group>
-      </div>
-      <div class="item">
-        <ui-button-group>
-          <ui-button
-            v-for="(item, index) in toolMenus"
-            :key="index"
-            :icon="item.icon"
-            :active="item.active"
-            @click="item.click"
-          >
-            {{ item.label }}
-          </ui-button>
-        </ui-button-group>
-      </div>
     </div>
   </div>
 </template>
@@ -111,6 +72,16 @@ export default {
     },
   },
   computed: {
+    menuGroup() {
+      return [
+        this.fileMenus,
+        this.editMenus,
+        this.layerMenus,
+        this.toolMenus,
+        this.adminMenus,
+        this.helpMenus,
+      ];
+    },
     fileMenus() {
       return [
         {
@@ -214,6 +185,56 @@ export default {
           icon: "vector-square",
           active: this.ACTIVE_TOOL === 4,
           click: () => this.setActiveTool(4),
+        },
+      ];
+    },
+    adminMenus() {
+      return [
+        {
+          label: "Admin",
+          icon: "table",
+          active: null,
+          click: () => {},
+        },
+        {
+          label: "Database",
+          icon: "database",
+          active: null,
+          click: () => {},
+        },
+        {
+          label: "Assets",
+          icon: "folder-open",
+          active: null,
+          click: () => {},
+        },
+        {
+          label: "Music",
+          icon: "music",
+          active: null,
+          click: () => {},
+        },
+        {
+          label: "Analyst",
+          icon: "chart-pie",
+          active: null,
+          click: () => {},
+        },
+      ];
+    },
+    helpMenus() {
+      return [
+        {
+          label: "Info",
+          icon: "info-circle",
+          active: null,
+          click: () => {},
+        },
+        {
+          label: "Setting",
+          icon: "cog",
+          active: null,
+          click: () => {},
         },
       ];
     },

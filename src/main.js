@@ -25,30 +25,48 @@ import {
   faCircle,
   faFillDrip,
   faVectorSquare,
+  faTable,
+  faDatabase,
+  faFolderOpen,
+  faMusic,
+  faChartPie,
+  faInfoCircle,
+  faCog,
   faSearchPlus,
   faSearchMinus,
   faBullseye,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
-library.add(faSave);
-library.add(faCut);
-library.add(faCopy);
-library.add(faPaste);
-library.add(faTimes);
-library.add(faUndo);
-library.add(faRedo);
-library.add(faMountain);
-library.add(faLayerGroup);
-library.add(faBolt);
-library.add(faPencilAlt);
-library.add(faSquareFull);
-library.add(faCircle);
-library.add(faFillDrip);
-library.add(faVectorSquare);
-library.add(faSearchPlus);
-library.add(faSearchMinus);
-library.add(faBullseye);
+const libraries = [
+  faSave,
+  faCut,
+  faCopy,
+  faPaste,
+  faTimes,
+  faUndo,
+  faRedo,
+  faMountain,
+  faLayerGroup,
+  faBolt,
+  faPencilAlt,
+  faSquareFull,
+  faCircle,
+  faFillDrip,
+  faVectorSquare,
+  faTable,
+  faDatabase,
+  faFolderOpen,
+  faMusic,
+  faChartPie,
+  faInfoCircle,
+  faCog,
+  faSearchPlus,
+  faSearchMinus,
+  faBullseye,
+];
+
+for (const icon of libraries) library.add(icon);
 
 app.use(store).use(router).mount("#app");
 
