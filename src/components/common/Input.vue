@@ -131,7 +131,7 @@ export default {
             event.target.value = this.max;
           }
         }
-        this.$emit("input", value);
+        this.$emit("onInput", value);
       } catch (error) {
         throw new Error(error);
       }

@@ -31,9 +31,9 @@
     display: flex;
     justify-content: flex-end;
     height: 19px;
-    line-height: 21px;
+    line-height: 19px;
     padding: 0 4px;
-    font-size: 14px;
+    font-size: 11px;
     border-top: 1px solid #333;
     background: var(--primary);
   }

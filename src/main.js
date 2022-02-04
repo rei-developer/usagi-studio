@@ -9,10 +9,16 @@ const app = createApp(App);
 
 // Import Font Awesome Icons
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faUserSecret } from "@fortawesome/free-solid-svg-icons";
+import {
+  faUserSecret,
+  faSearchPlus,
+  faSearchMinus,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 library.add(faUserSecret);
+library.add(faSearchPlus);
+library.add(faSearchMinus);
 
 app.use(store).use(router).mount("#app");
 

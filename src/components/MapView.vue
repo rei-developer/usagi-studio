@@ -11,7 +11,23 @@
       </div>
       <div class="item">1: 이벤트 이름</div>
       <div class="item">
-        <input v-model="zoom" type="range" max="1.4" min="0.4" step="0.1" />
+        <div>
+          <font-awesome-icon icon="search-minus" />
+        </div>
+        <div class="range-wrapper">
+          <ui-input-range
+            :value="zoom"
+            :min="0.4"
+            :max="1.4"
+            @onInputRange="onInputZoom"
+          />
+        </div>
+        <div class="label-wrapper">
+          {{ zoom }}
+        </div>
+        <div>
+          <font-awesome-icon icon="search-plus" />
+        </div>
       </div>
     </div>
   </div>
@@ -32,12 +48,19 @@
     display: flex;
     justify-content: flex-end;
     height: 19px;
-    line-height: 21px;
-    font-size: 14px;
+    line-height: 19px;
+    font-size: 11px;
     border-top: 1px solid #333;
     background: var(--primary);
     > .item {
+      display: flex;
       padding: 0 4px;
+      > .label-wrapper {
+        padding: 0 3px 0 2px;
+      }
+      > .range-wrapper {
+        padding: 2px 0;
+      }
     }
     > .item:not(:last-child) {
       border-right: 1px solid #33333333;
@@ -48,6 +71,7 @@
 
 <script>
 import { mapMutations } from "vuex";
+import UiInputRange from "@/components/common/InputRange";
 
 const MAP_CANVAS_ID = "#mapCanvas";
 
@@ -123,6 +147,7 @@ const AUTOTILES = [
 
 export default {
   name: "MapView",
+  components: { UiInputRange },
   props: {
     activeMap: String,
     activeLayer: Number,
@@ -750,6 +775,9 @@ export default {
     },
     contextMenuEvent(e) {
       e.preventDefault();
+    },
+    onInputZoom(zoom) {
+      this.zoom = zoom;
     },
   },
 };

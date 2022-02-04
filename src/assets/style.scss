@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding&display=swap');
+
 :root {
   --primary: #EDA7B2;
   --primary-hover: #5F5476;
@@ -21,6 +23,7 @@ html, body {
 
 body {
   margin: 0;
+  font-family: 'Nanum Gothic Coding', monospace;
   background: #FAFAFA
 }
 
