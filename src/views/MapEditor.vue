@@ -1,10 +1,7 @@
 <template>
   <div class="container">
     <div class="row">
-      <tools
-        @toolSelected="getSelectedTool"
-        @activeLayer="getActiveLayer"
-      />
+      <tools @toolSelected="getSelectedTool" @activeLayer="getActiveLayer" />
     </div>
     <div class="row">
       <tileset-view
