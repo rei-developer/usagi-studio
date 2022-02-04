@@ -166,12 +166,16 @@ export default {
     iy: 0,
     mouseX: undefined,
     mouseY: undefined,
+    previewOnDrawing: false,
   }),
   watch: {
     activeLayer() {
       this.draw();
     },
-    zoom() {
+    width() {
+      this.draw();
+    },
+    height() {
       this.draw();
     },
   },
@@ -249,6 +253,12 @@ export default {
       const ctx = this.getContext();
       ctx.clearRect(0, 0, this.width, this.height);
       this.maps[this.activeMap].data.forEach((layer, lindex) => {
+        if (this.zoom !== 1) {
+          ctx.webkitImageSmoothingEnabled = false;
+          ctx.mozImageSmoothingEnabled = false;
+          ctx.msImageSmoothingEnabled = false;
+          ctx.imageSmoothingEnabled = false;
+        }
         ctx.globalAlpha = 1;
         if (lindex + 1 === 1) {
           ctx.fillStyle = this.backgroundColor;
@@ -346,50 +356,19 @@ export default {
       if (this.drawable) {
         const ctx = this.getContext();
         ctx.globalAlpha = 0.7;
-        this.selectedTiles.forEach((tile) => {
-          if (tile.id >= 384) {
-            const tileNum = tile.id - 384; // 오프셋
-            const tileRow = parseInt(tileNum / 8);
-            const tileCol = tileNum % 8;
-            ctx.drawImage(
-              this.tileset,
-              tileCol * TILESIZE,
-              tileRow * TILESIZE,
-              TILESIZE,
-              TILESIZE,
-              (tx + tile.x - ix) * TILESIZE * this.zoom,
-              (ty + tile.y - iy) * TILESIZE * this.zoom,
-              TILESIZE * this.zoom,
-              TILESIZE * this.zoom
-            );
-          } else if (tile.id > 8) {
-            const autotileId = parseInt(tile.id / 48) - 1;
-            if (this.autotiles[autotileId]) {
-              const tileNum = tile.id % 48;
-              const tiles = AUTOTILES[parseInt(tileNum / 8)][tileNum % 8];
-              for (let i = 0; i < 5; i++) {
-                const tile_position = tiles[i] - 1;
-                ctx.drawImage(
-                  this.autotiles[autotileId],
-                  (tile_position % 6) * 16,
-                  parseInt(tile_position / 6) * 16,
-                  16,
-                  16,
-                  ((tx + tile.x - ix) * TILESIZE + (i % 2) * 16) * this.zoom,
-                  ((ty + tile.y - iy) * TILESIZE + parseInt(i / 2) * 16) *
-                    this.zoom,
-                  16 * this.zoom,
-                  16 * this.zoom
-                );
-              }
-            }
-          } else if (tile.id > 0) {
-            const autotileId = tile.id - 1;
-            if (this.autotiles[autotileId]) {
+        if (
+          !this.tileAddStart ||
+          (this.tileAddStart && this.previewOnDrawing)
+        ) {
+          this.selectedTiles.forEach((tile) => {
+            if (tile.id >= 384) {
+              const tileNum = tile.id - 384; // 오프셋
+              const tileRow = parseInt(tileNum / 8);
+              const tileCol = tileNum % 8;
               ctx.drawImage(
-                this.autotiles[autotileId],
-                0,
-                0,
+                this.tileset,
+                tileCol * TILESIZE,
+                tileRow * TILESIZE,
                 TILESIZE,
                 TILESIZE,
                 (tx + tile.x - ix) * TILESIZE * this.zoom,
@@ -397,9 +376,46 @@ export default {
                 TILESIZE * this.zoom,
                 TILESIZE * this.zoom
               );
+            } else if (tile.id > 8) {
+              const autotileId = parseInt(tile.id / 48) - 1;
+              if (this.autotiles[autotileId]) {
+                const tileNum = tile.id % 48;
+                const tiles = AUTOTILES[parseInt(tileNum / 8)][tileNum % 8];
+                for (let i = 0; i < 5; i++) {
+                  const tile_position = tiles[i] - 1;
+                  ctx.drawImage(
+                    this.autotiles[autotileId],
+                    (tile_position % 6) * 16,
+                    parseInt(tile_position / 6) * 16,
+                    16,
+                    16,
+                    ((tx + tile.x - ix) * TILESIZE + (i % 2) * 16) * this.zoom,
+                    ((ty + tile.y - iy) * TILESIZE + parseInt(i / 2) * 16) *
+                      this.zoom,
+                    16 * this.zoom,
+                    16 * this.zoom
+                  );
+                }
+              }
+            } else if (tile.id > 0) {
+              const autotileId = tile.id - 1;
+              if (this.autotiles[autotileId]) {
+                ctx.drawImage(
+                  this.autotiles[autotileId],
+                  0,
+                  0,
+                  TILESIZE,
+                  TILESIZE,
+                  (tx + tile.x - ix) * TILESIZE * this.zoom,
+                  (ty + tile.y - iy) * TILESIZE * this.zoom,
+                  TILESIZE * this.zoom,
+                  TILESIZE * this.zoom
+                );
+              }
             }
-          }
-        });
+          });
+        }
+
         const width =
           this.selectedTiles[this.selectedTiles.length - 1].x -
           this.selectedTiles[0].x +
@@ -442,10 +458,12 @@ export default {
         }
       }
       console.log(newSelection);
-      if (newSelection.length > 0) return newSelection;
-      return [
-        { id: this.layer[ty][tx], x: tx, y: ty, shiftKey: event.shiftKey },
-      ];
+      if (newSelection.length > 1) return newSelection;
+      const tileid =
+        this.layer[ty][tx] >= 384 || event.shiftKey
+          ? this.layer[ty][tx]
+          : parseInt(this.layer[ty][tx] / 48) * 48 + 47;
+      return [{ id: tileid, x: tx, y: ty, shiftKey: event.shiftKey }];
     },
     drawSelectedTile(x, y, width, height) {
       this.draw();
@@ -721,6 +739,7 @@ export default {
           this.ix = this.mouseX;
           this.iy = this.mouseY;
           this.addSelectedTile(e);
+          this.draw();
         }
       }
     },
@@ -745,16 +764,20 @@ export default {
               width,
               height
             );
-            this.updateFields({ selectedTiles: selection });
+            this.updateFields({
+              selectedTiles: selection,
+              activeCanvas: MAP_CANVAS_ID,
+            });
           }
         } else {
           if (this.selectedTiles.length) {
             this.draw();
             if (this.mode === TOOLS.BRUSH && this.drawable) {
-              this.previewSelectedTile(e);
               if (this.tileAddStart) {
                 this.addSelectedTile(e);
+                this.draw();
               }
+              this.previewSelectedTile(e);
             }
           }
         }
@@ -769,8 +792,12 @@ export default {
         const width = selection[selection.length - 1].x - selection[0].x + 1;
         const height = selection[selection.length - 1].y - selection[0].y + 1;
         this.drawSelectedTile(selection[0].x, selection[0].y, width, height);
-        this.updateFields({ selectedTiles: selection });
+        this.updateFields({
+          selectedTiles: selection,
+          activeCanvas: MAP_CANVAS_ID,
+        });
       }
+      this.previewSelectedTile(e);
     },
     mouseLeaveEvent() {
       this.draw();

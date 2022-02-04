@@ -1,6 +1,6 @@
 <template>
   <div class="tileset-view-wrapper">
-    <div class="content custom-scroll-box">
+    <div id="tileset" class="content custom-scroll-box">
       <canvas id="autotileCanvas" width="256" height="32">
         자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해 주세요.
       </canvas>
@@ -62,6 +62,35 @@ export default {
     tileset: null,
     tileSelectStart: null,
   }),
+  watch: {
+    selectedTiles() {
+      if (
+        this.activeCanvas !== TILESET_CANVAS_ID &&
+        this.activeCanvas !== AUTOTILE_CANVAS_ID
+      ) {
+        this.draw();
+        if (this.selectedTiles.length === 1) {
+          if (this.selectedTiles[0].id >= 384) {
+            const tileNum = this.selectedTiles[0].id - 384; // 오프셋
+            const tileRow = parseInt(tileNum / 8);
+            const tileCol = tileNum % 8;
+            this.drawSelectedTile(tileCol, tileRow, 1, 1);
+            this.$el.querySelector("#tileset").scrollTo({
+              top: (tileRow + 1) * TILESIZE,
+              behavior: "smooth",
+            });
+          } else if (this.selectedTiles[0].id > 0) {
+            const autotileId = parseInt(this.selectedTiles[0].id / 48);
+            this.drawSelectedAutotile(autotileId, 0);
+            this.$el.querySelector("#tileset").scrollTo({
+              top: 0,
+              behavior: "smooth",
+            });
+          }
+        }
+      }
+    },
+  },
   created() {
     this.init();
   },
@@ -139,6 +168,9 @@ export default {
     selectedTiles() {
       return this.$store.state.data.selectedTiles;
     },
+    activeCanvas() {
+      return this.$store.state.data.activeCanvas;
+    }
   },
   methods: {
     ...mapMutations(["updateFields"]),
@@ -263,7 +295,10 @@ export default {
         const width = selection[selection.length - 1].x - selection[0].x + 1;
         const height = selection[selection.length - 1].y - selection[0].y + 1;
         this.drawSelectedTile(selection[0].x, selection[0].y, width, height);
-        this.updateFields({ selectedTiles: selection });
+        this.updateFields({
+          selectedTiles: selection,
+          activeCanvas: TILESET_CANVAS_ID,
+        });
         this.$emit("selectionChanged", selection);
       }
     },
@@ -273,14 +308,20 @@ export default {
       const width = selection[selection.length - 1].x - selection[0].x + 1;
       const height = selection[selection.length - 1].y - selection[0].y + 1;
       this.drawSelectedTile(selection[0].x, selection[0].y, width, height);
-      this.updateFields({ selectedTiles: selection });
+      this.updateFields({
+        selectedTiles: selection,
+        activeCanvas: TILESET_CANVAS_ID,
+      });
       this.$emit("selectionChanged", selection);
     },
     autotilePointerMoveEvent(e) {
       if (this.tileSelectStart) {
         const selection = this.getSelectedAutotile(e);
         this.drawSelectedAutotile(selection[0].x, selection[0].y);
-        this.updateFields({ selectedTiles: selection });
+        this.updateFields({
+          selectedTiles: selection,
+          activeCanvas: AUTOTILE_CANVAS_ID,
+        });
         this.$emit("selectionChanged", selection);
       }
     },
@@ -288,7 +329,10 @@ export default {
       const selection = this.getSelectedAutotile(e);
       this.tileSelectStart = null;
       this.drawSelectedAutotile(selection[0].x, selection[0].y);
-      this.updateFields({ selectedTiles: selection });
+      this.updateFields({
+        selectedTiles: selection,
+        activeCanvas: AUTOTILE_CANVAS_ID,
+      });
       this.$emit("selectionChanged", selection);
     },
   },
