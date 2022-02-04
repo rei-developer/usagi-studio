@@ -74,7 +74,7 @@ export default {
     },
     icon: {
       type: String,
-      default: "user-secret",
+      default: null,
     },
     label: {
       type: String,
@@ -99,7 +99,7 @@ export default {
         const sound = new Audio("/sound/done.mp3");
         sound.play();
       }
-      this.$emit("click", event);
+      this.$emit("onClick", event);
     },
   },
 };

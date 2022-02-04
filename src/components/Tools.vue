@@ -16,6 +16,11 @@
       </div>
       <div class="item">테스트</div>
     </div>
+    <info-dialog
+      v-if="isInfoDialogOpened"
+      ref="info-dialog"
+      @onCloseDialog="onCloseInfoDialog"
+    />
   </div>
 </template>
 
@@ -52,16 +57,19 @@
 import { mapMutations } from "vuex";
 import UiButton from "@/components/common/Button";
 import UiButtonGroup from "@/components/common/ButtonGroup";
+import InfoDialog from "@/components/dialog/InfoDialog";
 
 export default {
   name: "Tools",
   components: {
     UiButton,
     UiButtonGroup,
+    InfoDialog,
   },
   data: () => ({
     ACTIVE_TOOL: 0,
     ACTIVE_LAYER: 1,
+    isInfoDialogOpened: false,
   }),
   watch: {
     ACTIVE_TOOL() {
@@ -228,7 +236,7 @@ export default {
           label: "Info",
           icon: "info-circle",
           active: null,
-          click: () => {},
+          click: () => (this.isInfoDialogOpened = true),
         },
         {
           label: "Setting",
@@ -246,6 +254,9 @@ export default {
     },
     setActiveLayer(layer) {
       this.ACTIVE_LAYER = layer;
+    },
+    onCloseInfoDialog() {
+      this.isInfoDialogOpened = false;
     },
   },
 };
