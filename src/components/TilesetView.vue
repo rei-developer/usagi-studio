@@ -8,7 +8,9 @@
         자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해 주세요.
       </canvas>
     </div>
-    <div class="bottom">1: {{ mapName }} ({{ width }} x {{ height }})</div>
+    <div class="bottom">
+      1: {{ mapName }} ({{ mapWidth }} x {{ mapHeight }})
+    </div>
   </div>
 </template>
 
