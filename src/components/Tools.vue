@@ -8,6 +8,7 @@
             :key="index"
             :icon="item.icon"
             :active="item.active"
+            :disabled="item.disabled"
             @click="item.click"
           >
             {{ item.label }}
@@ -16,9 +17,12 @@
       </div>
       <div class="item">테스트</div>
     </div>
+    <database-dialog
+      v-if="isDatabaseDialogOpened"
+      @onCloseDialog="onCloseDatabaseDialog"
+    />
     <info-dialog
       v-if="isInfoDialogOpened"
-      ref="info-dialog"
       @onCloseDialog="onCloseInfoDialog"
     />
   </div>
@@ -55,20 +59,23 @@
 
 <script>
 import { mapMutations } from "vuex";
+import DatabaseDialog from "@/components/dialog/database/DatabaseDialog";
+import InfoDialog from "@/components/dialog/InfoDialog";
 import UiButton from "@/components/common/Button";
 import UiButtonGroup from "@/components/common/ButtonGroup";
-import InfoDialog from "@/components/dialog/InfoDialog";
 
 export default {
   name: "Tools",
   components: {
+    DatabaseDialog,
+    InfoDialog,
     UiButton,
     UiButtonGroup,
-    InfoDialog,
   },
   data: () => ({
     ACTIVE_TOOL: 0,
     ACTIVE_LAYER: 1,
+    isDatabaseDialogOpened: false,
     isInfoDialogOpened: false,
   }),
   watch: {
@@ -168,30 +175,35 @@ export default {
           label: "Draw",
           icon: "pencil-alt",
           active: this.ACTIVE_TOOL === 0,
+          disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(0),
         },
         {
           label: "Square",
           icon: "square-full",
           active: this.ACTIVE_TOOL === 1,
+          disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(1),
         },
         {
           label: "Circle",
           icon: "circle",
           active: this.ACTIVE_TOOL === 2,
+          disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(2),
         },
         {
           label: "Fill",
           icon: "fill-drip",
           active: this.ACTIVE_TOOL === 3,
+          disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(3),
         },
         {
           label: "Select",
           icon: "vector-square",
           active: this.ACTIVE_TOOL === 4,
+          disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(4),
         },
       ];
@@ -207,8 +219,8 @@ export default {
         {
           label: "Database",
           icon: "database",
-          active: null,
-          click: () => {},
+          active: this.isDatabaseDialogOpened,
+          click: () => (this.isDatabaseDialogOpened = true),
         },
         {
           label: "Assets",
@@ -235,7 +247,7 @@ export default {
         {
           label: "Info",
           icon: "info-circle",
-          active: null,
+          active: this.isInfoDialogOpened,
           click: () => (this.isInfoDialogOpened = true),
         },
         {
@@ -246,6 +258,9 @@ export default {
         },
       ];
     },
+    isNotPossibleEditMap() {
+      return this.ACTIVE_LAYER === 0 || this.ACTIVE_LAYER === 4;
+    },
   },
   methods: {
     ...mapMutations(["updateFields"]),
@@ -254,6 +269,9 @@ export default {
     },
     setActiveLayer(layer) {
       this.ACTIVE_LAYER = layer;
+    },
+    onCloseDatabaseDialog() {
+      this.isDatabaseDialogOpened = false;
     },
     onCloseInfoDialog() {
       this.isInfoDialogOpened = false;

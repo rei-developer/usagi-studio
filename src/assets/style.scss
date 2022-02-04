@@ -119,24 +119,31 @@ span.highlight {
     border: 1px solid #000;
     background: #333;
     box-shadow: 1px 0 10px rgba(0, 0, 0, .1);
-    // cursor: move;
     animation: fadein 1s;
     -moz-animation: fadein 1s;
     -webkit-animation: fadein 1s;
     -o-animation: fadein 1s;
 
     > .header {
+      display: flex;
+      align-content: center;
       height: 22px;
       line-height: 22px;
       padding: 0 5px;
       color: #333;
       background: var(--primary);
 
+      > svg {
+        margin: 4px 4px 0 0;
+      }
+
       > .close {
+        display: flex;
+        flex: 1;
+        justify-content: flex-end;
         padding-top: 3px;
         color: #333;
-        font-size: 18px;
-        cursor: pointer;
+        font-size: 16px;
       }
     }
 

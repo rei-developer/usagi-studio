@@ -10,6 +10,7 @@ const app = createApp(App);
 // Import Font Awesome Icons
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
+  faCopyright,
   faSave,
   faCut,
   faCopy,
@@ -39,6 +40,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 const libraries = [
+  faCopyright,
   faSave,
   faCut,
   faCopy,
