@@ -424,6 +424,7 @@ export default {
           this.selectedTiles[this.selectedTiles.length - 1].y -
           this.selectedTiles[0].y +
           1;
+        ctx.globalAlpha = 1;
         this.drawRect(
           MAP_CANVAS_ID,
           tx * TILESIZE * this.zoom,
@@ -457,7 +458,6 @@ export default {
           }
         }
       }
-      console.log(newSelection);
       if (newSelection.length > 1) return newSelection;
       const tileid =
         this.layer[ty][tx] >= 384 || event.shiftKey
@@ -523,8 +523,12 @@ export default {
             // TODO: 세 칸 이상부터 패턴 파괴
             if (
               ty >= 0 &&
+              ty + dy >= 0 &&
               tx >= 0 &&
+              tx + dx >= 0 &&
+              ty < this.maps[this.activeMap].height &&
               ty + dy < this.maps[this.activeMap].height &&
+              tx < this.maps[this.activeMap].width &&
               tx + dx < this.maps[this.activeMap].width
             ) {
               this.layer[ty + dy][tx + dx] =
@@ -720,13 +724,24 @@ export default {
     removeEventHandler(id, event, callback) {
       return this.$el.querySelector(id).removeEventListener(event, callback);
     },
-    drawRect(canvasId, x, y, width, height, style = "rgba(0, 0, 0, 1)") {
+    drawRect(canvasId, x, y, width, height, _style = "rgba(0, 0, 0, 1)") {
       const ctx = this.getContext(canvasId);
-      ctx.beginPath();
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = style;
-      ctx.rect(x, y, width, height);
-      ctx.stroke();
+      const makefillRect = (x, y, width, height, style = _style) => {
+        ctx.fillStyle = style;
+        ctx.fillRect(x, y, width, height);
+      };
+      makefillRect(x, y, width, 1, "#000");
+      makefillRect(x, y, 1, height, "#000");
+      makefillRect(x + width - 1, y, 1, height, "#000");
+      makefillRect(x, y + height - 1, width, 1, "#000");
+      makefillRect(x + 1, y + 1, width - 2, 2, "#fff");
+      makefillRect(x + 1, y + 1, 2, height - 2, "#fff");
+      makefillRect(x + width - 3, y + 1, 2, height - 2, "#fff");
+      makefillRect(x + 1, y + height - 3, width - 2, 2, "#fff");
+      makefillRect(x + 3, y + 3, width - 6, 1, "#000");
+      makefillRect(x + 3, y + 3, 1, height - 6, "#000");
+      makefillRect(x + width - 4, y + 3, 1, height - 6, "#000");
+      makefillRect(x + 3, y + height - 4, width - 6, 1, "#000");
     },
     pointerDownEvent(e) {
       if (this.mode === TOOLS.BRUSH && this.drawable) {
