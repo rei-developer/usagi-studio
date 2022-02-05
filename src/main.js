@@ -11,6 +11,8 @@ const app = createApp(App);
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
   faCopyright,
+  faFileImport,
+  faFileExport,
   faSave,
   faCut,
   faCopy,
@@ -20,7 +22,7 @@ import {
   faRedo,
   faMountain,
   faLayerGroup,
-  faBolt,
+  faStreetView,
   faPencilAlt,
   faSquareFull,
   faCircle,
@@ -41,6 +43,8 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 const libraries = [
   faCopyright,
+  faFileImport,
+  faFileExport,
   faSave,
   faCut,
   faCopy,
@@ -50,7 +54,7 @@ const libraries = [
   faRedo,
   faMountain,
   faLayerGroup,
-  faBolt,
+  faStreetView,
   faPencilAlt,
   faSquareFull,
   faCircle,

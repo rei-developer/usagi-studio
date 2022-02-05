@@ -5,6 +5,14 @@
   --primary-hover: #5F5476;
 }
 
+::selection {
+  background: transparent;
+}
+
+::-moz-selection {
+  background: transparent;
+}
+
 @media (max-width: 1199px) {
   .desktop-only {
     display: none

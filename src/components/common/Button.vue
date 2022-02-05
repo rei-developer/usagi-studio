@@ -9,18 +9,28 @@
       disabled && 'disabled',
       block && 'block',
     ]"
+    @mouseover="onMouseOver"
+    @mouseleave="onMouseLeave"
     @click="onClick"
   >
     <font-awesome-icon :icon="icon" v-if="icon" />
     <slot />
+    <div
+      v-if="description && x && y"
+      class="description"
+      :style="{ left: `${x}px`, top: `${y}px` }"
+    >
+      {{ description }}
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .ui-button {
+  display: flex;
+  align-items: center;
   width: fit-content;
   height: 19px;
-  line-height: 18px;
   padding: 0 5px;
   color: #333;
   font-size: 11px;
@@ -34,7 +44,7 @@
       opacity: 0.9;
     }
     &:active {
-      color: #fff;
+      color: var(--primary);
       background-color: var(--primary-hover);
     }
   }
@@ -70,6 +80,17 @@
     padding: 0 10px;
     font-size: 15px;
   }
+  > .description {
+    position: absolute;
+    width: fit-content;
+    height: 19px;
+    padding: 2px 4px;
+    color: #fff;
+    font-size: 11px;
+    border: 1px solid #ffffff33;
+    background-color: #333;
+    z-index: 100;
+  }
 }
 </style>
 
@@ -90,6 +111,10 @@ export default {
       default: null,
     },
     label: {
+      type: String,
+      default: null,
+    },
+    description: {
       type: String,
       default: null,
     },
@@ -114,7 +139,21 @@ export default {
       default: false,
     },
   },
+  data: () => ({
+    x: null,
+    y: null,
+  }),
   methods: {
+    onMouseOver(event) {
+      if (!this.description) return;
+      this.x = event.clientX;
+      this.y = event.clientY + 20;
+    },
+    onMouseLeave() {
+      if (!this.description) return;
+      this.x = null;
+      this.y = null;
+    },
     onClick(event) {
       if (this.beep) {
         const sound = new Audio("/sound/done.mp3");

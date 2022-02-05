@@ -6,6 +6,7 @@
           <ui-button
             v-for="(item, index) in menu"
             :key="index"
+            :description="item.description"
             :icon="item.icon"
             :active="item.active"
             :unnamed="!item.label"
@@ -105,6 +106,19 @@ export default {
     fileMenus() {
       return [
         {
+          description: "맵 가져오기",
+          icon: "file-import",
+          active: null,
+          click: () => {},
+        },
+        {
+          description: "맵 추출하기",
+          icon: "file-export",
+          active: null,
+          click: () => {},
+        },
+        {
+          description: "모두 저장",
           icon: "save",
           active: null,
           click: () => {},
@@ -114,21 +128,25 @@ export default {
     editMenus() {
       return [
         {
+          description: "잘라내기",
           icon: "cut",
           active: null,
           click: () => {},
         },
         {
+          description: "복사하기",
           icon: "copy",
           active: null,
           click: () => {},
         },
         {
+          description: "붙여넣기",
           icon: "paste",
           active: null,
           click: () => {},
         },
         {
+          description: "삭제하기",
           icon: "times",
           active: null,
           click: () => {},
@@ -138,32 +156,35 @@ export default {
     layerMenus() {
       return [
         {
-          label: "Preview",
+          description: "미리보기",
           icon: "mountain",
           active: this.ACTIVE_LAYER === 0,
           click: () => this.setActiveLayer(0),
         },
         {
+          description: "레이어 1",
           label: "Layer 1",
           icon: "layer-group",
           active: this.ACTIVE_LAYER === 1,
           click: () => this.setActiveLayer(1),
         },
         {
+          description: "레이어 2",
           label: "Layer 2",
           icon: "layer-group",
           active: this.ACTIVE_LAYER === 2,
           click: () => this.setActiveLayer(2),
         },
         {
+          description: "레이어 3",
           label: "Layer 3",
           icon: "layer-group",
           active: this.ACTIVE_LAYER === 3,
           click: () => this.setActiveLayer(3),
         },
         {
-          label: "Event",
-          icon: "bolt",
+          description: "이벤트 레이어",
+          icon: "street-view",
           active: this.ACTIVE_LAYER === 4,
           click: () => this.setActiveLayer(4),
         },
@@ -172,30 +193,35 @@ export default {
     toolMenus() {
       return [
         {
+          description: "그리기",
           icon: "pencil-alt",
           active: this.ACTIVE_TOOL === 0,
           disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(0),
         },
         {
+          description: "사각형",
           icon: "square-full",
           active: this.ACTIVE_TOOL === 1,
           disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(1),
         },
         {
+          description: "원형",
           icon: "circle",
           active: this.ACTIVE_TOOL === 2,
           disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(2),
         },
         {
+          description: "채우기",
           icon: "fill-drip",
           active: this.ACTIVE_TOOL === 3,
           disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(3),
         },
         {
+          description: "선택하기",
           icon: "vector-square",
           active: this.ACTIVE_TOOL === 4,
           disabled: this.isNotPossibleEditMap,
@@ -206,30 +232,35 @@ export default {
     adminMenus() {
       return [
         {
+          description: "관리자",
           label: "Admin",
           icon: "table",
           active: null,
           click: () => {},
         },
         {
+          description: "데이터베이스",
           label: "Database",
           icon: "database",
           active: this.isDatabaseDialogOpened,
           click: () => (this.isDatabaseDialogOpened = true),
         },
         {
+          description: "에셋",
           label: "Assets",
           icon: "folder-open",
           active: null,
           click: () => {},
         },
         {
+          description: "음원",
           label: "Music",
           icon: "music",
           active: null,
           click: () => {},
         },
         {
+          description: "통계",
           label: "Analyst",
           icon: "chart-pie",
           active: null,
@@ -240,11 +271,13 @@ export default {
     helpMenus() {
       return [
         {
+          description: "툴 정보",
           icon: "info-circle",
           active: this.isInfoDialogOpened,
           click: () => (this.isInfoDialogOpened = true),
         },
         {
+          description: "환경설정",
           icon: "cog",
           active: null,
           click: () => {},
