@@ -13,6 +13,8 @@
     </div>
     <autotile-dialog
       v-if="isAutotileDialogOpened"
+      :mouseX="mouseX"
+      :mouseY="mouseY"
       @onCloseDialog="onCloseAutotileDialog"
     />
   </div>
@@ -83,6 +85,8 @@ export default {
     },
   },
   data: () => ({
+    mouseX: null,
+    mouseY: null,
     tileset: null,
     tileSelectStart: null,
     isAutotileDialogOpened: false,
@@ -386,9 +390,15 @@ export default {
     },
     autotileDoubleClickEvent(e) {
       const autotileId = this.getTileLocation(e).tx - 1;
-      if (this.autotiles[autotileId]) this.isAutotileDialogOpened = true;
+      if (this.autotiles[autotileId]) {
+        this.mouseX = e.clientX;
+        this.mouseY = e.clientY;
+        this.isAutotileDialogOpened = true;
+      }
     },
     onCloseAutotileDialog() {
+      this.mouseX = null;
+      this.mouseY = null;
       this.isAutotileDialogOpened = false;
     },
   },

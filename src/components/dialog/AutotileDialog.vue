@@ -12,6 +12,16 @@ import UiDialog from "@/components/common/Dialog";
 export default {
   name: "AutotileDialog",
   components: { UiDialog },
+  props: {
+    mouseX: {
+      type: Number,
+      default: 0,
+    },
+    mouseY: {
+      type: Number,
+      default: 0,
+    },
+  },
   computed: {
     dialogOptions() {
       return {
@@ -19,6 +29,8 @@ export default {
         icon: "layer-group",
         width: 266,
         height: 248,
+        mouseX: this.mouseX,
+        mouseY: this.mouseY + 20,
         callback: () => this.doEvent(),
       };
     },

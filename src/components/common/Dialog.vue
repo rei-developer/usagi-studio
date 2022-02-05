@@ -48,6 +48,14 @@ export default {
       type: Number,
       default: null,
     },
+    mouseX: {
+      type: Number,
+      default: null,
+    },
+    mouseY: {
+      type: Number,
+      default: null,
+    },
     callback: {
       type: Function,
       default: null,
@@ -58,11 +66,16 @@ export default {
     y: 0,
   }),
   async mounted() {
-    await this.$nextTick();
-    const width = this.$refs.dialog?.clientWidth;
-    const height = this.$refs.dialog?.clientHeight;
-    this.x = window.innerWidth / 2 - width / 2;
-    this.y = window.innerHeight / 2 - height / 2;
+    if (!this.mouseX && !this.mouseY) {
+      await this.$nextTick();
+      const width = this.$refs.dialog?.clientWidth;
+      const height = this.$refs.dialog?.clientHeight;
+      this.x = window.innerWidth / 2 - width / 2;
+      this.y = window.innerHeight / 2 - height / 2;
+    } else {
+      this.x = this.mouseX;
+      this.y = this.mouseY;
+    }
     window.addEventListener("keydown", this.onKeyDownEvent);
   },
   beforeUnmount() {
