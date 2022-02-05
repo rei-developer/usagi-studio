@@ -176,6 +176,7 @@ export default {
     mouseX: undefined,
     mouseY: undefined,
     previewOnDrawing: false,
+    preview: [],
   }),
   watch: {
     activeLayer() {
@@ -475,14 +476,117 @@ export default {
               (x - Math.min(this.ix, tx)) % width === tileOffsetX &&
               (y - Math.min(this.iy, ty)) % height === tileOffsetY
             ) {
-              preview.push({ id: tile.id, x: x, y: y });
+              preview.push({
+                id:
+                  tile.id >= 384 || tile.shiftKey
+                    ? tile.id
+                    : event.shiftKey
+                    ? parseInt(tile.id / 48) * 48
+                    : this.getAutotileId(
+                        this.layer,
+                        parseInt(tile.id / 48),
+                        x,
+                        y
+                      ),
+                x: x,
+                y: y,
+              });
             }
           }
         }
       });
       return { preview, width, height };
     },
-    previewSquare(preview, width, height) {
+    getCircle(event) {
+      const preview = [];
+      const { tx, ty } = this.getTileLocation(event);
+      const ix = Math.min.apply(
+        null,
+        this.selectedTiles.map((item) => item.x)
+      );
+      const iy = Math.min.apply(
+        null,
+        this.selectedTiles.map((item) => item.y)
+      );
+      const lx = Math.max.apply(
+        null,
+        this.selectedTiles.map((item) => item.x)
+      );
+      const ly = Math.max.apply(
+        null,
+        this.selectedTiles.map((item) => item.y)
+      );
+      const width = lx - ix + 1;
+      const height = ly - iy + 1;
+      const twidth = Math.abs(tx - this.ix) + 1;
+      const theight = Math.abs(ty - this.iy) + 1;
+      const c = Math.sqrt(Math.abs((twidth / 2) ** 2 - (theight / 2) ** 2));
+      const longAxis = theight > twidth ? theight : twidth;
+      const focus = [
+        {
+          x:
+            twidth > theight
+              ? parseInt((this.ix + tx) / 2) - c
+              : parseInt((this.ix + tx) / 2),
+          y:
+            twidth > theight
+              ? parseInt((this.iy + ty) / 2)
+              : parseInt((this.iy + ty) / 2) - c,
+        },
+        {
+          x:
+            twidth > theight
+              ? parseInt((this.ix + tx) / 2) + c
+              : parseInt((this.ix + tx) / 2),
+          y:
+            twidth > theight
+              ? parseInt((this.iy + ty) / 2)
+              : parseInt((this.iy + ty) / 2) + c,
+        },
+      ];
+      const getDistance = (a, b) => {
+        return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+      };
+      const isInsideCircle = (a) => {
+        return (
+          Math.round(getDistance(a, focus[0]) + getDistance(a, focus[1])) <
+          longAxis
+        );
+      };
+      this.selectedTiles.forEach((tile) => {
+        const tileOffsetX = tile.x - ix;
+        const tileOffsetY = tile.y - iy;
+        for (let y = Math.min(this.iy, ty); y <= Math.max(this.iy, ty); y++) {
+          for (let x = Math.min(this.ix, tx); x <= Math.max(this.ix, tx); x++) {
+            if (
+              (x - Math.min(this.ix, tx)) % width === tileOffsetX &&
+              (y - Math.min(this.iy, ty)) % height === tileOffsetY &&
+              isInsideCircle({ x, y })
+            ) {
+              console.log(tile.id);
+              preview.push({
+                id:
+                  tile.id >= 384 || tile.shiftKey
+                    ? tile.id
+                    : event.shiftKey
+                    ? parseInt(tile.id / 48) * 48
+                    : this.getAutotileId(
+                        this.layer,
+                        parseInt(tile.id / 48),
+                        x,
+                        y
+                      ),
+                x: x,
+                y: y,
+              });
+            }
+          }
+        }
+      });
+      console.log(preview);
+      return { preview, width, height };
+    },
+    previewSquareCircle(preview) {
       this.context.globalAlpha = 1;
       preview.forEach((tile) => {
         if (tile.id >= 384) {
@@ -537,14 +641,16 @@ export default {
           }
         }
       });
-      this.context.globalAlpha = 1;
-      this.drawRect(
-        MAP_CANVAS_ID,
-        this.ix * TILESIZE * this.zoom,
-        this.iy * TILESIZE * this.zoom,
-        width * TILESIZE * this.zoom,
-        height * TILESIZE * this.zoom
-      );
+    },
+    addSquare(event, layer, preview) {
+      preview.forEach((tile) => {
+        layer[tile.y][tile.x] = tile.id;
+      });
+      if (!event.shiftKey) {
+        preview.forEach((tile) => {
+          this.updateAutotile(tile.x, tile.y);
+        });
+      }
     },
     getSelectedTile(event) {
       // const offset = 384;
@@ -648,6 +754,7 @@ export default {
                   : event.shiftKey
                   ? parseInt(tile.id / 48) * 48
                   : this.getAutotileId(
+                      this.layer,
                       parseInt(tile.id / 48),
                       tx + dx,
                       ty + dy
@@ -683,6 +790,7 @@ export default {
           this.layer[item[1]][item[0]] < 384
         ) {
           this.layer[item[1]][item[0]] = this.getAutotileId(
+            this.layer,
             parseInt(this.layer[item[1]][item[0]] / 48),
             item[0],
             item[1]
@@ -690,7 +798,7 @@ export default {
         }
       });
     },
-    getAutotileId(_id, x, y) {
+    getAutotileId(layer, _id, x, y) {
       // 주변 타일을 비교하여 오토타일 id를 부여합니다.
       const NW = Math.pow(2, 0);
       const N = Math.pow(2, 1);
@@ -759,17 +867,17 @@ export default {
         e = false,
         s = false,
         w = false;
-      if ((y > 0 && checkAutotile(this.layer[y - 1][x])) || y === 0) {
+      if ((y > 0 && checkAutotile(layer[y - 1][x])) || y === 0) {
         n = true;
         sum += N;
       }
-      if ((x > 0 && checkAutotile(this.layer[y][x - 1])) || x === 0) {
+      if ((x > 0 && checkAutotile(layer[y][x - 1])) || x === 0) {
         w = true;
         sum += W;
       }
       if (
         (x < this.maps[this.activeMap].width - 1 &&
-          checkAutotile(this.layer[y][x + 1])) ||
+          checkAutotile(layer[y][x + 1])) ||
         x === this.maps[this.activeMap].width - 1
       ) {
         e = true;
@@ -777,7 +885,7 @@ export default {
       }
       if (
         (y < this.maps[this.activeMap].height - 1 &&
-          checkAutotile(this.layer[y + 1][x])) ||
+          checkAutotile(layer[y + 1][x])) ||
         y === this.maps[this.activeMap].height - 1
       ) {
         s = true;
@@ -786,7 +894,7 @@ export default {
       if (
         n &&
         w &&
-        ((y > 0 && x > 0 && checkAutotile(this.layer[y - 1][x - 1])) ||
+        ((y > 0 && x > 0 && checkAutotile(layer[y - 1][x - 1])) ||
           y === 0 ||
           x === 0)
       )
@@ -796,7 +904,7 @@ export default {
         e &&
         ((y > 0 &&
           x < this.maps[this.activeMap].width - 1 &&
-          checkAutotile(this.layer[y - 1][x + 1])) ||
+          checkAutotile(layer[y - 1][x + 1])) ||
           y === 0 ||
           x === this.maps[this.activeMap].width - 1)
       )
@@ -806,7 +914,7 @@ export default {
         w &&
         ((y < this.maps[this.activeMap].height - 1 &&
           x > 0 &&
-          checkAutotile(this.layer[y + 1][x - 1])) ||
+          checkAutotile(layer[y + 1][x - 1])) ||
           y === this.maps[this.activeMap].height - 1 ||
           x === 0)
       )
@@ -816,7 +924,7 @@ export default {
         e &&
         ((x < this.maps[this.activeMap].width - 1 &&
           y < this.maps[this.activeMap].height - 1 &&
-          checkAutotile(this.layer[y + 1][x + 1])) ||
+          checkAutotile(layer[y + 1][x + 1])) ||
           x === this.maps[this.activeMap].width - 1 ||
           y === this.maps[this.activeMap].height - 1)
       )
@@ -876,8 +984,14 @@ export default {
           } else {
             // 좌클릭
             this.tileAddStart = true;
-            console.log(this.getSquare(e));
-            // this.draw();
+          }
+        } else if (this.mode === TOOLS.CIRCLE) {
+          if (e.button === 2 || e.which === 3) {
+            // 우클릭
+            this.tileSelectStart = this.getSelectedTile(e)[0];
+          } else {
+            // 좌클릭
+            this.tileAddStart = true;
           }
         }
       }
@@ -943,9 +1057,44 @@ export default {
               }
             } else {
               if (this.tileAddStart) {
-                const { preview, width, height } = this.getSquare(e);
+                const { preview } = this.getSquare(e);
                 this.draw();
-                this.previewSquare(preview, width, height);
+                this.previewSquareCircle(preview);
+                this.preview = preview;
+              } else {
+                this.draw();
+                this.previewSelectedTile(e);
+              }
+            }
+          } else if (this.mode === TOOLS.CIRCLE) {
+            // 우클릭
+            if (e.buttons === 2 || e.which === 3) {
+              if (this.tileSelectStart) {
+                const selection = this.getSelectedTile(e);
+                const width =
+                  selection[selection.length - 1].x - selection[0].x + 1;
+                const height =
+                  selection[selection.length - 1].y - selection[0].y + 1;
+                this.drawSelectedTile(
+                  selection[0].x,
+                  selection[0].y,
+                  width,
+                  height
+                );
+                this.updateFields({
+                  selectedTiles: selection,
+                  activeCanvas: MAP_CANVAS_ID,
+                });
+              }
+            } else {
+              if (this.tileAddStart) {
+                const { preview } = this.getCircle(e);
+                this.draw();
+                this.previewSquareCircle(preview);
+                this.preview = preview;
+              } else {
+                this.draw();
+                this.previewSelectedTile(e);
               }
             }
           }
@@ -953,6 +1102,15 @@ export default {
       }
     },
     pointerUpEvent(e) {
+      if (this.drawable && this.tileAddStart) {
+        if (this.mode === TOOLS.SQUARE) {
+          this.addSquare(e, this.layer, this.preview);
+          this.draw();
+        } else if (this.mode === TOOLS.CIRCLE) {
+          this.addSquare(e, this.layer, this.preview);
+          this.draw();
+        }
+      }
       this.tileAddStart = false;
       // 마우스 우클릭
       if (e.button === 2 || e.which === 3) {
