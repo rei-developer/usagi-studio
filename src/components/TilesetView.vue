@@ -208,7 +208,10 @@ export default {
         this.tileset.onload = () => {
           this.draw();
           this.drawSelectedAutotile(0, 0);
-          this.updateFields({ selectedTiles: [{ id: 0, x: 0, y: 0 }] });
+          this.updateFields({
+            selectedTiles: [{ id: 0, x: 0, y: 0 }],
+            activeCanvas: AUTOTILE_CANVAS_ID,
+          });
           tileset = null;
         };
       };

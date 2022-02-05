@@ -35,7 +35,8 @@ export default {
       ];
     },
     component() {
-      return this.components?.find((item) => item.name === this.activatedPage)?.component;
+      return this.components?.find((item) => item.name === this.activatedPage)
+        ?.component;
     },
   },
   methods: {
