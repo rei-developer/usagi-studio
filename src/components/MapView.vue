@@ -230,6 +230,10 @@ export default {
     y() {
       return this.mouseY.toString().padStart(3, "0");
     },
+    context() {
+      const canvas = this.$el.querySelector(MAP_CANVAS_ID);
+      return canvas.getContext("2d");
+    },
     layer() {
       return this.drawable
         ? this.maps[this.activeMap].data[this.activeLayer - 1]
@@ -259,41 +263,40 @@ export default {
       };
     },
     draw() {
-      const ctx = this.getContext();
-      ctx.clearRect(0, 0, this.width, this.height);
+      this.context.clearRect(0, 0, this.width, this.height);
       this.maps[this.activeMap].data.forEach((layer, lindex) => {
         if (this.zoom !== 1) {
-          ctx.webkitImageSmoothingEnabled = false;
-          ctx.mozImageSmoothingEnabled = false;
-          ctx.msImageSmoothingEnabled = false;
-          ctx.imageSmoothingEnabled = false;
+          this.context.webkitImageSmoothingEnabled = false;
+          this.context.mozImageSmoothingEnabled = false;
+          this.context.msImageSmoothingEnabled = false;
+          this.context.imageSmoothingEnabled = false;
         }
-        ctx.globalAlpha = 1;
+        this.context.globalAlpha = 1;
         if (lindex + 1 === 1) {
-          ctx.fillStyle = this.backgroundColor;
-          ctx.fillRect(0, 0, this.width, this.height);
+          this.context.fillStyle = this.backgroundColor;
+          this.context.fillRect(0, 0, this.width, this.height);
         }
         if (this.drawable) {
           if (lindex + 1 > this.activeLayer) {
-            ctx.globalAlpha = 0.3;
+            this.context.globalAlpha = 0.3;
           } else if (lindex + 1 === this.activeLayer) {
-            ctx.globalAlpha = 1;
+            this.context.globalAlpha = 1;
           }
         }
         for (let y = 0; y < this.maps[this.activeMap].height; y++) {
           for (let x = 0; x < this.maps[this.activeMap].width; x++) {
             const tile = layer[y][x];
             if (this.activeLayer === 4) {
-              ctx.globalAlpha = 0.6;
-              this.drawTiles(ctx, x, y);
-              ctx.globalAlpha = 1;
+              this.context.globalAlpha = 0.6;
+              this.drawTiles(this.context, x, y);
+              this.context.globalAlpha = 1;
             }
             if (tile >= 384) {
               // 일반 타일
               const tileNum = tile - 384; // 오프셋
               const tileRow = parseInt(tileNum / 8);
               const tileCol = tileNum % 8;
-              ctx.drawImage(
+              this.context.drawImage(
                 this.tileset,
                 tileCol * TILESIZE,
                 tileRow * TILESIZE,
@@ -311,7 +314,7 @@ export default {
               const tiles = AUTOTILES[parseInt(tileNum / 8)][tileNum % 8];
               for (let i = 0; i < 5; i++) {
                 const tile_position = tiles[i] - 1;
-                ctx.drawImage(
+                this.context.drawImage(
                   this.autotiles[autotileId],
                   (tile_position % 6) * 16,
                   parseInt(tile_position / 6) * 16,
@@ -327,8 +330,8 @@ export default {
           }
         }
         if (this.drawable && lindex + 1 === this.activeLayer - 1) {
-          ctx.fillStyle = "rgba(0, 0, 0, .5)";
-          ctx.fillRect(0, 0, this.width, this.height);
+          this.context.fillStyle = "rgba(0, 0, 0, .5)";
+          this.context.fillRect(0, 0, this.width, this.height);
         }
       });
     },
@@ -336,17 +339,17 @@ export default {
       const canvas = this.$el.querySelector(MAP_CANVAS_ID);
       return canvas.getContext("2d");
     },
-    drawTiles(ctx, x, y) {
-      ctx.beginPath();
-      ctx.lineWidth = 0.5;
-      ctx.strokeStyle = "rgba(0, 0, 0, 0.4)";
-      ctx.rect(
+    drawTiles(context, x, y) {
+      context.beginPath();
+      context.lineWidth = 0.5;
+      context.strokeStyle = "rgba(0, 0, 0, 0.4)";
+      context.rect(
         x * TILESIZE * this.zoom,
         y * TILESIZE * this.zoom,
         TILESIZE * this.zoom,
         TILESIZE * this.zoom
       );
-      ctx.stroke();
+      context.stroke();
     },
     getTileLocation(event) {
       const { x, y } = event.target.getBoundingClientRect();
@@ -363,8 +366,7 @@ export default {
       const ix = this.selectedTiles[0].x;
       const iy = this.selectedTiles[0].y;
       if (this.drawable) {
-        const ctx = this.getContext();
-        ctx.globalAlpha = 0.7;
+        this.context.globalAlpha = 0.7;
         if (
           !this.tileAddStart ||
           (this.tileAddStart && this.previewOnDrawing)
@@ -374,7 +376,7 @@ export default {
               const tileNum = tile.id - 384; // 오프셋
               const tileRow = parseInt(tileNum / 8);
               const tileCol = tileNum % 8;
-              ctx.drawImage(
+              this.context.drawImage(
                 this.tileset,
                 tileCol * TILESIZE,
                 tileRow * TILESIZE,
@@ -392,7 +394,7 @@ export default {
                 const tiles = AUTOTILES[parseInt(tileNum / 8)][tileNum % 8];
                 for (let i = 0; i < 5; i++) {
                   const tile_position = tiles[i] - 1;
-                  ctx.drawImage(
+                  this.context.drawImage(
                     this.autotiles[autotileId],
                     (tile_position % 6) * 16,
                     parseInt(tile_position / 6) * 16,
@@ -409,7 +411,7 @@ export default {
             } else if (tile.id > 0) {
               const autotileId = tile.id - 1;
               if (this.autotiles[autotileId]) {
-                ctx.drawImage(
+                this.context.drawImage(
                   this.autotiles[autotileId],
                   0,
                   0,
@@ -433,7 +435,7 @@ export default {
           this.selectedTiles[this.selectedTiles.length - 1].y -
           this.selectedTiles[0].y +
           1;
-        ctx.globalAlpha = 1;
+        this.context.globalAlpha = 1;
         this.drawRect(
           MAP_CANVAS_ID,
           tx * TILESIZE * this.zoom,
@@ -481,14 +483,13 @@ export default {
       return { preview, width, height };
     },
     previewSquare(preview, width, height) {
-      const ctx = this.getContext();
-      ctx.globalAlpha = 1;
+      this.context.globalAlpha = 1;
       preview.forEach((tile) => {
         if (tile.id >= 384) {
           const tileNum = tile.id - 384; // 오프셋
           const tileRow = parseInt(tileNum / 8);
           const tileCol = tileNum % 8;
-          ctx.drawImage(
+          this.context.drawImage(
             this.tileset,
             tileCol * TILESIZE,
             tileRow * TILESIZE,
@@ -506,7 +507,7 @@ export default {
             const tiles = AUTOTILES[parseInt(tileNum / 8)][tileNum % 8];
             for (let i = 0; i < 5; i++) {
               const tile_position = tiles[i] - 1;
-              ctx.drawImage(
+              this.context.drawImage(
                 this.autotiles[autotileId],
                 (tile_position % 6) * 16,
                 parseInt(tile_position / 6) * 16,
@@ -522,7 +523,7 @@ export default {
         } else if (tile.id > 0) {
           const autotileId = tile.id - 1;
           if (this.autotiles[autotileId]) {
-            ctx.drawImage(
+            this.context.drawImage(
               this.autotiles[autotileId],
               0,
               0,
@@ -536,7 +537,7 @@ export default {
           }
         }
       });
-      ctx.globalAlpha = 1;
+      this.context.globalAlpha = 1;
       this.drawRect(
         MAP_CANVAS_ID,
         this.ix * TILESIZE * this.zoom,
@@ -614,8 +615,8 @@ export default {
               this.selectedTiles.map((item) => item.y)
             ) +
             1;
-          const repeatX = (tx - this.ix) % width;
-          const repeatY = (ty - this.iy) % height;
+          const repeatX = Math.abs(tx - this.ix) % width;
+          const repeatY = Math.abs(ty - this.iy) % height;
           const dx =
             tileOffsetX - repeatX < 0
               ? width + tileOffsetX - repeatX
@@ -628,6 +629,7 @@ export default {
               : tileOffsetY - repeatY >= height
               ? height - tileOffsetY + repeatY
               : tileOffsetY - repeatY;
+          console.log(dx, dy);
           if (tile.id === 0) {
             this.layer[ty][tx] = 0;
           } else {
@@ -836,10 +838,9 @@ export default {
       return this.$el.querySelector(id).removeEventListener(event, callback);
     },
     drawRect(canvasId, x, y, width, height, _style = "rgba(0, 0, 0, 1)") {
-      const ctx = this.getContext(canvasId);
       const makefillRect = (x, y, width, height, style = _style) => {
-        ctx.fillStyle = style;
-        ctx.fillRect(x, y, width, height);
+        this.context.fillStyle = style;
+        this.context.fillRect(x, y, width, height);
       };
       makefillRect(x, y, width, 1, "#000");
       makefillRect(x, y, 1, height, "#000");
