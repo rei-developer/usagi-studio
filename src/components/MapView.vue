@@ -630,7 +630,7 @@ export default {
               ? Math.abs(height - tileOffsetY + repeatY)
               : tileOffsetY - repeatY;
           if (tile.id === 0) {
-            this.layer[ty][tx] = 0;
+            this.layer[ty + dy][tx + dx] = 0;
           } else {
             if (
               ty >= 0 &&
