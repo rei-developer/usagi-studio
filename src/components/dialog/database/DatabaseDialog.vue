@@ -9,12 +9,13 @@
 <script>
 import UiDialog from "@/components/common/Dialog";
 import DatabaseDialogItem from "@/components/dialog/database/pages/DatabaseDialogItem";
+import TilesetDialogItem from "@/components/dialog/database/pages/TilesetDialogItem";
 
 export default {
   name: "DatabaseDialog",
   components: { UiDialog },
   data: () => ({
-    activatedPage: "Item",
+    activatedPage: "Tileset",
   }),
   computed: {
     dialogOptions() {
@@ -31,6 +32,10 @@ export default {
         {
           name: "Item",
           component: DatabaseDialogItem,
+        },
+        {
+          name: "Tileset",
+          component: TilesetDialogItem,
         },
       ];
     },
