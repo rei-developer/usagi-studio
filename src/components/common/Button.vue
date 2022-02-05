@@ -1,6 +1,13 @@
 <template>
   <div
-    :class="['ui-button', variant, size, active && 'active', block && 'block']"
+    :class="[
+      'ui-button',
+      variant,
+      size,
+      active && 'active',
+      disabled && 'disabled',
+      block && 'block',
+    ]"
     @click="onClick"
   >
     <font-awesome-icon :icon="icon" v-if="icon" />
@@ -44,6 +51,11 @@
     color: #fff;
     background-color: var(--primary-hover);
   }
+  &.disabled {
+    color: #33333366;
+    background-color: var(--primary);
+    pointer-events: none;
+  }
   &.block {
     width: 100%;
   }
@@ -74,13 +86,17 @@ export default {
     },
     icon: {
       type: String,
-      default: "user-secret",
+      default: null,
     },
     label: {
       type: String,
       default: null,
     },
     active: {
+      type: Boolean,
+      default: false,
+    },
+    disabled: {
       type: Boolean,
       default: false,
     },
@@ -99,7 +115,7 @@ export default {
         const sound = new Audio("/sound/done.mp3");
         sound.play();
       }
-      this.$emit("click", event);
+      this.$emit("onClick", event);
     },
   },
 };

@@ -1,16 +1,20 @@
 <template>
   <div class="tileset-view-wrapper">
     <div id="tileset" class="content custom-scroll-box">
-      <canvas id="autotileCanvas" width="256" height="32">
+      <canvas id="autotileCanvas" :width="256" :height="32">
         자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해 주세요.
       </canvas>
-      <canvas id="tilesetCanvas" width="256" :height="height">
+      <canvas id="tilesetCanvas" :width="256" :height="height">
         자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해 주세요.
       </canvas>
     </div>
     <div class="bottom">
       1: {{ mapName }} ({{ mapWidth }} x {{ mapHeight }})
     </div>
+    <autotile-dialog
+      v-if="isAutotileDialogOpened"
+      @onCloseDialog="onCloseAutotileDialog"
+    />
   </div>
 </template>
 
@@ -42,6 +46,7 @@
 
 <script>
 import { mapMutations } from "vuex";
+import AutotileDialog from "@/components/dialog/AutotileDialog";
 
 const TILESET_CANVAS_ID = "#tilesetCanvas";
 const AUTOTILE_CANVAS_ID = "#autotileCanvas";
@@ -50,17 +55,37 @@ const TILESIZE = 32;
 
 export default {
   name: "TilesetView",
+  components: { AutotileDialog },
   props: {
-    mapName: String,
-    mapWidth: Number,
-    mapHeight: Number,
-    tilesetName: String,
-    autotiles: Array,
-    backgroundColor: String,
+    mapName: {
+      type: String,
+      default: "",
+    },
+    mapWidth: {
+      type: Number,
+      default: 20,
+    },
+    mapHeight: {
+      type: Number,
+      default: 15,
+    },
+    tilesetName: {
+      type: String,
+      default: null,
+    },
+    autotiles: {
+      type: Array,
+      default: () => [],
+    },
+    backgroundColor: {
+      type: String,
+      default: "#000",
+    },
   },
   data: () => ({
     tileset: null,
     tileSelectStart: null,
+    isAutotileDialogOpened: false,
   }),
   watch: {
     selectedTiles() {
@@ -345,6 +370,9 @@ export default {
         activeCanvas: AUTOTILE_CANVAS_ID,
       });
       this.$emit("selectionChanged", selection);
+    },
+    onCloseAutotileDialog() {
+      this.isAutotileDialogOpened = false;
     },
   },
 };

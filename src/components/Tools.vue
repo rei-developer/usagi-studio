@@ -1,60 +1,30 @@
 <template>
   <div class="tools-wrapper">
     <div class="row">
+      <div v-for="(menu, menuIndex) in menuGroup" :key="menuIndex" class="item">
+        <ui-button-group>
+          <ui-button
+            v-for="(item, index) in menu"
+            :key="index"
+            :icon="item.icon"
+            :active="item.active"
+            :disabled="item.disabled"
+            @click="item.click"
+          >
+            {{ item.label }}
+          </ui-button>
+        </ui-button-group>
+      </div>
       <div class="item">테스트</div>
-      <div class="item">
-        <ui-button-group>
-          <ui-button
-            v-for="(item, index) in fileMenus"
-            :key="index"
-            :icon="item.icon"
-            :active="item.active"
-            @click="item.click"
-          >
-            {{ item.label }}
-          </ui-button>
-        </ui-button-group>
-      </div>
-      <div class="item">
-        <ui-button-group>
-          <ui-button
-            v-for="(item, index) in editMenus"
-            :key="index"
-            :icon="item.icon"
-            :active="item.active"
-            @click="item.click"
-          >
-            {{ item.label }}
-          </ui-button>
-        </ui-button-group>
-      </div>
-      <div class="item">
-        <ui-button-group>
-          <ui-button
-            v-for="(item, index) in layerMenus"
-            :key="index"
-            :icon="item.icon"
-            :active="item.active"
-            @click="item.click"
-          >
-            {{ item.label }}
-          </ui-button>
-        </ui-button-group>
-      </div>
-      <div class="item">
-        <ui-button-group>
-          <ui-button
-            v-for="(item, index) in toolMenus"
-            :key="index"
-            :icon="item.icon"
-            :active="item.active"
-            @click="item.click"
-          >
-            {{ item.label }}
-          </ui-button>
-        </ui-button-group>
-      </div>
     </div>
+    <database-dialog
+      v-if="isDatabaseDialogOpened"
+      @onCloseDialog="onCloseDatabaseDialog"
+    />
+    <info-dialog
+      v-if="isInfoDialogOpened"
+      @onCloseDialog="onCloseInfoDialog"
+    />
   </div>
 </template>
 
@@ -89,18 +59,24 @@
 
 <script>
 import { mapMutations } from "vuex";
+import DatabaseDialog from "@/components/dialog/database/DatabaseDialog";
+import InfoDialog from "@/components/dialog/InfoDialog";
 import UiButton from "@/components/common/Button";
 import UiButtonGroup from "@/components/common/ButtonGroup";
 
 export default {
   name: "Tools",
   components: {
+    DatabaseDialog,
+    InfoDialog,
     UiButton,
     UiButtonGroup,
   },
   data: () => ({
     ACTIVE_TOOL: 0,
     ACTIVE_LAYER: 1,
+    isDatabaseDialogOpened: false,
+    isInfoDialogOpened: false,
   }),
   watch: {
     ACTIVE_TOOL() {
@@ -111,6 +87,16 @@ export default {
     },
   },
   computed: {
+    menuGroup() {
+      return [
+        this.fileMenus,
+        this.editMenus,
+        this.layerMenus,
+        this.toolMenus,
+        this.adminMenus,
+        this.helpMenus,
+      ];
+    },
     fileMenus() {
       return [
         {
@@ -189,33 +175,91 @@ export default {
           label: "Draw",
           icon: "pencil-alt",
           active: this.ACTIVE_TOOL === 0,
+          disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(0),
         },
         {
           label: "Square",
           icon: "square-full",
           active: this.ACTIVE_TOOL === 1,
+          disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(1),
         },
         {
           label: "Circle",
           icon: "circle",
           active: this.ACTIVE_TOOL === 2,
+          disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(2),
         },
         {
           label: "Fill",
           icon: "fill-drip",
           active: this.ACTIVE_TOOL === 3,
+          disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(3),
         },
         {
           label: "Select",
           icon: "vector-square",
           active: this.ACTIVE_TOOL === 4,
+          disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(4),
         },
       ];
+    },
+    adminMenus() {
+      return [
+        {
+          label: "Admin",
+          icon: "table",
+          active: null,
+          click: () => {},
+        },
+        {
+          label: "Database",
+          icon: "database",
+          active: this.isDatabaseDialogOpened,
+          click: () => (this.isDatabaseDialogOpened = true),
+        },
+        {
+          label: "Assets",
+          icon: "folder-open",
+          active: null,
+          click: () => {},
+        },
+        {
+          label: "Music",
+          icon: "music",
+          active: null,
+          click: () => {},
+        },
+        {
+          label: "Analyst",
+          icon: "chart-pie",
+          active: null,
+          click: () => {},
+        },
+      ];
+    },
+    helpMenus() {
+      return [
+        {
+          label: "Info",
+          icon: "info-circle",
+          active: this.isInfoDialogOpened,
+          click: () => (this.isInfoDialogOpened = true),
+        },
+        {
+          label: "Setting",
+          icon: "cog",
+          active: null,
+          click: () => {},
+        },
+      ];
+    },
+    isNotPossibleEditMap() {
+      return this.ACTIVE_LAYER === 0 || this.ACTIVE_LAYER === 4;
     },
   },
   methods: {
@@ -225,6 +269,12 @@ export default {
     },
     setActiveLayer(layer) {
       this.ACTIVE_LAYER = layer;
+    },
+    onCloseDatabaseDialog() {
+      this.isDatabaseDialogOpened = false;
+    },
+    onCloseInfoDialog() {
+      this.isInfoDialogOpened = false;
     },
   },
 };

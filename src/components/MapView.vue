@@ -257,9 +257,9 @@ export default {
     init() {
       this.tileset = new Image();
       this.tileset.src = `/tilesets/${this.maps[this.activeMap].tileset}.png`;
-      this.tileset.onload = async () => {
+      this.tileset.onload = () => {
         this.draw();
-        await this.setLoading();
+        setTimeout(() => this.setLoading(), 1000);
       };
     },
     draw() {
