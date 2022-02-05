@@ -8,6 +8,7 @@
             :key="index"
             :icon="item.icon"
             :active="item.active"
+            :unnamed="!item.label"
             :disabled="item.disabled"
             @click="item.click"
           >
@@ -48,7 +49,11 @@
     background: #333;
     > .item {
       display: flex;
+      align-items: center;
       padding: 2px;
+      > svg {
+        margin-right: 4px;
+      }
     }
     > .item:not(:last-child) {
       border-right: 1px dashed var(--primary);

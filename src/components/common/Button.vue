@@ -5,6 +5,7 @@
       variant,
       size,
       active && 'active',
+      unnamed && 'unnamed',
       disabled && 'disabled',
       block && 'block',
     ]"
@@ -24,7 +25,7 @@
   color: #333;
   font-size: 11px;
   cursor: default;
-  > svg {
+  &:not(.unnamed) > svg {
     margin-right: 4px;
   }
   &.primary {
@@ -93,6 +94,10 @@ export default {
       default: null,
     },
     active: {
+      type: Boolean,
+      default: false,
+    },
+    unnamed: {
       type: Boolean,
       default: false,
     },
