@@ -1,24 +1,41 @@
 <template>
-  <ui-dialog v-bind="{ ...dialogOptions }"> 데이터베이스 창입니다용 </ui-dialog>
+  <ui-dialog v-bind="{ ...dialogOptions }">
+    <div v-is="component" />
+  </ui-dialog>
 </template>
 
 <style lang="scss" scoped></style>
 
 <script>
 import UiDialog from "@/components/common/Dialog";
+import DatabaseDialogItem from "@/components/dialog/database/pages/DatabaseDialogItem";
 
 export default {
   name: "DatabaseDialog",
   components: { UiDialog },
+  data: () => ({
+    activatedPage: "Item",
+  }),
   computed: {
     dialogOptions() {
       return {
         header: "DATABASE",
         icon: "database",
-        width: 800,
+        width: 1000,
         height: 600,
         callback: () => this.doEvent(),
       };
+    },
+    components() {
+      return [
+        {
+          name: "Item",
+          component: DatabaseDialogItem,
+        },
+      ];
+    },
+    component() {
+      return this.components?.find((item) => item.name === this.activatedPage)?.component;
     },
   },
   methods: {
