@@ -4,9 +4,7 @@
   </ui-dialog>
 </template>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>
 
 <script>
 import UiDialog from "@/components/common/Dialog";

@@ -1,12 +1,8 @@
 <template>
-  <ui-dialog v-bind="{ ...dialogOptions }">
-    데이터베이스 창입니다용
-  </ui-dialog>
+  <ui-dialog v-bind="{ ...dialogOptions }"> 데이터베이스 창입니다용 </ui-dialog>
 </template>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>
 
 <script>
 import UiDialog from "@/components/common/Dialog";

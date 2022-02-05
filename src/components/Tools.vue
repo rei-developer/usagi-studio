@@ -21,10 +21,7 @@
       v-if="isDatabaseDialogOpened"
       @onCloseDialog="onCloseDatabaseDialog"
     />
-    <info-dialog
-      v-if="isInfoDialogOpened"
-      @onCloseDialog="onCloseInfoDialog"
-    />
+    <info-dialog v-if="isInfoDialogOpened" @onCloseDialog="onCloseInfoDialog" />
   </div>
 </template>
 
