@@ -615,25 +615,23 @@ export default {
               this.selectedTiles.map((item) => item.y)
             ) +
             1;
-          const repeatX = Math.abs(tx - this.ix) % width;
-          const repeatY = Math.abs(ty - this.iy) % height;
+          const repeatX = (tx - this.ix) % width;
+          const repeatY = (ty - this.iy) % height;
           const dx =
             tileOffsetX - repeatX < 0
               ? width + tileOffsetX - repeatX
               : tileOffsetX - repeatX >= width
-              ? width - tileOffsetX + repeatX
+              ? Math.abs(width - tileOffsetX + repeatX)
               : tileOffsetX - repeatX;
           const dy =
             tileOffsetY - repeatY < 0
               ? height + tileOffsetY - repeatY
               : tileOffsetY - repeatY >= height
-              ? height - tileOffsetY + repeatY
+              ? Math.abs(height - tileOffsetY + repeatY)
               : tileOffsetY - repeatY;
-          console.log(dx, dy);
           if (tile.id === 0) {
             this.layer[ty][tx] = 0;
           } else {
-            // TODO: 세 칸 이상부터 패턴 파괴
             if (
               ty >= 0 &&
               ty + dy >= 0 &&
