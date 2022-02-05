@@ -150,6 +150,11 @@ export default {
       "pointerup",
       this.autotilePointerUpEvent
     );
+    this.getEventHandler(
+      AUTOTILE_CANVAS_ID,
+      "dblclick",
+      this.autotileDoubleClickEvent
+    );
   },
   beforeUnmount() {
     this.removeEventHandler(
@@ -181,6 +186,11 @@ export default {
       AUTOTILE_CANVAS_ID,
       "pointerup",
       this.autotilePointerUpEvent
+    );
+    this.removeEventHandler(
+      AUTOTILE_CANVAS_ID,
+      "dblclick",
+      this.autotileDoubleClickEvent
     );
   },
   computed: {
@@ -373,6 +383,10 @@ export default {
         activeCanvas: AUTOTILE_CANVAS_ID,
       });
       this.$emit("selectionChanged", selection);
+    },
+    autotileDoubleClickEvent(e) {
+      const autotileId = this.getTileLocation(e).tx - 1;
+      if (this.autotiles[autotileId]) this.isAutotileDialogOpened = true;
     },
     onCloseAutotileDialog() {
       this.isAutotileDialogOpened = false;
