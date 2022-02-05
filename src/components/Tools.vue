@@ -15,7 +15,10 @@
           </ui-button>
         </ui-button-group>
       </div>
-      <div class="item">테스트</div>
+      <div class="item">
+        <font-awesome-icon icon="music" />
+        Field of your story 재생중...
+      </div>
     </div>
     <database-dialog
       v-if="isDatabaseDialogOpened"
@@ -97,7 +100,6 @@ export default {
     fileMenus() {
       return [
         {
-          label: "Save",
           icon: "save",
           active: null,
           click: () => {},
@@ -107,25 +109,21 @@ export default {
     editMenus() {
       return [
         {
-          label: "Cut",
           icon: "cut",
           active: null,
           click: () => {},
         },
         {
-          label: "Copy",
           icon: "copy",
           active: null,
           click: () => {},
         },
         {
-          label: "Paste",
           icon: "paste",
           active: null,
           click: () => {},
         },
         {
-          label: "Remove",
           icon: "times",
           active: null,
           click: () => {},
@@ -169,35 +167,30 @@ export default {
     toolMenus() {
       return [
         {
-          label: "Draw",
           icon: "pencil-alt",
           active: this.ACTIVE_TOOL === 0,
           disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(0),
         },
         {
-          label: "Square",
           icon: "square-full",
           active: this.ACTIVE_TOOL === 1,
           disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(1),
         },
         {
-          label: "Circle",
           icon: "circle",
           active: this.ACTIVE_TOOL === 2,
           disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(2),
         },
         {
-          label: "Fill",
           icon: "fill-drip",
           active: this.ACTIVE_TOOL === 3,
           disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(3),
         },
         {
-          label: "Select",
           icon: "vector-square",
           active: this.ACTIVE_TOOL === 4,
           disabled: this.isNotPossibleEditMap,
@@ -242,13 +235,11 @@ export default {
     helpMenus() {
       return [
         {
-          label: "Info",
           icon: "info-circle",
           active: this.isInfoDialogOpened,
           click: () => (this.isInfoDialogOpened = true),
         },
         {
-          label: "Setting",
           icon: "cog",
           active: null,
           click: () => {},
