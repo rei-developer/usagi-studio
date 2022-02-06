@@ -8,11 +8,11 @@
 
 <script>
 import UiDialog from "@/components/common/Dialog";
-import DatabaseDialogItem from "@/components/dialog/database/pages/DatabaseDialogItem";
-import TilesetDialogItem from "@/components/dialog/database/pages/TilesetDialogItem";
+import DatabasePopupItemPage from "@/components/popups/database/pages/DatabasePopupItemPage";
+import DatabasePopupTilesetPage from "@/components/popups/database/pages/DatabasePopupTilesetPage";
 
 export default {
-  name: "DatabaseDialog",
+  name: "DatabasePopup.vue",
   components: { UiDialog },
   data: () => ({
     activatedPage: "Tileset",
@@ -31,11 +31,11 @@ export default {
       return [
         {
           name: "Item",
-          component: DatabaseDialogItem,
+          component: DatabasePopupItemPage,
         },
         {
           name: "Tileset",
-          component: TilesetDialogItem,
+          component: DatabasePopupTilesetPage,
         },
       ];
     },

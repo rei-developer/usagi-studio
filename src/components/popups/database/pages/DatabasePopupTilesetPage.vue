@@ -6,6 +6,7 @@
         :value="selectedIndex"
         :rows="items.length"
         :mutiple="true"
+        :autofocus="true"
         @onChange="onChangeIndex"
       >
         <option
@@ -58,7 +59,7 @@
 import UiSelect from "@/components/common/Select";
 
 export default {
-  name: "TilesetDialogItem",
+  name: "DatabasePopupTilesetPage",
   components: {
     UiSelect,
   },

@@ -10,6 +10,7 @@
     :value="value"
     :size="rows"
     :multiple="rows === 1 && mutiple"
+    :autofocus="autofocus"
     @change="onChange"
   >
     <slot />
@@ -92,6 +93,10 @@ export default {
       default: false,
     },
     mutiple: {
+      type: Boolean,
+      default: false,
+    },
+    autofocus: {
       type: Boolean,
       default: false,
     },

@@ -22,11 +22,11 @@
         Field of your story 재생중...
       </div>
     </div>
-    <database-dialog
-      v-if="isDatabaseDialogOpened"
-      @onCloseDialog="onCloseDatabaseDialog"
+    <database-popup
+      v-if="isDatabasePopupOpened"
+      @onClosePopup="onCloseDatabasePopup"
     />
-    <info-dialog v-if="isInfoDialogOpened" @onCloseDialog="onCloseInfoDialog" />
+    <info-popup v-if="isInfoPopupOpened" @onClosePopup="onCloseInfoPopup" />
   </div>
 </template>
 
@@ -65,24 +65,24 @@
 
 <script>
 import { mapMutations } from "vuex";
-import DatabaseDialog from "@/components/dialog/database/DatabaseDialog";
-import InfoDialog from "@/components/dialog/InfoDialog";
+import DatabasePopup from "@/components/popups/database/DatabasePopup";
+import InfoPopup from "@/components/popups/InfoPopup";
 import UiButton from "@/components/common/Button";
 import UiButtonGroup from "@/components/common/ButtonGroup";
 
 export default {
   name: "Tools",
   components: {
-    DatabaseDialog,
-    InfoDialog,
+    DatabasePopup,
+    InfoPopup,
     UiButton,
     UiButtonGroup,
   },
   data: () => ({
     ACTIVE_TOOL: 0,
     ACTIVE_LAYER: 1,
-    isDatabaseDialogOpened: false,
-    isInfoDialogOpened: false,
+    isDatabasePopupOpened: false,
+    isInfoPopupOpened: false,
   }),
   watch: {
     ACTIVE_TOOL() {
@@ -242,8 +242,8 @@ export default {
           description: "데이터베이스",
           label: "Database",
           icon: "database",
-          active: this.isDatabaseDialogOpened,
-          click: () => (this.isDatabaseDialogOpened = true),
+          active: this.isDatabasePopupOpened,
+          click: () => (this.isDatabasePopupOpened = true),
         },
         {
           description: "에셋",
@@ -273,8 +273,8 @@ export default {
         {
           description: "툴 정보",
           icon: "info-circle",
-          active: this.isInfoDialogOpened,
-          click: () => (this.isInfoDialogOpened = true),
+          active: this.isInfoPopupOpened,
+          click: () => (this.isInfoPopupOpened = true),
         },
         {
           description: "환경설정",
@@ -296,11 +296,11 @@ export default {
     setActiveLayer(layer) {
       this.ACTIVE_LAYER = layer;
     },
-    onCloseDatabaseDialog() {
-      this.isDatabaseDialogOpened = false;
+    onCloseDatabasePopup() {
+      this.isDatabasePopupOpened = false;
     },
-    onCloseInfoDialog() {
-      this.isInfoDialogOpened = false;
+    onCloseInfoPopup() {
+      this.isInfoPopupOpened = false;
     },
   },
 };

@@ -1,13 +1,13 @@
 <template>
   <ui-dialog v-bind="{ ...dialogOptions }">
-    <canvas id="autotileDialogCanvas" :width="256" :height="192">
+    <canvas id="autotilePopupCanvas" :width="256" :height="192">
       자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해 주세요.
     </canvas>
   </ui-dialog>
 </template>
 
 <style lang="scss" scoped>
-#autotileDialogCanvas {
+#autotilePopupCanvas {
   border: 1px solid var(--primary);
 }
 </style>
@@ -17,7 +17,7 @@ import { mapMutations } from "vuex";
 import UiDialog from "@/components/common/Dialog";
 
 const TILESIZE = 32;
-const AUTOTILE_DIALOG_CANVAS_ID = "#autotileDialogCanvas";
+const AUTOTILE_POPUP_CANVAS_ID = "#autotilePopupCanvas";
 const AUTOTILES = [
   [
     [27, 28, 33, 34],
@@ -82,7 +82,7 @@ const AUTOTILES = [
 ];
 
 export default {
-  name: "AutotileDialog",
+  name: "AutotilePopup",
   components: { UiDialog },
   props: {
     autotileId: {
@@ -118,31 +118,31 @@ export default {
       };
     },
     context() {
-      const canvas = this.$el.querySelector(AUTOTILE_DIALOG_CANVAS_ID);
+      const canvas = this.$el.querySelector(AUTOTILE_POPUP_CANVAS_ID);
       return canvas.getContext("2d");
     },
   },
   mounted() {
     this.draw();
     this.getEventHandler(
-      AUTOTILE_DIALOG_CANVAS_ID,
+      AUTOTILE_POPUP_CANVAS_ID,
       "pointerdown",
       this.pointerDownEvent
     );
     this.getEventHandler(
-      AUTOTILE_DIALOG_CANVAS_ID,
+      AUTOTILE_POPUP_CANVAS_ID,
       "dblclick",
       this.doubleClickEvent
     );
   },
   beforeUnmount() {
     this.removeEventHandler(
-      AUTOTILE_DIALOG_CANVAS_ID,
+      AUTOTILE_POPUP_CANVAS_ID,
       "pointerdown",
       this.pointerDownEvent
     );
     this.removeEventHandler(
-      AUTOTILE_DIALOG_CANVAS_ID,
+      AUTOTILE_POPUP_CANVAS_ID,
       "dblclick",
       this.doubleClickEvent
     );
@@ -195,7 +195,7 @@ export default {
     },
     setSelection() {
       if (this.selection) this.updateFields({ selectedTiles: this.selection });
-      this.$emit("onCloseDialog");
+      this.$emit("onClosePopup");
     },
     getEventHandler(id, event, callback) {
       return this.$el.querySelector(id).addEventListener(event, callback);

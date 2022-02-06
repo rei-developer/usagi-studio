@@ -10,7 +10,7 @@
 import UiDialog from "@/components/common/Dialog";
 
 export default {
-  name: "InfoDialog",
+  name: "InfoPopup",
   components: { UiDialog },
   computed: {
     dialogOptions() {
