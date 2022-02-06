@@ -7,6 +7,7 @@
 </template>
 
 <script>
+import { mapMutations } from "vuex";
 import UiDialog from "@/components/common/Dialog";
 
 const TILESIZE = 32;
@@ -114,8 +115,21 @@ export default {
   },
   mounted() {
     this.draw();
+    this.getEventHandler(
+      AUTOTILE_DIALOG_CANVAS_ID,
+      "pointerdown",
+      this.pointerDownEvent
+    );
+  },
+  beforeUnmount() {
+    this.removeEventHandler(
+      AUTOTILE_DIALOG_CANVAS_ID,
+      "pointerdown",
+      this.pointerDownEvent
+    );
   },
   methods: {
+    ...mapMutations(["updateFields"]),
     doEvent() {
       alert("허걱 콜백을 실행했군요 바보군");
     },
@@ -139,11 +153,10 @@ export default {
         }
       }
     },
-    drawRect(canvasId, x, y, width, height, _style = "rgba(0, 0, 0, 1)") {
-      const ctx = this.getContext(canvasId);
+    drawRect(x, y, width, height, _style = "rgba(0, 0, 0, 1)") {
       const makefillRect = (x, y, width, height, style = _style) => {
-        ctx.fillStyle = style;
-        ctx.fillRect(x, y, width, height);
+        this.context.fillStyle = style;
+        this.context.fillRect(x, y, width, height);
       };
       makefillRect(x, y, width, 4, "#000");
       makefillRect(x, y, 4, height, "#000");
@@ -153,6 +166,29 @@ export default {
       makefillRect(x + 1, y + 1, 2, height - 2, "#fff");
       makefillRect(x + width - 3, y + 1, 2, height - 2, "#fff");
       makefillRect(x + 1, y + height - 3, width - 2, 2, "#fff");
+    },
+    getTileLocation(event) {
+      const { x, y } = event.target.getBoundingClientRect();
+      const tx = Math.floor(Math.max(event.clientX - x, 0) / TILESIZE);
+      const ty = Math.floor(Math.max(event.clientY - y, 0) / TILESIZE);
+      return { x: tx, y: ty };
+    },
+    getSelectedTile(_id, x, y) {
+      const id = x + y * 8 + _id * 48;
+      return [{ id, x, y, shiftKey: true }];
+    },
+    getEventHandler(id, event, callback) {
+      return this.$el.querySelector(id).addEventListener(event, callback);
+    },
+    removeEventHandler(id, event, callback) {
+      return this.$el.querySelector(id).removeEventListener(event, callback);
+    },
+    pointerDownEvent(event) {
+      const { x, y } = this.getTileLocation(event);
+      const selection = this.getSelectedTile(this.autotileId + 1, x, y);
+      this.draw();
+      this.drawRect(x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE);
+      this.updateFields({ selectedTiles: selection });
     },
   },
 };
