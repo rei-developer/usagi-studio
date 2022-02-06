@@ -918,6 +918,12 @@ export default {
           } else {
             // 좌클릭
             this.tileAddStart = true;
+            const { preview } = this.getSquare(e);
+            const prevLayer = this.previewSquareCircle(e, this.layer, preview);
+            this.addSquare(e, this.layer, preview);
+            this.preview = preview;
+            this.draw();
+            this.addSquare(e, this.layer, prevLayer);
           }
         } else if (this.mode === TOOLS.CIRCLE) {
           if (e.button === 2 || e.which === 3) {
@@ -926,6 +932,12 @@ export default {
           } else {
             // 좌클릭
             this.tileAddStart = true;
+            const { preview } = this.getCircle(e);
+            const prevLayer = this.previewSquareCircle(e, this.layer, preview);
+            this.addSquare(e, this.layer, preview);
+            this.preview = preview;
+            this.draw();
+            this.addSquare(e, this.layer, prevLayer);
           }
         }
       }
@@ -990,6 +1002,7 @@ export default {
                 });
               }
             } else {
+              // 좌클릭
               if (this.tileAddStart) {
                 const { preview } = this.getSquare(e);
                 const prevLayer = this.previewSquareCircle(
@@ -1027,6 +1040,7 @@ export default {
                 });
               }
             } else {
+              // 좌클릭
               if (this.tileAddStart) {
                 const { preview } = this.getCircle(e);
                 const prevLayer = this.previewSquareCircle(
