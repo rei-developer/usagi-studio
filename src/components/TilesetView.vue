@@ -81,10 +81,6 @@ export default {
       type: Array,
       default: () => [],
     },
-    viewTileId: {
-      type: Boolean,
-      default: null,
-    },
     backgroundColor: {
       type: String,
       default: "#000",
@@ -338,7 +334,7 @@ export default {
       makefillRect(x + 1, y + 1, 2, height - 2, "#fff");
       makefillRect(x + width - 3, y + 1, 2, height - 2, "#fff");
       makefillRect(x + 1, y + height - 3, width - 2, 2, "#fff");
-      if (this.viewTileId) {
+      if (this.fields.viewTileId) {
         const tileId = (x / 32 + (y / 32) * 8 + 384).toString();
         ctx.font = "11px Arial";
         ctx.textAlign = "right";

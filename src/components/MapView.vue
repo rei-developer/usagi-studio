@@ -11,6 +11,11 @@
       </div>
       <div class="item">1: 이벤트 이름</div>
       <div class="item">
+        <div class="icon-wrapper" @click="onClickViewTileId">
+          <font-awesome-icon :icon="fields.viewTileId ? 'eye' : 'eye-slash'" />
+        </div>
+      </div>
+      <div class="item">
         <div class="icon-wrapper" @click="onClickZoomDowner">
           <font-awesome-icon icon="search-minus" />
         </div>
@@ -80,7 +85,7 @@
 </style>
 
 <script>
-import { mapMutations } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import UiInputRange from "@/components/common/InputRange";
 
 const MAP_CANVAS_ID = "#mapCanvas";
@@ -179,10 +184,6 @@ export default {
       type: Number,
       default: 0,
     },
-    viewTileId: {
-      type: Boolean,
-      default: null,
-    },
     backgroundColor: {
       type: String,
       default: "#000",
@@ -241,6 +242,7 @@ export default {
     );
   },
   computed: {
+    ...mapGetters(["fields"]),
     width() {
       return this.maps[this.activeMap].width * TILESIZE * this.zoom;
     },
@@ -316,7 +318,7 @@ export default {
             }
             this.drawTiles(this.context, tile, x, y);
             if (
-              this.viewTileId &&
+              this.fields.viewTileId &&
               this.drawable &&
               lindex + 1 === this.activeLayer
             ) {
@@ -1070,6 +1072,11 @@ export default {
     },
     onClickZoomDowner() {
       if (this.zoom > 0.1) this.zoom = +(this.zoom - 0.1).toFixed(12);
+    },
+    onClickViewTileId() {
+      this.updateFields({
+        viewTileId: !this.fields.viewTileId,
+      });
     },
     onClickZoomClear() {
       this.zoom = 1.0;

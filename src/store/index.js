@@ -15,6 +15,7 @@ export default createStore({
     },
   },
   getters: {
+    fields: (state) => state.data,
     loading: (state) => state.loading,
   },
   modules: {},
