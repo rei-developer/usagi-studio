@@ -13,7 +13,8 @@
     </div>
     <autotile-dialog
       v-if="isAutotileDialogOpened"
-      :autotile="autotile"
+      :autotileId="autotileId"
+      :autotiles="autotiles"
       :mouseX="mouseX"
       :mouseY="mouseY"
       @onCloseDialog="onCloseAutotileDialog"
@@ -90,7 +91,7 @@ export default {
     mouseY: null,
     tileset: null,
     tileSelectStart: null,
-    autotile: null,
+    autotileId: null,
     isAutotileDialogOpened: false,
   }),
   watch: {
@@ -322,18 +323,14 @@ export default {
         ctx.fillStyle = style;
         ctx.fillRect(x, y, width, height);
       };
-      makefillRect(x, y, width, 1, "#000");
-      makefillRect(x, y, 1, height, "#000");
-      makefillRect(x + width - 1, y, 1, height, "#000");
-      makefillRect(x, y + height - 1, width, 1, "#000");
+      makefillRect(x, y, width, 4, "#000");
+      makefillRect(x, y, 4, height, "#000");
+      makefillRect(x + width - 4, y, 4, height, "#000");
+      makefillRect(x, y + height - 4, width, 4, "#000");
       makefillRect(x + 1, y + 1, width - 2, 2, "#fff");
       makefillRect(x + 1, y + 1, 2, height - 2, "#fff");
       makefillRect(x + width - 3, y + 1, 2, height - 2, "#fff");
       makefillRect(x + 1, y + height - 3, width - 2, 2, "#fff");
-      makefillRect(x + 3, y + 3, width - 6, 1, "#000");
-      makefillRect(x + 3, y + 3, 1, height - 6, "#000");
-      makefillRect(x + width - 4, y + 3, 1, height - 6, "#000");
-      makefillRect(x + 3, y + height - 4, width - 6, 1, "#000");
     },
     getEventHandler(id, event, callback) {
       return this.$el.querySelector(id).addEventListener(event, callback);
@@ -393,7 +390,7 @@ export default {
     autotileDoubleClickEvent(e) {
       const autotileId = this.getTileLocation(e).tx - 1;
       if (this.autotiles[autotileId]) {
-        this.autotile = this.autotiles[autotileId];
+        this.autotileId = autotileId;
         this.mouseX = e.clientX;
         this.mouseY = e.clientY;
         this.isAutotileDialogOpened = true;

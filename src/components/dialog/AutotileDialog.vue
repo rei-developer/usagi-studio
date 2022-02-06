@@ -78,9 +78,13 @@ export default {
   name: "AutotileDialog",
   components: { UiDialog },
   props: {
-    autotile: {
-      type: Object,
-      default: null,
+    autotileId: {
+      type: Number,
+      default: 0,
+    },
+    autotiles: {
+      type: Array,
+      default: () => [],
     },
     mouseX: {
       type: Number,
@@ -122,7 +126,7 @@ export default {
         for (let j = 0; j < 5; j++) {
           const tile_position = parts[j] - 1;
           this.context.drawImage(
-            this.autotile,
+            this.autotiles[this.autotileId],
             (tile_position % 6) * 16,
             parseInt(tile_position / 6) * 16,
             16,
@@ -134,6 +138,21 @@ export default {
           );
         }
       }
+    },
+    drawRect(canvasId, x, y, width, height, _style = "rgba(0, 0, 0, 1)") {
+      const ctx = this.getContext(canvasId);
+      const makefillRect = (x, y, width, height, style = _style) => {
+        ctx.fillStyle = style;
+        ctx.fillRect(x, y, width, height);
+      };
+      makefillRect(x, y, width, 4, "#000");
+      makefillRect(x, y, 4, height, "#000");
+      makefillRect(x + width - 4, y, 4, height, "#000");
+      makefillRect(x, y + height - 4, width, 4, "#000");
+      makefillRect(x + 1, y + 1, width - 2, 2, "#fff");
+      makefillRect(x + 1, y + 1, 2, height - 2, "#fff");
+      makefillRect(x + width - 3, y + 1, 2, height - 2, "#fff");
+      makefillRect(x + 1, y + height - 3, width - 2, 2, "#fff");
     },
   },
 };
