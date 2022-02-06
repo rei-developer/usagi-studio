@@ -81,6 +81,10 @@ export default {
       type: Array,
       default: () => [],
     },
+    viewTileId: {
+      type: Boolean,
+      default: null,
+    },
     backgroundColor: {
       type: String,
       default: "#000",
@@ -334,6 +338,19 @@ export default {
       makefillRect(x + 1, y + 1, 2, height - 2, "#fff");
       makefillRect(x + width - 3, y + 1, 2, height - 2, "#fff");
       makefillRect(x + 1, y + height - 3, width - 2, 2, "#fff");
+      if (this.viewTileId) {
+        const tileId = (x / 32 + (y / 32) * 8 + 384).toString();
+        ctx.font = "11px Arial";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "bottom";
+        ctx.fillStyle = "#333";
+        ctx.fillText(tileId, x + width + 1, y + height + 14);
+        ctx.fillText(tileId, x + width - 1, y + height + 14);
+        ctx.fillText(tileId, x + width, y + height + 1 + 14);
+        ctx.fillText(tileId, x + width, y + height - 1 + 14);
+        ctx.fillStyle = "#fff";
+        ctx.fillText(tileId, x + width, y + height + 14);
+      }
     },
     getEventHandler(id, event, callback) {
       return this.$el.querySelector(id).addEventListener(event, callback);

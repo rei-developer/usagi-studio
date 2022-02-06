@@ -159,12 +159,34 @@ export default {
   name: "MapView",
   components: { UiInputRange },
   props: {
-    activeMap: String,
-    activeLayer: Number,
-    maps: Object,
-    autotiles: Array,
-    mode: Number,
-    backgroundColor: String,
+    activeMap: {
+      type: String,
+      default: null,
+    },
+    activeLayer: {
+      type: Number,
+      default: 1,
+    },
+    maps: {
+      type: Object,
+      default: null,
+    },
+    autotiles: {
+      type: Array,
+      default: () => [],
+    },
+    mode: {
+      type: Number,
+      default: 0,
+    },
+    viewTileId: {
+      type: Boolean,
+      default: null,
+    },
+    backgroundColor: {
+      type: String,
+      default: "#000",
+    },
   },
   data: () => ({
     zoom: 1.0,
@@ -991,6 +1013,20 @@ export default {
                 this.draw();
                 this.previewSelectedTile(e);
               }
+            }
+            if (
+              this.viewTileId &&
+              this.drawable &&
+              lindex + 1 === this.activeLayer
+            ) {
+              this.context.font = `${Math.round(11 * this.zoom)}px Arial`;
+              this.context.textAlign = "right";
+              this.context.textBaseline = "bottom";
+              this.context.fillText(
+                tile,
+                (x + 1) * TILESIZE * this.zoom,
+                (y + 1) * TILESIZE * this.zoom
+              );
             }
           }
         }

@@ -10,6 +10,7 @@
         :mapHeight="maps[activeMap].height"
         :tilesetName="tilesetName"
         :autotiles="autotiles"
+        :viewTileId="viewTileId"
         :backgroundColor="backgroundColor"
         @selectionChanged="getSelectedTile"
       />
@@ -19,6 +20,7 @@
         :maps="maps"
         :autotiles="autotiles"
         :mode="activeTool"
+        :viewTileId="viewTileId"
         :backgroundColor="backgroundColor"
       />
     </div>
@@ -59,6 +61,7 @@ export default {
     autotiles: [],
     activeTool: 0,
     activeLayer: 1,
+    viewTileId: true,
     backgroundColor: "#333",
   }),
   created() {
