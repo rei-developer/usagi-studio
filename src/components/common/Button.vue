@@ -5,6 +5,7 @@
       variant,
       size,
       active && 'active',
+      passive && 'passive',
       unnamed && 'unnamed',
       disabled && 'disabled',
       block && 'block',
@@ -63,6 +64,10 @@
     color: #fff;
     background-color: var(--primary-hover);
   }
+  &.passive {
+    color: #999;
+    background-color: #666;
+  }
   &.disabled {
     color: #33333366;
     background-color: var(--primary);
@@ -118,6 +123,10 @@ export default {
       default: null,
     },
     active: {
+      type: Boolean,
+      default: false,
+    },
+    passive: {
       type: Boolean,
       default: false,
     },

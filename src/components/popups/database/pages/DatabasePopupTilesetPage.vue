@@ -1,7 +1,7 @@
 <template>
   <div class="ui-grid">
     <section class="w-180">
-      <div class="label">Tileset</div>
+      <div class="label">타일셋</div>
       <ui-select
         :value="selectedIndex"
         :rows="items.length"
@@ -72,6 +72,7 @@
 .ui-grid {
   display: flex;
   width: 100%;
+  height: 100%;
   > section {
     display: flex;
     flex-direction: column;
