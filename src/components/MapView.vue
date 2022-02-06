@@ -177,6 +177,7 @@ export default {
     mouseY: undefined,
     previewOnDrawing: false,
     preview: [],
+    prevLayer: [],
   }),
   watch: {
     activeLayer() {
@@ -563,7 +564,6 @@ export default {
               (y - Math.min(this.iy, ty)) % height === tileOffsetY &&
               isInsideCircle({ x, y })
             ) {
-              console.log(tile.id);
               preview.push({
                 id:
                   tile.id >= 384 || tile.shiftKey
@@ -583,64 +583,14 @@ export default {
           }
         }
       });
-      console.log(preview);
       return { preview, width, height };
     },
-    previewSquareCircle(preview) {
-      this.context.globalAlpha = 1;
+    previewSquareCircle(event, layer, preview) {
+      const prevLayer = [];
       preview.forEach((tile) => {
-        if (tile.id >= 384) {
-          const tileNum = tile.id - 384; // 오프셋
-          const tileRow = parseInt(tileNum / 8);
-          const tileCol = tileNum % 8;
-          this.context.drawImage(
-            this.tileset,
-            tileCol * TILESIZE,
-            tileRow * TILESIZE,
-            TILESIZE,
-            TILESIZE,
-            tile.x * TILESIZE * this.zoom,
-            tile.y * TILESIZE * this.zoom,
-            TILESIZE * this.zoom,
-            TILESIZE * this.zoom
-          );
-        } else if (tile.id > 8) {
-          const autotileId = parseInt(tile.id / 48) - 1;
-          if (this.autotiles[autotileId]) {
-            const tileNum = tile.id % 48;
-            const tiles = AUTOTILES[parseInt(tileNum / 8)][tileNum % 8];
-            for (let i = 0; i < 5; i++) {
-              const tile_position = tiles[i] - 1;
-              this.context.drawImage(
-                this.autotiles[autotileId],
-                (tile_position % 6) * 16,
-                parseInt(tile_position / 6) * 16,
-                16,
-                16,
-                (tile.x * TILESIZE + (i % 2) * 16) * this.zoom,
-                (tile.y * TILESIZE + parseInt(i / 2) * 16) * this.zoom,
-                16 * this.zoom,
-                16 * this.zoom
-              );
-            }
-          }
-        } else if (tile.id > 0) {
-          const autotileId = tile.id - 1;
-          if (this.autotiles[autotileId]) {
-            this.context.drawImage(
-              this.autotiles[autotileId],
-              0,
-              0,
-              TILESIZE,
-              TILESIZE,
-              tile.x * TILESIZE * this.zoom,
-              tile.y * TILESIZE * this.zoom,
-              TILESIZE * this.zoom,
-              TILESIZE * this.zoom
-            );
-          }
-        }
+        prevLayer.push({ id: layer[tile.y][tile.x], x: tile.x, y: tile.y });
       });
+      return prevLayer;
     },
     addSquare(event, layer, preview) {
       preview.forEach((tile) => {
@@ -1058,9 +1008,15 @@ export default {
             } else {
               if (this.tileAddStart) {
                 const { preview } = this.getSquare(e);
-                this.draw();
-                this.previewSquareCircle(preview);
+                const prevLayer = this.previewSquareCircle(
+                  e,
+                  this.layer,
+                  preview
+                );
+                this.addSquare(e, this.layer, preview);
                 this.preview = preview;
+                this.draw();
+                this.addSquare(e, this.layer, prevLayer);
               } else {
                 this.draw();
                 this.previewSelectedTile(e);
@@ -1089,9 +1045,15 @@ export default {
             } else {
               if (this.tileAddStart) {
                 const { preview } = this.getCircle(e);
-                this.draw();
-                this.previewSquareCircle(preview);
+                const prevLayer = this.previewSquareCircle(
+                  e,
+                  this.layer,
+                  preview
+                );
+                this.addSquare(e, this.layer, preview);
                 this.preview = preview;
+                this.draw();
+                this.addSquare(e, this.layer, prevLayer);
               } else {
                 this.draw();
                 this.previewSelectedTile(e);
