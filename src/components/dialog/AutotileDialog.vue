@@ -120,6 +120,11 @@ export default {
       "pointerdown",
       this.pointerDownEvent
     );
+    this.getEventHandler(
+      AUTOTILE_DIALOG_CANVAS_ID,
+      "dblclick",
+      this.doubleClickEvent
+    );
   },
   beforeUnmount() {
     this.removeEventHandler(
@@ -127,11 +132,16 @@ export default {
       "pointerdown",
       this.pointerDownEvent
     );
+    this.removeEventHandler(
+      AUTOTILE_DIALOG_CANVAS_ID,
+      "dblclick",
+      this.doubleClickEvent
+    );
   },
   methods: {
     ...mapMutations(["updateFields"]),
     doEvent() {
-      alert("허걱 콜백을 실행했군요 바보군");
+      this.$emit("onCloseDialog");
     },
     draw() {
       this.context.clearRect(0, 0, 256, 192);
@@ -189,6 +199,9 @@ export default {
       this.draw();
       this.drawRect(x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE);
       this.updateFields({ selectedTiles: selection });
+    },
+    doubleClickEvent() {
+      this.$emit("onCloseDialog");
     },
   },
 };
