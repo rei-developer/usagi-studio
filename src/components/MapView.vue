@@ -525,24 +525,12 @@ export default {
       const longAxis = theight > twidth ? theight : twidth;
       const focus = [
         {
-          x:
-            twidth > theight
-              ? parseInt((this.ix + tx) / 2) - c
-              : parseInt((this.ix + tx) / 2),
-          y:
-            twidth > theight
-              ? parseInt((this.iy + ty) / 2)
-              : parseInt((this.iy + ty) / 2) - c,
+          x: twidth > theight ? (this.ix + tx) / 2 - c : (this.ix + tx) / 2,
+          y: twidth > theight ? (this.iy + ty) / 2 : (this.iy + ty) / 2 - c,
         },
         {
-          x:
-            twidth > theight
-              ? parseInt((this.ix + tx) / 2) + c
-              : parseInt((this.ix + tx) / 2),
-          y:
-            twidth > theight
-              ? parseInt((this.iy + ty) / 2)
-              : parseInt((this.iy + ty) / 2) + c,
+          x: twidth > theight ? (this.ix + tx) / 2 + c : (this.ix + tx) / 2,
+          y: twidth > theight ? (this.iy + ty) / 2 : (this.iy + ty) / 2 + c,
         },
       ];
       const getDistance = (a, b) => {
