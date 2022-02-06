@@ -6,6 +6,12 @@
   </ui-dialog>
 </template>
 
+<style lang="scss" scoped>
+#autotileDialogCanvas {
+  border: 1px solid var(--primary);
+}
+</style>
+
 <script>
 import { mapMutations } from "vuex";
 import UiDialog from "@/components/common/Dialog";
@@ -96,16 +102,19 @@ export default {
       default: 0,
     },
   },
+  data: () => ({
+    selection: null,
+  }),
   computed: {
     dialogOptions() {
       return {
         header: "SELECT AUTOTILE",
         icon: "layer-group",
-        width: 266,
-        height: 248,
+        width: 268,
+        height: 250,
         mouseX: this.mouseX,
         mouseY: this.mouseY + 20,
-        callback: () => this.doEvent(),
+        callback: () => this.setSelection(),
       };
     },
     context() {
@@ -140,9 +149,6 @@ export default {
   },
   methods: {
     ...mapMutations(["updateFields"]),
-    doEvent() {
-      this.$emit("onCloseDialog");
-    },
     draw() {
       this.context.clearRect(0, 0, 256, 192);
       for (let i = 0; i < 48; i++) {
@@ -187,6 +193,10 @@ export default {
       const id = x + y * 8 + _id * 48;
       return [{ id, x, y, shiftKey: true }];
     },
+    setSelection() {
+      if (this.selection) this.updateFields({ selectedTiles: this.selection });
+      this.$emit("onCloseDialog");
+    },
     getEventHandler(id, event, callback) {
       return this.$el.querySelector(id).addEventListener(event, callback);
     },
@@ -195,13 +205,12 @@ export default {
     },
     pointerDownEvent(event) {
       const { x, y } = this.getTileLocation(event);
-      const selection = this.getSelectedTile(this.autotileId + 1, x, y);
+      this.selection = this.getSelectedTile(this.autotileId + 1, x, y);
       this.draw();
       this.drawRect(x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE);
-      this.updateFields({ selectedTiles: selection });
     },
     doubleClickEvent() {
-      this.$emit("onCloseDialog");
+      this.setSelection();
     },
   },
 };
