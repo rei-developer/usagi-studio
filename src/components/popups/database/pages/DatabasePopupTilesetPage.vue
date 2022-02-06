@@ -15,11 +15,13 @@
           :value="index"
           :selected="index === selectedIndex"
         >
-          {{ index }}: {{ item.label }}
+          {{ index + 1 }}: {{ item.label }}
         </option>
       </ui-select>
       <div class="bottom">
-        <ui-button block>최대값 변경</ui-button>
+        <ui-button block @click="onClickOpenMaximumPopup">
+          최대값 변경
+        </ui-button>
       </div>
     </section>
     <section class="container">
@@ -65,6 +67,14 @@
         </div>
       </div>
     </section>
+    <maximum-popup
+      v-if="isMaximumPopupOpened"
+      :value="items.length"
+      :mouseX="mouseX"
+      :mouseY="mouseY"
+      @onSubmitPopup="onSubmitMaximumPopup"
+      @onClosePopup="onCloseMaximumPopup"
+    />
   </div>
 </template>
 
@@ -133,6 +143,7 @@ import UiButton from "@/components/common/Button";
 import UiInput from "@/components/common/Input";
 import UiSelect from "@/components/common/Select";
 import UiUpload from "@/components/common/Upload";
+import MaximumPopup from "@/components/popups/common/MaximumPopup";
 
 export default {
   name: "DatabasePopupTilesetPage",
@@ -141,6 +152,7 @@ export default {
     UiInput,
     UiSelect,
     UiUpload,
+    MaximumPopup,
   },
   data: () => ({
     selectedIndex: 0,
@@ -151,6 +163,7 @@ export default {
     tilesetName: "hospital",
     tileSelectStart: null,
     autotileId: null,
+    isMaximumPopupOpened: false,
   }),
   computed: {
     width() {
@@ -175,6 +188,21 @@ export default {
     },
     onChangeIndex(value) {
       this.selectedIndex = Number(value);
+    },
+    onClickOpenMaximumPopup(e) {
+      this.mouseX = e.clientX;
+      this.mouseY = e.clientY;
+      this.isMaximumPopupOpened = true;
+    },
+    onSubmitMaximumPopup(value) {
+      // TODO: 개발해야 한다.
+      this.items = new Array(value).fill({ label: "테스트입니다" });
+      this.onCloseMaximumPopup();
+    },
+    onCloseMaximumPopup() {
+      this.mouseX = null;
+      this.mouseY = null;
+      this.isMaximumPopupOpened = false;
     },
   },
 };

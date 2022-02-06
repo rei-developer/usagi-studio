@@ -24,6 +24,9 @@
     border: 1px solid var(--primary);
     background: transparent;
     outline: none;
+    &[type="number"] {
+      text-align: right;
+    }
     &::selection {
       background: var(--primary);
     }
@@ -91,7 +94,7 @@ export default {
       default: "text",
     },
     value: {
-      type: String,
+      type: [String, Number],
       default: null,
     },
     placeholder: {
