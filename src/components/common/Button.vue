@@ -29,6 +29,7 @@
 .ui-button {
   display: flex;
   align-items: center;
+  justify-content: center;
   width: fit-content;
   height: 19px;
   padding: 0 5px;
@@ -68,17 +69,15 @@
     pointer-events: none;
   }
   &.block {
-    width: 100%;
+    width: inherit;
   }
   &.md {
     height: 23px;
-    line-height: 21px;
   }
   &.lg {
     height: 28px;
-    line-height: 26px;
     padding: 0 10px;
-    font-size: 15px;
+    font-size: 13px;
   }
   > .description {
     position: absolute;

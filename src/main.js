@@ -40,6 +40,7 @@ import {
   faSearchPlus,
   faSearchMinus,
   faBullseye,
+  faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
@@ -74,6 +75,7 @@ const libraries = [
   faSearchPlus,
   faSearchMinus,
   faBullseye,
+  faChevronRight,
 ];
 
 for (const icon of libraries) library.add(icon);

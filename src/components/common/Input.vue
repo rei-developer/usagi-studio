@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="ui-input-wrapper">
     <input
       ref="input"
       :class="['ui-input', size, block && 'block', readonly && 'readonly']"
@@ -8,6 +8,7 @@
       :placeholder="placeholder"
       :maxlength="maxlength"
       :readonly="readonly"
+      :spellcheck="false"
       @input="onInput"
     />
     <span v-if="display && maxlength && value && value.length > 0">
@@ -17,57 +18,62 @@
 </template>
 
 <style lang="scss" scoped>
-input.ui-input {
-  color: #fff;
-  border: 1px solid var(--primary);
-  background: transparent;
-  outline: none;
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button {
-    margin: 0;
-    -webkit-appearance: none;
-  }
-  &:not(.readonly):focus {
-    border-style: dashed;
-  }
-  &.block {
-    width: 100%;
-  }
-  &.xsm {
-    width: 18px;
-    height: 18px;
-  }
-  &.md {
-    height: 23px;
-    line-height: 21px;
-  }
-  &.lg {
-    height: 28px;
-    line-height: 26px;
-    padding: 0 10px;
-    font-size: 15px;
-  }
-  &[type="color"] {
-    width: 19px;
-    height: 19px;
-    margin: 0;
-    padding: 0;
+.ui-input-wrapper {
+  > input.ui-input {
+    color: #fff;
     border: 1px solid var(--primary);
-    -webkit-appearance: none;
-    &.sm {
+    background: transparent;
+    outline: none;
+    &::selection {
+      background: var(--primary);
+    }
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      margin: 0;
+      -webkit-appearance: none;
+    }
+    &:not(.readonly):focus {
+      border-style: dashed;
+    }
+    &.block {
+      width: calc(100% - 6px);
+    }
+    &.xsm {
       width: 18px;
       height: 18px;
     }
     &.md {
-      width: 23px;
       height: 23px;
+      line-height: 21px;
     }
-  }
-  &[type="color"]::-webkit-color-swatch-wrapper {
-    padding: 0;
-  }
-  &[type="color"]::-webkit-color-swatch {
-    border: none;
+    &.lg {
+      height: 28px;
+      line-height: 26px;
+      padding: 0 10px;
+      font-size: 15px;
+    }
+    &[type="color"] {
+      width: 19px;
+      height: 19px;
+      margin: 0;
+      padding: 0;
+      border: 1px solid var(--primary);
+      -webkit-appearance: none;
+      &.sm {
+        width: 18px;
+        height: 18px;
+      }
+      &.md {
+        width: 23px;
+        height: 23px;
+      }
+    }
+    &[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+    &[type="color"]::-webkit-color-swatch {
+      border: none;
+    }
   }
 }
 </style>
