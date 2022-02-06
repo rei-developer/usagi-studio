@@ -325,6 +325,7 @@ export default {
               this.context.font = `${Math.round(11 * this.zoom)}px Arial`;
               this.context.textAlign = "right";
               this.context.textBaseline = "bottom";
+              this.context.fillStyle = "#333";
               this.context.fillText(
                 tile,
                 (x + 1) * TILESIZE * this.zoom,
