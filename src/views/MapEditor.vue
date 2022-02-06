@@ -37,17 +37,15 @@
 
 <script>
 import Tools from "@/components/Tools.vue";
-import MapView from "@/components/MapView.vue";
 import TilesetView from "@/components/TilesetView.vue";
-
-//import map1 from "@/assets/maps/Map079.json"; // 임시
+import MapView from "@/components/MapView.vue";
 
 export default {
   name: "MapEditor",
   components: {
     Tools,
-    MapView,
     TilesetView,
+    MapView,
   },
   data: () => ({
     activeMap: "",

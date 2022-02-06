@@ -50,12 +50,12 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
+import {
+  TILESIZE,
+  TILESET_CANVAS_ID,
+  AUTOTILE_CANVAS_ID,
+} from "@/utils/tileset";
 import AutotilePopup from "@/components/popups/AutotilePopup";
-
-const TILESET_CANVAS_ID = "#tilesetCanvas";
-const AUTOTILE_CANVAS_ID = "#autotileCanvas";
-
-const TILESIZE = 32;
 
 export default {
   name: "TilesetView",
