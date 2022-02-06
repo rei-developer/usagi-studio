@@ -101,25 +101,7 @@ export default {
         this.activeCanvas !== AUTOTILE_CANVAS_ID
       ) {
         this.draw();
-        if (this.selectedTiles.length === 1) {
-          if (this.selectedTiles[0].id >= 384) {
-            const tileNum = this.selectedTiles[0].id - 384; // 오프셋
-            const tileRow = parseInt(tileNum / 8);
-            const tileCol = tileNum % 8;
-            this.drawSelectedTile(tileCol, tileRow, 1, 1);
-            this.$el.querySelector("#tileset").scrollTo({
-              top: (tileRow + 1) * TILESIZE,
-              behavior: "smooth",
-            });
-          } else if (this.selectedTiles[0].id > 0) {
-            const autotileId = parseInt(this.selectedTiles[0].id / 48);
-            this.drawSelectedAutotile(autotileId, 0);
-            this.$el.querySelector("#tileset").scrollTo({
-              top: 0,
-              behavior: "smooth",
-            });
-          }
-        }
+        this.focusSelectedTile();
       }
     },
   },
@@ -290,6 +272,27 @@ export default {
     getSelectedAutotile(event) {
       const { tx, ty } = this.getTileLocation(event);
       return [{ id: tx * 48 + 47, x: tx, y: ty }];
+    },
+    focusSelectedTile() {
+      if (this.selectedTiles.length === 1) {
+        if (this.selectedTiles[0].id >= 384) {
+          const tileNum = this.selectedTiles[0].id - 384; // 오프셋
+          const tileRow = parseInt(tileNum / 8);
+          const tileCol = tileNum % 8;
+          this.drawSelectedTile(tileCol, tileRow, 1, 1);
+          this.$el.querySelector("#tileset").scrollTo({
+            top: (tileRow + 1) * TILESIZE,
+            behavior: "smooth",
+          });
+        } else if (this.selectedTiles[0].id > 0) {
+          const autotileId = parseInt(this.selectedTiles[0].id / 48);
+          this.drawSelectedAutotile(autotileId, 0);
+          this.$el.querySelector("#tileset").scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        }
+      }
     },
     getTileLocation(event) {
       const { x, y } = event.target.getBoundingClientRect();
