@@ -49,7 +49,7 @@
 </style>
 
 <script>
-import { mapMutations } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import AutotileDialog from "@/components/dialog/AutotileDialog";
 
 const TILESET_CANVAS_ID = "#tilesetCanvas";
@@ -183,6 +183,7 @@ export default {
     );
   },
   computed: {
+    ...mapGetters(["fields"]),
     width() {
       return this.tileset?.width;
     },
