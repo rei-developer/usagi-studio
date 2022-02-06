@@ -9,10 +9,79 @@
 <script>
 import UiDialog from "@/components/common/Dialog";
 
+const TILESIZE = 32;
+const AUTOTILE_DIALOG_CANVAS_ID = "#autotileDialogCanvas";
+const AUTOTILES = [
+  [
+    [27, 28, 33, 34],
+    [5, 28, 33, 34],
+    [27, 6, 33, 34],
+    [5, 6, 33, 34],
+    [27, 28, 33, 12],
+    [5, 28, 33, 12],
+    [27, 6, 33, 12],
+    [5, 6, 33, 12],
+  ],
+  [
+    [27, 28, 11, 34],
+    [5, 28, 11, 34],
+    [27, 6, 11, 34],
+    [5, 6, 11, 34],
+    [27, 28, 11, 12],
+    [5, 28, 11, 12],
+    [27, 6, 11, 12],
+    [5, 6, 11, 12],
+  ],
+  [
+    [25, 26, 31, 32],
+    [25, 6, 31, 32],
+    [25, 26, 31, 12],
+    [25, 6, 31, 12],
+    [15, 16, 21, 22],
+    [15, 16, 21, 12],
+    [15, 16, 11, 22],
+    [15, 16, 11, 12],
+  ],
+  [
+    [29, 30, 35, 36],
+    [29, 30, 11, 36],
+    [5, 30, 35, 36],
+    [5, 30, 11, 36],
+    [39, 40, 45, 46],
+    [5, 40, 45, 46],
+    [39, 6, 45, 46],
+    [5, 6, 45, 46],
+  ],
+  [
+    [25, 30, 31, 36],
+    [15, 16, 45, 46],
+    [13, 14, 19, 20],
+    [13, 14, 19, 12],
+    [17, 18, 23, 24],
+    [17, 18, 11, 24],
+    [41, 42, 47, 48],
+    [5, 42, 47, 48],
+  ],
+  [
+    [37, 38, 43, 44],
+    [37, 6, 43, 44],
+    [13, 18, 19, 24],
+    [13, 14, 43, 44],
+    [37, 42, 43, 48],
+    [17, 18, 47, 48],
+    [13, 18, 43, 48],
+    [1, 2, 7, 8],
+  ],
+];
+
 export default {
   name: "AutotileDialog",
   components: { UiDialog },
   props: {
+    autotile: {
+      type: Object,
+      default: null,
+    },
     mouseX: {
       type: Number,
       default: 0,
@@ -34,10 +103,37 @@ export default {
         callback: () => this.doEvent(),
       };
     },
+    context() {
+      const canvas = this.$el.querySelector(AUTOTILE_DIALOG_CANVAS_ID);
+      return canvas.getContext("2d");
+    },
+  },
+  mounted() {
+    this.draw();
   },
   methods: {
     doEvent() {
       alert("허걱 콜백을 실행했군요 바보군");
+    },
+    draw() {
+      this.context.clearRect(0, 0, 256, 192);
+      for (let i = 0; i < 48; i++) {
+        const parts = AUTOTILES[parseInt(i / 8)][i % 8];
+        for (let j = 0; j < 5; j++) {
+          const tile_position = parts[j] - 1;
+          this.context.drawImage(
+            this.autotile,
+            (tile_position % 6) * 16,
+            parseInt(tile_position / 6) * 16,
+            16,
+            16,
+            (i % 8) * TILESIZE + (j % 2) * 16,
+            parseInt(i / 8) * TILESIZE + parseInt(j / 2) * 16,
+            16,
+            16
+          );
+        }
+      }
     },
   },
 };
