@@ -177,7 +177,6 @@ export default {
     mouseY: undefined,
     previewOnDrawing: false,
     preview: [],
-    prevLayer: [],
   }),
   watch: {
     activeLayer() {
@@ -391,30 +390,37 @@ export default {
         height * TILESIZE * this.zoom
       );
     },
-    getSquare(event) {
-      const preview = [];
-      const { tx, ty } = this.getTileLocation(event);
+    getVertex(tiles) {
       const ix = Math.min.apply(
         null,
-        this.selectedTiles.map((item) => item.x)
+        tiles.map((item) => item.x)
       );
       const iy = Math.min.apply(
         null,
-        this.selectedTiles.map((item) => item.y)
+        tiles.map((item) => item.y)
       );
       const lx = Math.max.apply(
         null,
-        this.selectedTiles.map((item) => item.x)
+        tiles.map((item) => item.x)
       );
       const ly = Math.max.apply(
         null,
-        this.selectedTiles.map((item) => item.y)
+        tiles.map((item) => item.y)
       );
-      const width = lx - ix + 1;
-      const height = ly - iy + 1;
+      return [
+        { x: ix, y: iy },
+        { x: lx, y: ly },
+      ];
+    },
+    getSquare(event) {
+      const preview = [];
+      const { tx, ty } = this.getTileLocation(event);
+      const vertex = this.getVertex(this.selectedTiles);
+      const width = vertex[1].x - vertex[0].x + 1;
+      const height = vertex[1].y - vertex[0].y + 1;
       this.selectedTiles.forEach((tile) => {
-        const tileOffsetX = tile.x - ix;
-        const tileOffsetY = tile.y - iy;
+        const tileOffsetX = tile.x - vertex[0].x;
+        const tileOffsetY = tile.y - vertex[0].y;
         for (let y = Math.min(this.iy, ty); y <= Math.max(this.iy, ty); y++) {
           for (let x = Math.min(this.ix, tx); x <= Math.max(this.ix, tx); x++) {
             if (
@@ -445,24 +451,9 @@ export default {
     getCircle(event) {
       const preview = [];
       const { tx, ty } = this.getTileLocation(event);
-      const ix = Math.min.apply(
-        null,
-        this.selectedTiles.map((item) => item.x)
-      );
-      const iy = Math.min.apply(
-        null,
-        this.selectedTiles.map((item) => item.y)
-      );
-      const lx = Math.max.apply(
-        null,
-        this.selectedTiles.map((item) => item.x)
-      );
-      const ly = Math.max.apply(
-        null,
-        this.selectedTiles.map((item) => item.y)
-      );
-      const width = lx - ix + 1;
-      const height = ly - iy + 1;
+      const vertex = this.getVertex(this.selectedTiles);
+      const width = vertex[1].x - vertex[0].x + 1;
+      const height = vertex[1].y - vertex[0].y + 1;
       const twidth = Math.abs(tx - this.ix) + 1;
       const theight = Math.abs(ty - this.iy) + 1;
       const c = Math.sqrt(Math.abs((twidth / 2) ** 2 - (theight / 2) ** 2));
@@ -487,8 +478,8 @@ export default {
         );
       };
       this.selectedTiles.forEach((tile) => {
-        const tileOffsetX = tile.x - ix;
-        const tileOffsetY = tile.y - iy;
+        const tileOffsetX = tile.x - vertex[0].x;
+        const tileOffsetY = tile.y - vertex[0].y;
         for (let y = Math.min(this.iy, ty); y <= Math.max(this.iy, ty); y++) {
           for (let x = Math.min(this.ix, tx); x <= Math.max(this.ix, tx); x++) {
             if (
