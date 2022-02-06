@@ -315,6 +315,20 @@ export default {
               this.context.globalAlpha = 1;
             }
             this.drawTiles(this.context, tile, x, y);
+            if (
+              this.viewTileId &&
+              this.drawable &&
+              lindex + 1 === this.activeLayer
+            ) {
+              this.context.font = `${Math.round(11 * this.zoom)}px Arial`;
+              this.context.textAlign = "right";
+              this.context.textBaseline = "bottom";
+              this.context.fillText(
+                tile,
+                (x + 1) * TILESIZE * this.zoom,
+                (y + 1) * TILESIZE * this.zoom
+              );
+            }
           }
         }
         if (this.drawable && lindex + 1 === this.activeLayer - 1) {
@@ -1013,20 +1027,6 @@ export default {
                 this.draw();
                 this.previewSelectedTile(e);
               }
-            }
-            if (
-              this.viewTileId &&
-              this.drawable &&
-              lindex + 1 === this.activeLayer
-            ) {
-              this.context.font = `${Math.round(11 * this.zoom)}px Arial`;
-              this.context.textAlign = "right";
-              this.context.textBaseline = "bottom";
-              this.context.fillText(
-                tile,
-                (x + 1) * TILESIZE * this.zoom,
-                (y + 1) * TILESIZE * this.zoom
-              );
             }
           }
         }
