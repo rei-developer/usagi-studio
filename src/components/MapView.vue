@@ -290,45 +290,10 @@ export default {
             const tile = layer[y][x];
             if (this.activeLayer === 4) {
               this.context.globalAlpha = 0.6;
-              this.drawTiles(this.context, x, y);
+              this.drawBorder(this.context, x, y);
               this.context.globalAlpha = 1;
             }
-            if (tile >= 384) {
-              // 일반 타일
-              const tileNum = tile - 384; // 오프셋
-              const tileRow = parseInt(tileNum / 8);
-              const tileCol = tileNum % 8;
-              this.context.drawImage(
-                this.tileset,
-                tileCol * TILESIZE,
-                tileRow * TILESIZE,
-                TILESIZE,
-                TILESIZE,
-                x * TILESIZE * this.zoom,
-                y * TILESIZE * this.zoom,
-                TILESIZE * this.zoom,
-                TILESIZE * this.zoom
-              );
-            } else if (tile > 0) {
-              // 오토타일
-              const autotileId = parseInt(tile / 48) - 1;
-              const tileNum = tile % 48;
-              const tiles = AUTOTILES[parseInt(tileNum / 8)][tileNum % 8];
-              for (let i = 0; i < 5; i++) {
-                const tile_position = tiles[i] - 1;
-                this.context.drawImage(
-                  this.autotiles[autotileId],
-                  (tile_position % 6) * 16,
-                  parseInt(tile_position / 6) * 16,
-                  16,
-                  16,
-                  (x * TILESIZE + (i % 2) * 16) * this.zoom,
-                  (y * TILESIZE + parseInt(i / 2) * 16) * this.zoom,
-                  16 * this.zoom,
-                  16 * this.zoom
-                );
-              }
-            }
+            this.drawTiles(this.context, tile, x, y);
           }
         }
         if (this.drawable && lindex + 1 === this.activeLayer - 1) {
@@ -337,11 +302,45 @@ export default {
         }
       });
     },
-    getContext() {
-      const canvas = this.$el.querySelector(MAP_CANVAS_ID);
-      return canvas.getContext("2d");
+    drawTiles(context, _id, x, y) {
+      if (_id >= 384) {
+        // 일반 타일
+        const tileNum = _id - 384; // 오프셋
+        const tileRow = parseInt(tileNum / 8);
+        const tileCol = tileNum % 8;
+        context.drawImage(
+          this.tileset,
+          tileCol * TILESIZE,
+          tileRow * TILESIZE,
+          TILESIZE,
+          TILESIZE,
+          x * TILESIZE * this.zoom,
+          y * TILESIZE * this.zoom,
+          TILESIZE * this.zoom,
+          TILESIZE * this.zoom
+        );
+      } else if (_id >= 48) {
+        // 오토타일
+        const id = parseInt(_id / 48) - 1;
+        const index = _id % 48;
+        const parts = AUTOTILES[parseInt(index / 8)][index % 8];
+        for (let i = 0; i < 5; i++) {
+          const tile_position = parts[i] - 1;
+          context.drawImage(
+            this.autotiles[id],
+            (tile_position % 6) * 16,
+            parseInt(tile_position / 6) * 16,
+            16,
+            16,
+            (x * TILESIZE + (i % 2) * 16) * this.zoom,
+            (y * TILESIZE + parseInt(i / 2) * 16) * this.zoom,
+            16 * this.zoom,
+            16 * this.zoom
+          );
+        }
+      }
     },
-    drawTiles(context, x, y) {
+    drawBorder(context, x, y) {
       context.beginPath();
       context.lineWidth = 0.5;
       context.strokeStyle = "rgba(0, 0, 0, 0.4)";
@@ -367,85 +366,30 @@ export default {
       const { tx, ty } = this.getTileLocation(event);
       const ix = this.selectedTiles[0].x;
       const iy = this.selectedTiles[0].y;
-      if (this.drawable) {
-        this.context.globalAlpha = 0.7;
-        if (
-          !this.tileAddStart ||
-          (this.tileAddStart && this.previewOnDrawing)
-        ) {
-          this.selectedTiles.forEach((tile) => {
-            if (tile.id >= 384) {
-              const tileNum = tile.id - 384; // 오프셋
-              const tileRow = parseInt(tileNum / 8);
-              const tileCol = tileNum % 8;
-              this.context.drawImage(
-                this.tileset,
-                tileCol * TILESIZE,
-                tileRow * TILESIZE,
-                TILESIZE,
-                TILESIZE,
-                (tx + tile.x - ix) * TILESIZE * this.zoom,
-                (ty + tile.y - iy) * TILESIZE * this.zoom,
-                TILESIZE * this.zoom,
-                TILESIZE * this.zoom
-              );
-            } else if (tile.id > 8) {
-              const autotileId = parseInt(tile.id / 48) - 1;
-              if (this.autotiles[autotileId]) {
-                const tileNum = tile.id % 48;
-                const tiles = AUTOTILES[parseInt(tileNum / 8)][tileNum % 8];
-                for (let i = 0; i < 5; i++) {
-                  const tile_position = tiles[i] - 1;
-                  this.context.drawImage(
-                    this.autotiles[autotileId],
-                    (tile_position % 6) * 16,
-                    parseInt(tile_position / 6) * 16,
-                    16,
-                    16,
-                    ((tx + tile.x - ix) * TILESIZE + (i % 2) * 16) * this.zoom,
-                    ((ty + tile.y - iy) * TILESIZE + parseInt(i / 2) * 16) *
-                      this.zoom,
-                    16 * this.zoom,
-                    16 * this.zoom
-                  );
-                }
-              }
-            } else if (tile.id > 0) {
-              const autotileId = tile.id - 1;
-              if (this.autotiles[autotileId]) {
-                this.context.drawImage(
-                  this.autotiles[autotileId],
-                  0,
-                  0,
-                  TILESIZE,
-                  TILESIZE,
-                  (tx + tile.x - ix) * TILESIZE * this.zoom,
-                  (ty + tile.y - iy) * TILESIZE * this.zoom,
-                  TILESIZE * this.zoom,
-                  TILESIZE * this.zoom
-                );
-              }
-            }
-          });
-        }
-
-        const width =
-          this.selectedTiles[this.selectedTiles.length - 1].x -
-          this.selectedTiles[0].x +
-          1;
-        const height =
-          this.selectedTiles[this.selectedTiles.length - 1].y -
-          this.selectedTiles[0].y +
-          1;
-        this.context.globalAlpha = 1;
-        this.drawRect(
-          MAP_CANVAS_ID,
-          tx * TILESIZE * this.zoom,
-          ty * TILESIZE * this.zoom,
-          width * TILESIZE * this.zoom,
-          height * TILESIZE * this.zoom
-        );
+      this.context.globalAlpha = 0.7;
+      if (!this.tileAddStart || (this.tileAddStart && this.previewOnDrawing)) {
+        this.selectedTiles.forEach((tile) => {
+          const x = tx + tile.x - ix;
+          const y = ty + tile.y - iy;
+          this.drawTiles(this.context, tile.id, x, y);
+        });
       }
+      const width =
+        this.selectedTiles[this.selectedTiles.length - 1].x -
+        this.selectedTiles[0].x +
+        1;
+      const height =
+        this.selectedTiles[this.selectedTiles.length - 1].y -
+        this.selectedTiles[0].y +
+        1;
+      this.context.globalAlpha = 1;
+      this.drawRect(
+        MAP_CANVAS_ID,
+        tx * TILESIZE * this.zoom,
+        ty * TILESIZE * this.zoom,
+        width * TILESIZE * this.zoom,
+        height * TILESIZE * this.zoom
+      );
     },
     getSquare(event) {
       const preview = [];
@@ -1070,6 +1014,7 @@ export default {
           this.addSquare(e, this.layer, this.preview);
           this.draw();
         }
+        this.previewSelectedTile(e);
       }
       this.tileAddStart = false;
       // 마우스 우클릭
@@ -1084,7 +1029,6 @@ export default {
           activeCanvas: MAP_CANVAS_ID,
         });
       }
-      this.previewSelectedTile(e);
     },
     mouseLeaveEvent() {
       this.draw();
