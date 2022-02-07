@@ -64,7 +64,7 @@
 </style>
 
 <script>
-import { mapMutations } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import DatabasePopup from "@/components/popups/database/DatabasePopup";
 import InfoPopup from "@/components/popups/InfoPopup";
 import UiButton from "@/components/common/Button";
@@ -93,6 +93,7 @@ export default {
     },
   },
   computed: {
+    ...mapGetters(["isMapHistory", "isMapFuture"]),
     menuGroup() {
       return [
         this.fileMenus,
@@ -160,15 +161,15 @@ export default {
           description: "실행 취소",
           icon: "undo",
           active: null,
-          disabled: null,
-          click: () => {},
+          disabled: !this.isMapHistory,
+          click: (e) => this.undo(e),
         },
         {
           description: "다시 실행",
           icon: "redo",
           active: null,
-          disabled: null,
-          click: () => {},
+          disabled: !this.isMapFuture,
+          click: (e) => this.redo(e),
         },
       ];
     },
@@ -320,6 +321,12 @@ export default {
     },
     onCloseInfoPopup() {
       this.isInfoPopupOpened = false;
+    },
+    undo(e) {
+      this.$parent.undo(e);
+    },
+    redo(e) {
+      this.$parent.redo(e);
     },
   },
 };

@@ -1,7 +1,12 @@
 <template>
   <div class="container">
     <div class="row">
-      <tools @toolSelected="getSelectedTool" @activeLayer="getActiveLayer" />
+      <tools
+        @toolSelected="getSelectedTool"
+        @activeLayer="getActiveLayer"
+        @undo="undo"
+        @redo="redo"
+      />
     </div>
     <div class="row">
       <tileset-view
@@ -14,6 +19,7 @@
         @selectionChanged="getSelectedTile"
       />
       <map-view
+        ref="mapView"
         :activeMap="activeMap"
         :activeLayer="activeLayer"
         :maps="maps"
@@ -99,6 +105,12 @@ export default {
     },
     getActiveLayer(e) {
       this.activeLayer = e;
+    },
+    undo(e) {
+      this.$refs.mapView.undo(e);
+    },
+    redo(e) {
+      this.$refs.mapView.redo(e);
     },
   },
 };
