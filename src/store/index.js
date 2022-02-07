@@ -17,7 +17,6 @@ export default createStore({
     async removeMapFuture({ commit, state }) {
       if (state.mapFuture.length < 1) return null;
       const item = state.mapFuture[state.mapFuture.length - 1];
-      console.log(item);
       await commit("REMOVE_MAP_FUTURE");
       return item;
     },
@@ -34,7 +33,6 @@ export default createStore({
     },
     ADD_MAP_FUTURE(state, data) {
       state.mapFuture.push(data);
-      console.log(state.mapFuture);
     },
     REMOVE_MAP_HISTORY(state) {
       if (state.mapHistory.length > 0) state.mapHistory.pop();
