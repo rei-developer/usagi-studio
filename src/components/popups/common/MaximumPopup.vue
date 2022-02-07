@@ -1,9 +1,7 @@
 <template>
   <ui-dialog v-bind="{ ...dialogOptions }">
     <div class="input-wrapper">
-      <div class="label">
-        갯수
-      </div>
+      <div class="label">갯수</div>
       <div class="container">
         <ui-input
           type="number"
