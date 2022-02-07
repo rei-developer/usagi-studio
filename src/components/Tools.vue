@@ -97,6 +97,7 @@ export default {
       return [
         this.fileMenus,
         this.editMenus,
+        this.historyMenus,
         this.layerMenus,
         this.toolMenus,
         this.adminMenus,
@@ -149,6 +150,24 @@ export default {
           description: "삭제하기",
           icon: "times",
           active: null,
+          click: () => {},
+        },
+      ];
+    },
+    historyMenus() {
+      return [
+        {
+          description: "실행 취소",
+          icon: "undo",
+          active: null,
+          disabled: null,
+          click: () => {},
+        },
+        {
+          description: "다시 실행",
+          icon: "redo",
+          active: null,
+          disabled: null,
           click: () => {},
         },
       ];
