@@ -85,7 +85,7 @@
 </style>
 
 <script>
-import { mapGetters, mapMutations } from "vuex";
+import { mapGetters, mapMutations, mapActions } from "vuex";
 import { TILESIZE, AUTOTILES, MAP_CANVAS_ID } from "@/utils/tileset";
 import UiInputRange from "@/components/common/InputRange";
 
@@ -136,6 +136,7 @@ export default {
     mouseY: undefined,
     previewOnDrawing: false,
     preview: [],
+    prevLayer: [],
   }),
   watch: {
     activeLayer() {
@@ -157,6 +158,7 @@ export default {
     this.getEventHandler(MAP_CANVAS_ID, "pointerup", this.pointerUpEvent);
     this.getEventHandler(MAP_CANVAS_ID, "mouseleave", this.mouseLeaveEvent);
     this.getEventHandler(MAP_CANVAS_ID, "contextmenu", this.contextMenuEvent);
+    document.addEventListener("keydown", this.keyDownEvent);
   },
   beforeUnmount() {
     this.removeEventHandler(
@@ -176,6 +178,7 @@ export default {
       "contextmenu",
       this.contextMenuEvent
     );
+    document.removeEventListener("keydown", this.keyDownEvent);
   },
   computed: {
     ...mapGetters(["fields"]),
@@ -214,7 +217,14 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(["updateFields", "setLoading"]),
+    ...mapMutations([
+      "updateFields",
+      "INIT_MAP_FUTURE",
+      "ADD_MAP_HISTORY",
+      "ADD_MAP_FUTURE",
+      "setLoading",
+    ]),
+    ...mapActions(["removeMapHistory", "removeMapFuture"]),
     init() {
       this.tileset = new Image();
       this.tileset.src = `/tilesets/${this.maps[this.activeMap].tileset}.png`;
@@ -589,14 +599,17 @@ export default {
       return prevLayer;
     },
     addSquare(event, layer, preview) {
+      const prevLayer = [];
       preview.forEach((tile) => {
+        prevLayer.push({ id: layer[tile.y][tile.x], x: tile.x, y: tile.y });
         layer[tile.y][tile.x] = tile.id;
       });
-      if (!event.shiftKey) {
+      if (!event.shiftKey || (event.shiftKey && this.isCtrlZ(event))) {
         preview.forEach((tile) => {
           this.updateAutotile(tile.x, tile.y);
         });
       }
+      return prevLayer;
     },
     getSelectedTile(event) {
       // const offset = 384;
@@ -927,11 +940,11 @@ export default {
             // 좌클릭
             this.tileAddStart = true;
             const { preview } = this.getSquare(e);
-            const prevLayer = this.previewSquareCircle(e, this.layer, preview);
+            this.prevLayer = this.previewSquareCircle(e, this.layer, preview);
             this.addSquare(e, this.layer, preview);
             this.preview = preview;
             this.draw();
-            this.addSquare(e, this.layer, prevLayer);
+            this.addSquare(e, this.layer, this.prevLayer);
           }
         } else if (this.mode === TOOLS.CIRCLE) {
           if (e.button === 2 || e.which === 3) {
@@ -941,11 +954,11 @@ export default {
             // 좌클릭
             this.tileAddStart = true;
             const { preview } = this.getCircle(e);
-            const prevLayer = this.previewSquareCircle(e, this.layer, preview);
+            this.prevLayer = this.previewSquareCircle(e, this.layer, preview);
             this.addSquare(e, this.layer, preview);
             this.preview = preview;
             this.draw();
-            this.addSquare(e, this.layer, prevLayer);
+            this.addSquare(e, this.layer, this.prevLayer);
           }
         } else if (this.mode === TOOLS.FILL) {
           if (e.button === 2 || e.which === 3) {
@@ -955,11 +968,11 @@ export default {
             // 좌클릭
             this.tileAddStart = true;
             const { preview } = this.getPaint(e, this.layer);
-            const prevLayer = this.previewSquareCircle(e, this.layer, preview);
+            this.prevLayer = this.previewSquareCircle(e, this.layer, preview);
             this.addSquare(e, this.layer, preview);
             this.preview = preview;
             this.draw();
-            this.addSquare(e, this.layer, prevLayer);
+            this.addSquare(e, this.layer, this.prevLayer);
           }
         }
       }
@@ -1027,7 +1040,7 @@ export default {
               // 좌클릭
               if (this.tileAddStart) {
                 const { preview } = this.getSquare(e);
-                const prevLayer = this.previewSquareCircle(
+                this.prevLayer = this.previewSquareCircle(
                   e,
                   this.layer,
                   preview
@@ -1035,7 +1048,7 @@ export default {
                 this.addSquare(e, this.layer, preview);
                 this.preview = preview;
                 this.draw();
-                this.addSquare(e, this.layer, prevLayer);
+                this.addSquare(e, this.layer, this.prevLayer);
               } else {
                 this.draw();
                 this.previewSelectedTile(e);
@@ -1065,7 +1078,7 @@ export default {
               // 좌클릭
               if (this.tileAddStart) {
                 const { preview } = this.getCircle(e);
-                const prevLayer = this.previewSquareCircle(
+                this.prevLayer = this.previewSquareCircle(
                   e,
                   this.layer,
                   preview
@@ -1073,7 +1086,7 @@ export default {
                 this.addSquare(e, this.layer, preview);
                 this.preview = preview;
                 this.draw();
-                this.addSquare(e, this.layer, prevLayer);
+                this.addSquare(e, this.layer, this.prevLayer);
               } else {
                 this.draw();
                 this.previewSelectedTile(e);
@@ -1119,6 +1132,8 @@ export default {
           this.addSquare(e, this.layer, this.preview);
           this.draw();
         }
+        this.ADD_MAP_HISTORY(this.prevLayer);
+        this.INIT_MAP_FUTURE();
         this.previewSelectedTile(e);
       }
       this.tileAddStart = false;
@@ -1139,6 +1154,33 @@ export default {
       this.draw();
       this.mouseX = undefined;
       this.mouseY = undefined;
+    },
+    isCtrlZ(e) {
+      return (
+        ((e.ctrlKey && navigator.userAgentData.platform !== "macOS") ||
+          e.metaKey) &&
+        e.key === "z"
+      );
+    },
+    async keyDownEvent(e) {
+      // undo
+      if (this.isCtrlZ(e)) {
+        if (e.shiftKey) {
+          console.log("redo");
+          const nextLayer = await this.removeMapFuture();
+          if (nextLayer) {
+            const prevLayer = this.addSquare(e, this.layer, nextLayer);
+            this.ADD_MAP_HISTORY(prevLayer);
+          }
+        } else {
+          console.log("undo");
+          const prevLayer = await this.removeMapHistory();
+          if (prevLayer) {
+            const nextLayer = this.addSquare(e, this.layer, prevLayer);
+            this.ADD_MAP_FUTURE(nextLayer);
+          }
+        }
+      }
     },
     contextMenuEvent(e) {
       e.preventDefault();
