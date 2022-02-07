@@ -547,6 +547,95 @@ export default {
       });
       return { preview, width, height };
     },
+    getPaint(event, layer) {
+      const preview = [];
+      const { tx, ty } = this.getTileLocation(event);
+      const vertex = this.getVertex(this.selectedTiles);
+      const width = vertex[1].x - vertex[0].x + 1;
+      const height = vertex[1].y - vertex[0].y + 1;
+      const id =
+        layer[ty][tx] >= 384
+          ? layer[ty][tx]
+          : parseInt(layer[ty][tx] / 48) * 48;
+
+      const dfs = (layer, x, y, _id) => {
+        const contains = (array, object) => {
+          return array.some((item) => {
+            return JSON.stringify(object) === JSON.stringify(item);
+          });
+        };
+        const result = [];
+        const visited = [];
+        const queue = [];
+        queue.push({ id: _id, x, y });
+        while (queue.length !== 0) {
+          const node = queue.shift();
+          if (!contains(visited, node)) {
+            visited.push(node);
+            if (
+              _id === (node.id >= 384 ? node.id : parseInt(node.id / 48) * 48)
+            ) {
+              result.push({ id: node.id, x: node.x, y: node.y });
+              if (layer[node.y - 1][node.x])
+                queue.push({
+                  id: layer[node.y - 1][node.x],
+                  x: node.x,
+                  y: node.y - 1,
+                });
+              if (layer[node.y + 1][node.x])
+                queue.push({
+                  id: layer[node.y + 1][node.x],
+                  x: node.x,
+                  y: node.y + 1,
+                });
+              if (layer[node.y][node.x - 1])
+                queue.push({
+                  id: layer[node.y][node.x - 1],
+                  x: node.x - 1,
+                  y: node.y,
+                });
+              if (layer[node.y][node.x + 1])
+                queue.push({
+                  id: layer[node.y][node.x + 1],
+                  x: node.x + 1,
+                  y: node.y,
+                });
+            }
+          }
+        }
+        return result;
+      };
+
+      const result = dfs(layer, tx, ty, id);
+      this.selectedTiles.forEach((tile) => {
+        const tileOffsetX = tile.x - vertex[0].x;
+        const tileOffsetY = tile.y - vertex[0].y;
+        result.forEach((prev) => {
+          if (
+            (prev.x - Math.min(this.ix, tx)) % width === tileOffsetX &&
+            (prev.y - Math.min(this.iy, ty)) % height === tileOffsetY
+          ) {
+            preview.push({
+              id:
+                tile.id >= 384 || tile.shiftKey
+                  ? tile.id
+                  : event.shiftKey
+                  ? parseInt(tile.id / 48) * 48
+                  : this.getAutotileId(
+                      this.layer,
+                      parseInt(tile.id / 48),
+                      prev.x,
+                      prev.y
+                    ),
+              x: prev.x,
+              y: prev.y,
+            });
+          }
+        });
+      });
+
+      return { preview };
+    },
     previewSquareCircle(event, layer, preview) {
       const prevLayer = [];
       preview.forEach((tile) => {
@@ -913,6 +1002,20 @@ export default {
             this.draw();
             this.addSquare(e, this.layer, prevLayer);
           }
+        } else if (this.mode === TOOLS.FILL) {
+          if (e.button === 2 || e.which === 3) {
+            // 우클릭
+            this.tileSelectStart = this.getSelectedTile(e)[0];
+          } else {
+            // 좌클릭
+            this.tileAddStart = true;
+            const { preview } = this.getPaint(e, this.layer);
+            const prevLayer = this.previewSquareCircle(e, this.layer, preview);
+            this.addSquare(e, this.layer, preview);
+            this.preview = preview;
+            this.draw();
+            this.addSquare(e, this.layer, prevLayer);
+          }
         }
       }
     },
@@ -1031,6 +1134,30 @@ export default {
                 this.previewSelectedTile(e);
               }
             }
+          } else if (this.mode === TOOLS.FILL) {
+            // 우클릭
+            if (e.buttons === 2 || e.which === 3) {
+              if (this.tileSelectStart) {
+                const selection = this.getSelectedTile(e);
+                const width =
+                  selection[selection.length - 1].x - selection[0].x + 1;
+                const height =
+                  selection[selection.length - 1].y - selection[0].y + 1;
+                this.drawSelectedTile(
+                  selection[0].x,
+                  selection[0].y,
+                  width,
+                  height
+                );
+                this.updateFields({
+                  selectedTiles: selection,
+                  activeCanvas: MAP_CANVAS_ID,
+                });
+              }
+            } else {
+              this.draw();
+              this.previewSelectedTile(e);
+            }
           }
         }
       }
@@ -1041,6 +1168,9 @@ export default {
           this.addSquare(e, this.layer, this.preview);
           this.draw();
         } else if (this.mode === TOOLS.CIRCLE) {
+          this.addSquare(e, this.layer, this.preview);
+          this.draw();
+        } else if (this.mode === TOOLS.FILL) {
           this.addSquare(e, this.layer, this.preview);
           this.draw();
         }
