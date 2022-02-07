@@ -49,6 +49,8 @@ export default createStore({
   getters: {
     fields: (state) => state.data,
     loading: (state) => state.loading,
+    isMapHistory: (state) => state.mapHistory.length,
+    isMapFuture: (state) => state.mapFuture.length,
   },
   modules: {},
 });

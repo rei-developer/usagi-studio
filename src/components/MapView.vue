@@ -896,6 +896,20 @@ export default {
         this.layer[ty][tx] = 0;
       }
     },
+    async undo(e) {
+      const prevLayer = await this.removeMapHistory();
+      if (prevLayer) {
+        const nextLayer = this.addSquare(e, this.layer, prevLayer);
+        this.ADD_MAP_FUTURE(nextLayer);
+      }
+    },
+    async redo(e) {
+      const nextLayer = await this.removeMapFuture();
+      if (nextLayer) {
+        const prevLayer = this.addSquare(e, this.layer, nextLayer);
+        this.ADD_MAP_HISTORY(prevLayer);
+      }
+    },
     getEventHandler(id, event, callback) {
       return this.$el.querySelector(id).addEventListener(event, callback);
     },
@@ -1162,23 +1176,13 @@ export default {
         e.key === "z"
       );
     },
-    async keyDownEvent(e) {
+    keyDownEvent(e) {
       // undo
       if (this.isCtrlZ(e)) {
         if (e.shiftKey) {
-          console.log("redo");
-          const nextLayer = await this.removeMapFuture();
-          if (nextLayer) {
-            const prevLayer = this.addSquare(e, this.layer, nextLayer);
-            this.ADD_MAP_HISTORY(prevLayer);
-          }
+          this.redo(e);
         } else {
-          console.log("undo");
-          const prevLayer = await this.removeMapHistory();
-          if (prevLayer) {
-            const nextLayer = this.addSquare(e, this.layer, prevLayer);
-            this.ADD_MAP_FUTURE(nextLayer);
-          }
+          this.undo(e);
         }
       }
     },
