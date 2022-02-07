@@ -500,20 +500,6 @@ export default {
             return JSON.stringify(object) === JSON.stringify(item);
           });
         };
-        var isEmpty = function (value) {
-          if (
-            value == "" ||
-            value == null ||
-            value == undefined ||
-            (value != null &&
-              typeof value == "object" &&
-              !Object.keys(value).length)
-          ) {
-            return true;
-          } else {
-            return false;
-          }
-        };
         const result = [];
         const visited = [];
         const queue = [];
@@ -529,7 +515,6 @@ export default {
                 : parseInt(node.id / 48) * 48)
             ) {
               result.push({ id: node.id, x: node.x, y: node.y });
-              console.log(isEmpty(0));
               if (node.y - 1 >= 0)
                 queue.push({
                   id: layer[node.y - 1][node.x],
@@ -561,14 +546,19 @@ export default {
       };
 
       const result = dfs(layer, tx, ty, id);
-      console.log(result);
       this.selectedTiles.forEach((tile) => {
         const tileOffsetX = tile.x - vertex[0].x;
         const tileOffsetY = tile.y - vertex[0].y;
         result.forEach((prev) => {
           if (
-            (prev.x - Math.min(this.ix, tx)) % width === tileOffsetX &&
-            (prev.y - Math.min(this.iy, ty)) % height === tileOffsetY
+            (prev.x - tx > 0 ? prev.x - tx : width + ((prev.x - tx) % width)) %
+              width ===
+              tileOffsetX &&
+            (prev.y - ty > 0
+              ? prev.y - ty
+              : height + ((prev.y - ty) % height)) %
+              height ===
+              tileOffsetY
           ) {
             preview.push({
               id:
