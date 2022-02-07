@@ -5,6 +5,7 @@
       variant,
       size,
       active && 'active',
+      passive && 'passive',
       unnamed && 'unnamed',
       disabled && 'disabled',
       block && 'block',
@@ -29,6 +30,7 @@
 .ui-button {
   display: flex;
   align-items: center;
+  justify-content: center;
   width: fit-content;
   height: 19px;
   padding: 0 5px;
@@ -62,23 +64,25 @@
     color: #fff;
     background-color: var(--primary-hover);
   }
+  &.passive {
+    color: #999;
+    background-color: #666;
+  }
   &.disabled {
     color: #33333366;
     background-color: var(--primary);
     pointer-events: none;
   }
   &.block {
-    width: 100%;
+    width: inherit;
   }
   &.md {
     height: 23px;
-    line-height: 21px;
   }
   &.lg {
     height: 28px;
-    line-height: 26px;
     padding: 0 10px;
-    font-size: 15px;
+    font-size: 13px;
   }
   > .description {
     position: absolute;
@@ -119,6 +123,10 @@ export default {
       default: null,
     },
     active: {
+      type: Boolean,
+      default: false,
+    },
+    passive: {
       type: Boolean,
       default: false,
     },

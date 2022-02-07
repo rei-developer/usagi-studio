@@ -1,5 +1,5 @@
 <template>
-  <div class="backdrop" @click.self="onCloseDialog">
+  <div class="backdrop" @click.self="onClosePopup">
     <div class="dialog-wrapper" :style="{ left: `${x}px`, top: `${y}px` }">
       <div
         ref="dialog"
@@ -9,7 +9,7 @@
         <div class="header">
           <font-awesome-icon :icon="icon" v-if="icon" />
           {{ header }}
-          <div class="close" @click="onCloseDialog">
+          <div class="close" @click="onClosePopup">
             <font-awesome-icon icon="times" />
           </div>
         </div>
@@ -17,8 +17,8 @@
           <slot />
         </div>
         <div class="footer">
-          <ui-button @onClick="onSubmitDialog">Submit</ui-button>
-          <ui-button @onClick="onCloseDialog">Close</ui-button>
+          <ui-button @onClick="onSubmitPopup">Submit</ui-button>
+          <ui-button @onClick="onClosePopup">Close</ui-button>
         </div>
       </div>
     </div>
@@ -82,12 +82,12 @@ export default {
     window.removeEventListener("keydown", this.onKeyDownEvent);
   },
   methods: {
-    onSubmitDialog() {
+    onSubmitPopup() {
       if (this.callback) this.callback();
-      this.onCloseDialog();
+      this.onClosePopup();
     },
-    onCloseDialog() {
-      this.$emit("onCloseDialog");
+    onClosePopup() {
+      this.$emit("onClosePopup");
     },
     onKeyDownEvent(e) {
       if (e.key === "Esc") this.close();

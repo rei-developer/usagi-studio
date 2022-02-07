@@ -11,13 +11,13 @@
     <div class="bottom">
       1: {{ mapName }} ({{ mapWidth }} x {{ mapHeight }})
     </div>
-    <autotile-dialog
-      v-if="isAutotileDialogOpened"
+    <autotile-popup
+      v-if="isAutotilePopupOpened"
       :autotileId="autotileId"
       :autotiles="autotiles"
       :mouseX="mouseX"
       :mouseY="mouseY"
-      @onCloseDialog="onCloseAutotileDialog"
+      @onClosePopup="onCloseAutotilePopup"
     />
   </div>
 </template>
@@ -50,16 +50,16 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
-import AutotileDialog from "@/components/dialog/AutotileDialog";
-
-const TILESET_CANVAS_ID = "#tilesetCanvas";
-const AUTOTILE_CANVAS_ID = "#autotileCanvas";
-
-const TILESIZE = 32;
+import {
+  TILESIZE,
+  TILESET_CANVAS_ID,
+  AUTOTILE_CANVAS_ID,
+} from "@/utils/tileset";
+import AutotilePopup from "@/components/popups/AutotilePopup";
 
 export default {
   name: "TilesetView",
-  components: { AutotileDialog },
+  components: { AutotilePopup },
   props: {
     mapName: {
       type: String,
@@ -92,7 +92,7 @@ export default {
     tileset: null,
     tileSelectStart: null,
     autotileId: null,
-    isAutotileDialogOpened: false,
+    isAutotilePopupOpened: false,
   }),
   watch: {
     selectedTiles() {
@@ -410,13 +410,13 @@ export default {
         this.autotileId = autotileId;
         this.mouseX = e.clientX;
         this.mouseY = e.clientY;
-        this.isAutotileDialogOpened = true;
+        this.isAutotilePopupOpened = true;
       }
     },
-    onCloseAutotileDialog() {
+    onCloseAutotilePopup() {
       this.mouseX = null;
       this.mouseY = null;
-      this.isAutotileDialogOpened = false;
+      this.isAutotilePopupOpened = false;
     },
   },
 };

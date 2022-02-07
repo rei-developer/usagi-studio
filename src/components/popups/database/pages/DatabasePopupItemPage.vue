@@ -1,11 +1,12 @@
 <template>
   <div class="ui-grid">
     <section class="w-180">
-      <div class="label">Tileset</div>
+      <div class="label">Item</div>
       <ui-select
         :value="selectedIndex"
         :rows="items.length"
         :mutiple="true"
+        :autofocus="true"
         @onChange="onChangeIndex"
       >
         <option
@@ -58,7 +59,7 @@
 import UiSelect from "@/components/common/Select";
 
 export default {
-  name: "TilesetDialogItem",
+  name: "DatabasePopupItemPage",
   components: {
     UiSelect,
   },

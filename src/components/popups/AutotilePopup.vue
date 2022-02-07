@@ -1,88 +1,24 @@
 <template>
   <ui-dialog v-bind="{ ...dialogOptions }">
-    <canvas id="autotileDialogCanvas" :width="256" :height="192">
+    <canvas id="autotilePopupCanvas" :width="256" :height="192">
       자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해 주세요.
     </canvas>
   </ui-dialog>
 </template>
 
 <style lang="scss" scoped>
-#autotileDialogCanvas {
+#autotilePopupCanvas {
   border: 1px solid var(--primary);
 }
 </style>
 
 <script>
 import { mapMutations } from "vuex";
+import { TILESIZE, AUTOTILES, AUTOTILE_POPUP_CANVAS_ID } from "@/utils/tileset";
 import UiDialog from "@/components/common/Dialog";
 
-const TILESIZE = 32;
-const AUTOTILE_DIALOG_CANVAS_ID = "#autotileDialogCanvas";
-const AUTOTILES = [
-  [
-    [27, 28, 33, 34],
-    [5, 28, 33, 34],
-    [27, 6, 33, 34],
-    [5, 6, 33, 34],
-    [27, 28, 33, 12],
-    [5, 28, 33, 12],
-    [27, 6, 33, 12],
-    [5, 6, 33, 12],
-  ],
-  [
-    [27, 28, 11, 34],
-    [5, 28, 11, 34],
-    [27, 6, 11, 34],
-    [5, 6, 11, 34],
-    [27, 28, 11, 12],
-    [5, 28, 11, 12],
-    [27, 6, 11, 12],
-    [5, 6, 11, 12],
-  ],
-  [
-    [25, 26, 31, 32],
-    [25, 6, 31, 32],
-    [25, 26, 31, 12],
-    [25, 6, 31, 12],
-    [15, 16, 21, 22],
-    [15, 16, 21, 12],
-    [15, 16, 11, 22],
-    [15, 16, 11, 12],
-  ],
-  [
-    [29, 30, 35, 36],
-    [29, 30, 11, 36],
-    [5, 30, 35, 36],
-    [5, 30, 11, 36],
-    [39, 40, 45, 46],
-    [5, 40, 45, 46],
-    [39, 6, 45, 46],
-    [5, 6, 45, 46],
-  ],
-  [
-    [25, 30, 31, 36],
-    [15, 16, 45, 46],
-    [13, 14, 19, 20],
-    [13, 14, 19, 12],
-    [17, 18, 23, 24],
-    [17, 18, 11, 24],
-    [41, 42, 47, 48],
-    [5, 42, 47, 48],
-  ],
-  [
-    [37, 38, 43, 44],
-    [37, 6, 43, 44],
-    [13, 18, 19, 24],
-    [13, 14, 43, 44],
-    [37, 42, 43, 48],
-    [17, 18, 47, 48],
-    [13, 18, 43, 48],
-    [1, 2, 7, 8],
-  ],
-];
-
 export default {
-  name: "AutotileDialog",
+  name: "AutotilePopup",
   components: { UiDialog },
   props: {
     autotileId: {
@@ -118,31 +54,31 @@ export default {
       };
     },
     context() {
-      const canvas = this.$el.querySelector(AUTOTILE_DIALOG_CANVAS_ID);
+      const canvas = this.$el.querySelector(AUTOTILE_POPUP_CANVAS_ID);
       return canvas.getContext("2d");
     },
   },
   mounted() {
     this.draw();
     this.getEventHandler(
-      AUTOTILE_DIALOG_CANVAS_ID,
+      AUTOTILE_POPUP_CANVAS_ID,
       "pointerdown",
       this.pointerDownEvent
     );
     this.getEventHandler(
-      AUTOTILE_DIALOG_CANVAS_ID,
+      AUTOTILE_POPUP_CANVAS_ID,
       "dblclick",
       this.doubleClickEvent
     );
   },
   beforeUnmount() {
     this.removeEventHandler(
-      AUTOTILE_DIALOG_CANVAS_ID,
+      AUTOTILE_POPUP_CANVAS_ID,
       "pointerdown",
       this.pointerDownEvent
     );
     this.removeEventHandler(
-      AUTOTILE_DIALOG_CANVAS_ID,
+      AUTOTILE_POPUP_CANVAS_ID,
       "dblclick",
       this.doubleClickEvent
     );
@@ -195,7 +131,7 @@ export default {
     },
     setSelection() {
       if (this.selection) this.updateFields({ selectedTiles: this.selection });
-      this.$emit("onCloseDialog");
+      this.$emit("onClosePopup");
     },
     getEventHandler(id, event, callback) {
       return this.$el.querySelector(id).addEventListener(event, callback);
