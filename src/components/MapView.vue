@@ -490,7 +490,7 @@ export default {
       const width = vertex[1].x - vertex[0].x + 1;
       const height = vertex[1].y - vertex[0].y + 1;
       const id =
-        layer[ty][tx] >= 384
+        layer[ty][tx] >= 384 || layer[ty][tx] === 0
           ? layer[ty][tx]
           : parseInt(layer[ty][tx] / 48) * 48;
 
@@ -499,6 +499,20 @@ export default {
           return array.some((item) => {
             return JSON.stringify(object) === JSON.stringify(item);
           });
+        };
+        var isEmpty = function (value) {
+          if (
+            value == "" ||
+            value == null ||
+            value == undefined ||
+            (value != null &&
+              typeof value == "object" &&
+              !Object.keys(value).length)
+          ) {
+            return true;
+          } else {
+            return false;
+          }
         };
         const result = [];
         const visited = [];
@@ -509,28 +523,32 @@ export default {
           if (!contains(visited, node)) {
             visited.push(node);
             if (
-              _id === (node.id >= 384 ? node.id : parseInt(node.id / 48) * 48)
+              _id ===
+              (node.id >= 384 || node.id === 0
+                ? node.id
+                : parseInt(node.id / 48) * 48)
             ) {
               result.push({ id: node.id, x: node.x, y: node.y });
-              if (layer[node.y - 1][node.x])
+              console.log(isEmpty(0));
+              if (node.y - 1 >= 0)
                 queue.push({
                   id: layer[node.y - 1][node.x],
                   x: node.x,
                   y: node.y - 1,
                 });
-              if (layer[node.y + 1][node.x])
+              if (node.y + 1 <= layer.length - 1)
                 queue.push({
                   id: layer[node.y + 1][node.x],
                   x: node.x,
                   y: node.y + 1,
                 });
-              if (layer[node.y][node.x - 1])
+              if (node.x - 1 >= 0)
                 queue.push({
                   id: layer[node.y][node.x - 1],
                   x: node.x - 1,
                   y: node.y,
                 });
-              if (layer[node.y][node.x + 1])
+              if (node.x + 1 <= layer[0].length - 1)
                 queue.push({
                   id: layer[node.y][node.x + 1],
                   x: node.x + 1,
@@ -543,6 +561,7 @@ export default {
       };
 
       const result = dfs(layer, tx, ty, id);
+      console.log(result);
       this.selectedTiles.forEach((tile) => {
         const tileOffsetX = tile.x - vertex[0].x;
         const tileOffsetY = tile.y - vertex[0].y;
