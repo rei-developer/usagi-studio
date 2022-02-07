@@ -218,11 +218,11 @@ export default {
   },
   methods: {
     ...mapMutations([
-      "updateFields",
+      "UPDATE_FIELDS",
       "INIT_MAP_FUTURE",
       "ADD_MAP_HISTORY",
       "ADD_MAP_FUTURE",
-      "setLoading",
+      "SET_LOADING",
     ]),
     ...mapActions(["removeMapHistory", "removeMapFuture"]),
     init() {
@@ -230,7 +230,7 @@ export default {
       this.tileset.src = `/tilesets/${this.maps[this.activeMap].tileset}.png`;
       this.tileset.onload = () => {
         this.draw();
-        setTimeout(() => this.setLoading(), 1000);
+        setTimeout(() => this.SET_LOADING(), 1000);
       };
     },
     draw() {
@@ -1014,7 +1014,7 @@ export default {
                   width,
                   height
                 );
-                this.updateFields({
+                this.UPDATE_FIELDS({
                   selectedTiles: selection,
                   activeCanvas: MAP_CANVAS_ID,
                 });
@@ -1045,7 +1045,7 @@ export default {
                   width,
                   height
                 );
-                this.updateFields({
+                this.UPDATE_FIELDS({
                   selectedTiles: selection,
                   activeCanvas: MAP_CANVAS_ID,
                 });
@@ -1083,7 +1083,7 @@ export default {
                   width,
                   height
                 );
-                this.updateFields({
+                this.UPDATE_FIELDS({
                   selectedTiles: selection,
                   activeCanvas: MAP_CANVAS_ID,
                 });
@@ -1121,7 +1121,7 @@ export default {
                   width,
                   height
                 );
-                this.updateFields({
+                this.UPDATE_FIELDS({
                   selectedTiles: selection,
                   activeCanvas: MAP_CANVAS_ID,
                 });
@@ -1158,7 +1158,7 @@ export default {
         const width = selection[selection.length - 1].x - selection[0].x + 1;
         const height = selection[selection.length - 1].y - selection[0].y + 1;
         this.drawSelectedTile(selection[0].x, selection[0].y, width, height);
-        this.updateFields({
+        this.UPDATE_FIELDS({
           selectedTiles: selection,
           activeCanvas: MAP_CANVAS_ID,
         });
@@ -1196,7 +1196,7 @@ export default {
       if (this.zoom > 0.1) this.zoom = +(this.zoom - 0.1).toFixed(12);
     },
     onClickViewTileId() {
-      this.updateFields({
+      this.UPDATE_FIELDS({
         viewTileId: !this.fields.viewTileId,
       });
     },

@@ -198,7 +198,7 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(["updateFields"]),
+    ...mapMutations(["UPDATE_FIELDS"]),
     init() {
       let tileset = new Image();
       tileset.src = `/tilesets/${this.tilesetName}.png`;
@@ -208,7 +208,7 @@ export default {
         this.tileset.onload = () => {
           this.draw();
           this.drawSelectedAutotile(0, 0);
-          this.updateFields({
+          this.UPDATE_FIELDS({
             selectedTiles: [{ id: 0, x: 0, y: 0 }],
             activeCanvas: AUTOTILE_CANVAS_ID,
           });
@@ -364,7 +364,7 @@ export default {
         const width = selection[selection.length - 1].x - selection[0].x + 1;
         const height = selection[selection.length - 1].y - selection[0].y + 1;
         this.drawSelectedTile(selection[0].x, selection[0].y, width, height);
-        this.updateFields({
+        this.UPDATE_FIELDS({
           selectedTiles: selection,
           activeCanvas: TILESET_CANVAS_ID,
         });
@@ -377,7 +377,7 @@ export default {
       const width = selection[selection.length - 1].x - selection[0].x + 1;
       const height = selection[selection.length - 1].y - selection[0].y + 1;
       this.drawSelectedTile(selection[0].x, selection[0].y, width, height);
-      this.updateFields({
+      this.UPDATE_FIELDS({
         selectedTiles: selection,
         activeCanvas: TILESET_CANVAS_ID,
       });
@@ -387,7 +387,7 @@ export default {
       if (this.tileSelectStart) {
         const selection = this.getSelectedAutotile(e);
         this.drawSelectedAutotile(selection[0].x, selection[0].y);
-        this.updateFields({
+        this.UPDATE_FIELDS({
           selectedTiles: selection,
           activeCanvas: AUTOTILE_CANVAS_ID,
         });
@@ -398,7 +398,7 @@ export default {
       const selection = this.getSelectedAutotile(e);
       this.tileSelectStart = null;
       this.drawSelectedAutotile(selection[0].x, selection[0].y);
-      this.updateFields({
+      this.UPDATE_FIELDS({
         selectedTiles: selection,
         activeCanvas: AUTOTILE_CANVAS_ID,
       });

@@ -93,7 +93,7 @@ export default {
     },
   },
   computed: {
-    ...mapGetters(["isMapHistory", "isMapFuture"]),
+    ...mapGetters(["hasMapHistory", "hasMapFuture"]),
     menuGroup() {
       return [
         this.fileMenus,
@@ -161,14 +161,14 @@ export default {
           description: "실행 취소",
           icon: "undo",
           active: null,
-          disabled: !this.isMapHistory,
+          disabled: !this.hasMapHistory,
           click: (e) => this.undo(e),
         },
         {
           description: "다시 실행",
           icon: "redo",
           active: null,
-          disabled: !this.isMapFuture,
+          disabled: !this.hasMapFuture,
           click: (e) => this.redo(e),
         },
       ];
@@ -309,7 +309,7 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(["updateFields"]),
+    ...mapMutations(["UPDATE_FIELDS"]),
     setActiveTool(tool) {
       this.ACTIVE_TOOL = tool;
     },
