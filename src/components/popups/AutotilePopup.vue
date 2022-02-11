@@ -84,7 +84,7 @@ export default {
     );
   },
   methods: {
-    ...mapMutations(["updateFields"]),
+    ...mapMutations(["UPDATE_FIELDS"]),
     draw() {
       this.context.clearRect(0, 0, 256, 192);
       for (let i = 0; i < 48; i++) {
@@ -130,7 +130,8 @@ export default {
       return [{ id, x, y, shiftKey: true }];
     },
     setSelection() {
-      if (this.selection) this.updateFields({ selectedTiles: this.selection });
+      if (this.selection) this.UPDATE_FIELDS({ selectedTiles: this.selection });
+      console.log(this.selection);
       this.$emit("onClosePopup");
     },
     getEventHandler(id, event, callback) {
