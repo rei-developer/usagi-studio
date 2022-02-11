@@ -106,11 +106,13 @@ export default {
     getActiveLayer(e) {
       this.activeLayer = e;
     },
-    undo(e) {
-      this.$refs.mapView.undo(e);
+    async undo(e) {
+      await this.$refs.mapView.undo(e);
+      this.$refs.mapView.draw();
     },
-    redo(e) {
-      this.$refs.mapView.redo(e);
+    async redo(e) {
+      await this.$refs.mapView.redo(e);
+      this.$refs.mapView.draw();
     },
   },
 };
