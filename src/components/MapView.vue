@@ -142,11 +142,8 @@ export default {
     activeLayer() {
       this.draw();
     },
-    width() {
-      this.draw();
-    },
-    height() {
-      this.draw();
+    zoom() {
+      this.init();
     },
   },
   created() {
@@ -1176,13 +1173,15 @@ export default {
         e.key === "z"
       );
     },
-    keyDownEvent(e) {
+    async keyDownEvent(e) {
       // undo
       if (this.isCtrlZ(e)) {
         if (e.shiftKey) {
-          this.redo(e);
+          await this.redo(e);
+          this.draw();
         } else {
-          this.undo(e);
+          await this.undo(e);
+          this.draw();
         }
       }
     },
