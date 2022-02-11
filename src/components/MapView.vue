@@ -394,7 +394,7 @@ export default {
         { x: lx, y: ly },
       ];
     },
-    getBrush(event, preview) {
+    getBrush(event, layer, preview) {
       const { tx, ty } = this.getTileLocation(event);
       const vertex = this.getVertex(this.selectedTiles);
       const width = vertex[1].x - vertex[0].x + 1;
@@ -416,21 +416,29 @@ export default {
             : tileOffsetY - repeatY >= height
             ? Math.abs(height - tileOffsetY + repeatY)
             : tileOffsetY - repeatY;
-        preview.push({
-          id:
-            tile.id >= 384 || tile.shiftKey
-              ? tile.id
-              : event.shiftKey
-              ? parseInt(tile.id / 48) * 48
-              : this.getAutotileId(
-                  this.layer,
-                  parseInt(tile.id / 48),
-                  tx + dx,
-                  ty + dy
-                ),
-          x: tx + dx,
-          y: ty + dy,
-        });
+        if (
+          tx + dx >= 0 &&
+          ty + dy >= 0 &&
+          tx + dx < layer[0].length &&
+          ty + dy < layer.length
+        ) {
+          console.log(ty + dy);
+          preview.push({
+            id:
+              tile.id >= 384 || tile.shiftKey
+                ? tile.id
+                : event.shiftKey
+                ? parseInt(tile.id / 48) * 48
+                : this.getAutotileId(
+                    this.layer,
+                    parseInt(tile.id / 48),
+                    tx + dx,
+                    ty + dy
+                  ),
+            x: tx + dx,
+            y: ty + dy,
+          });
+        }
       });
       return preview;
     },
@@ -633,6 +641,7 @@ export default {
       preview.forEach((tile) => {
         prevLayer.push({ id: layer[tile.y][tile.x], x: tile.x, y: tile.y });
       });
+      console.log(prevLayer);
       return prevLayer;
     },
     addTiles(event, layer, preview) {
@@ -890,7 +899,7 @@ export default {
       let preview = null;
       switch (this.mode) {
         case TOOLS.BRUSH:
-          preview = this.getBrush(event, this.preview);
+          preview = this.getBrush(event, this.layer, this.preview);
           break;
         case TOOLS.SQUARE:
           preview = this.getSquare(event);
