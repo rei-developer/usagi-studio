@@ -193,7 +193,7 @@ export default {
     },
     context() {
       const canvas = this.$el.querySelector(MAP_CANVAS_ID);
-      return canvas.getContext("2d");
+      return canvas.getContext("2d", { alpha: false });
     },
     layer() {
       return this.drawable
@@ -233,57 +233,66 @@ export default {
     draw() {
       this.context.clearRect(0, 0, this.width, this.height);
       this.maps[this.activeMap].data.forEach((layer, lindex) => {
-        if (this.zoom !== 1) {
-          this.context.webkitImageSmoothingEnabled = false;
-          this.context.mozImageSmoothingEnabled = false;
-          this.context.msImageSmoothingEnabled = false;
-          this.context.imageSmoothingEnabled = false;
-        }
-        this.context.globalAlpha = 1;
-        if (lindex + 1 === 1) {
-          this.context.fillStyle = this.backgroundColor;
-          this.context.fillRect(0, 0, this.width, this.height);
-        }
-        if (this.drawable) {
-          if (lindex + 1 > this.activeLayer) {
-            this.context.globalAlpha = 0.3;
-          } else if (lindex + 1 === this.activeLayer) {
-            this.context.globalAlpha = 1;
-          }
-        }
+        const layerIndex = lindex + 1;
         for (let y = 0; y < this.maps[this.activeMap].height; y++) {
           for (let x = 0; x < this.maps[this.activeMap].width; x++) {
+            this.setContext(this.context, layerIndex, x, y);
+            if (this.activeLayer === 4) this.drawBorder(this.context, x, y);
             const tile = layer[y][x];
-            if (this.activeLayer === 4) {
-              this.context.globalAlpha = 0.6;
-              this.drawBorder(this.context, x, y);
-              this.context.globalAlpha = 1;
-            }
-            this.drawTiles(this.context, tile, x, y);
-            if (
-              this.fields.viewTileId &&
-              this.drawable &&
-              lindex + 1 === this.activeLayer
-            ) {
-              this.context.font = `${Math.round(11 * this.zoom)}px Arial`;
-              this.context.textAlign = "right";
-              this.context.textBaseline = "bottom";
-              this.context.fillStyle = "#333";
-              this.context.fillText(
-                tile,
-                (x + 1) * TILESIZE * this.zoom,
-                (y + 1) * TILESIZE * this.zoom
-              );
-            }
+            this.drawTile(this.context, tile, x, y);
+            this.viewTileId(this.context, layerIndex, tile, x, y);
           }
         }
-        if (this.drawable && lindex + 1 === this.activeLayer - 1) {
+        if (this.drawable && layerIndex === this.activeLayer - 1) {
           this.context.fillStyle = "rgba(0, 0, 0, .5)";
           this.context.fillRect(0, 0, this.width, this.height);
         }
       });
     },
-    drawTiles(context, _id, x, y) {
+    setContext(context, index, x, y) {
+      context.globalAlpha = 1;
+      // 줌 깨짐 제거
+      if (this.zoom !== 1) {
+        context.webkitImageSmoothingEnabled = false;
+        context.mozImageSmoothingEnabled = false;
+        context.msImageSmoothingEnabled = false;
+        context.imageSmoothingEnabled = false;
+      }
+      // 캔버스 배경 설정
+      if (index === 1) {
+        context.fillStyle = this.backgroundColor;
+        context.fillRect(
+          x * TILESIZE * this.zoom,
+          y * TILESIZE * this.zoom,
+          TILESIZE * this.zoom,
+          TILESIZE * this.zoom
+        );
+      }
+      // 레이어 반투명 설정
+      if (this.drawable && index > this.activeLayer) {
+        context.globalAlpha = 0.3;
+      } else if (this.drawable && index === this.activeLayer) {
+        context.globalAlpha = 1;
+      }
+    },
+    viewTileId(context, index, tile, x, y) {
+      if (
+        this.fields.viewTileId &&
+        this.drawable &&
+        index === this.activeLayer
+      ) {
+        context.font = `${Math.round(11 * this.zoom)}px Arial`;
+        context.textAlign = "right";
+        context.textBaseline = "bottom";
+        context.fillStyle = "#333";
+        context.fillText(
+          tile,
+          (x + 1) * TILESIZE * this.zoom,
+          (y + 1) * TILESIZE * this.zoom
+        );
+      }
+    },
+    drawTile(context, _id, x, y) {
       if (_id >= 384) {
         // 일반 타일
         const tileNum = _id - 384; // 오프셋
@@ -322,6 +331,7 @@ export default {
       }
     },
     drawBorder(context, x, y) {
+      context.globalAlpha = 0.6;
       context.beginPath();
       context.lineWidth = 0.5;
       context.strokeStyle = "rgba(0, 0, 0, 0.4)";
@@ -332,6 +342,34 @@ export default {
         TILESIZE * this.zoom
       );
       context.stroke();
+      context.globalAlpha = 1;
+    },
+    updateCanvas(context, preview) {
+      preview.forEach((tile) => {
+        context.clearRect(
+          tile.x * TILESIZE * this.zoom,
+          tile.y * TILESIZE * this.zoom,
+          TILESIZE * this.zoom,
+          TILESIZE * this.zoom
+        );
+        this.maps[this.activeMap].data.forEach((layer, lindex) => {
+          const layerIndex = lindex + 1;
+          this.setContext(this.context, layerIndex);
+          if (this.activeLayer === 4)
+            this.drawBorder(this.context, tile.x, tile.y);
+          this.drawTile(this.context, layer[tile.y][tile.x], tile.x, tile.y);
+          this.viewTileId(this.context, layerIndex, tile, tile.x, tile.y);
+          if (this.drawable && layerIndex === this.activeLayer - 1) {
+            context.fillStyle = "rgba(0, 0, 0, .5)";
+            context.fillRect(
+              tile.x * TILESIZE * this.zoom,
+              tile.y * TILESIZE * this.zoom,
+              TILESIZE * this.zoom,
+              TILESIZE * this.zoom
+            );
+          }
+        });
+      });
     },
     getTileLocation(event) {
       const { x, y } = event.target.getBoundingClientRect();
@@ -352,7 +390,7 @@ export default {
         this.selectedTiles.forEach((tile) => {
           const x = tx + tile.x - ix;
           const y = ty + tile.y - iy;
-          this.drawTiles(this.context, tile.id, x, y);
+          this.drawTile(this.context, tile.id, x, y);
         });
       }
       const width =
@@ -422,7 +460,6 @@ export default {
           tx + dx < layer[0].length &&
           ty + dy < layer.length
         ) {
-          console.log(ty + dy);
           preview.push({
             id:
               tile.id >= 384 || tile.shiftKey
@@ -641,7 +678,6 @@ export default {
       preview.forEach((tile) => {
         prevLayer.push({ id: layer[tile.y][tile.x], x: tile.x, y: tile.y });
       });
-      console.log(prevLayer);
       return prevLayer;
     },
     addTiles(event, layer, preview) {
@@ -867,6 +903,7 @@ export default {
         const nextLayer = this.addTiles(e, this.layer, prevLayer);
         this.ADD_MAP_FUTURE(nextLayer);
       }
+      return prevLayer;
     },
     async redo(e) {
       const nextLayer = await this.removeMapFuture();
@@ -874,6 +911,7 @@ export default {
         const prevLayer = this.addTiles(e, this.layer, nextLayer);
         this.ADD_MAP_HISTORY(prevLayer);
       }
+      return nextLayer;
     },
     getEventHandler(id, event, callback) {
       return this.$el.querySelector(id).addEventListener(event, callback);
@@ -937,7 +975,8 @@ export default {
             this.prevLayer = this.getPrevLayer(this.layer, preview);
             this.addTiles(e, this.layer, preview);
             this.preview = preview;
-            this.draw();
+            // this.draw();
+            this.updateCanvas(this.context, preview);
             this.addTiles(e, this.layer, this.prevLayer);
           }
         }
@@ -983,6 +1022,8 @@ export default {
                 this.addTiles(e, this.layer, preview);
                 this.preview = preview;
                 this.draw();
+                // this.updateCanvas(this.context, this.prevLayer);
+                // this.updateCanvas(this.context, preview);
                 this.addTiles(e, this.layer, this.prevLayer);
               } else {
                 this.draw();
@@ -1002,8 +1043,9 @@ export default {
           this.mode === TOOLS.FILL
         ) {
           this.addTiles(e, this.layer, this.preview);
+          this.updateCanvas(this.context, this.preview);
           this.preview = [];
-          this.draw();
+          // this.draw();
         }
         this.ADD_MAP_HISTORY(this.prevLayer);
         this.INIT_MAP_FUTURE();
@@ -1042,9 +1084,11 @@ export default {
         if (e.shiftKey) {
           await this.redo(e);
           this.draw();
+          // this.updateCanvas(this.context, nextLayer);
         } else {
           await this.undo(e);
           this.draw();
+          // this.updateCanvas(this.context, prevLayer);
         }
       }
     },
