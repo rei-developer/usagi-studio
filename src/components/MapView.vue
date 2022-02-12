@@ -42,20 +42,12 @@
 </template>
 
 <style lang="scss" scoped>
-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
 .map-view-wrapper {
   display: flex;
   flex-direction: column;
-  position: relative;
   width: calc(100% - 267px);
   height: calc(100vh - 50px);
   border-left: 1px solid #333;
-  overflow: scroll;
   > .content {
     height: inherit;
     background: #000;
