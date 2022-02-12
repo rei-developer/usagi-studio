@@ -57,6 +57,8 @@ import {
 } from "@/utils/tileset";
 import AutotilePopup from "@/components/popups/AutotilePopup";
 
+const D = { DOWN: 2, LEFT: 4, RIGHT: 6, UP: 8 };
+
 export default {
   name: "TilesetView",
   components: { AutotilePopup },
@@ -144,6 +146,7 @@ export default {
       "dblclick",
       this.autotileDoubleClickEvent
     );
+    document.addEventListener("keydown", this.keyDownEvent);
   },
   beforeUnmount() {
     this.removeEventHandler(
@@ -181,6 +184,7 @@ export default {
       "dblclick",
       this.autotileDoubleClickEvent
     );
+    document.removeEventListener("keydown", this.keyDownEvent);
   },
   computed: {
     ...mapGetters(["fields"]),
@@ -293,6 +297,125 @@ export default {
             behavior: "smooth",
           });
         }
+      }
+    },
+    moveSelectedTile(event, d) {
+      event.preventDefault();
+      const offset = 384;
+      const _selection = this.fields.selectedTiles[0];
+      const _activeCanvas = this.fields.activeCanvas;
+      switch (d) {
+        case D.DOWN:
+          if (_selection.y === 0 && _activeCanvas === AUTOTILE_CANVAS_ID) {
+            this.UPDATE_FIELDS({
+              selectedTiles: [
+                {
+                  id: _selection.x + offset,
+                  x: _selection.x,
+                  y: 0,
+                },
+              ],
+              activeCanvas: TILESET_CANVAS_ID,
+            });
+            this.focusSelectedTile();
+          } else if (
+            _selection.y === parseInt((this.height - 1) / TILESIZE) &&
+            _activeCanvas === TILESET_CANVAS_ID
+          )
+            return;
+          else {
+            this.UPDATE_FIELDS({
+              selectedTiles: [
+                {
+                  id: (_selection.y + 1) * 8 + _selection.x + offset,
+                  x: _selection.x,
+                  y: _selection.y + 1,
+                },
+              ],
+            });
+            this.focusSelectedTile();
+          }
+          break;
+        case D.LEFT:
+          if (_selection.x === 0) return;
+          if (_activeCanvas === TILESET_CANVAS_ID) {
+            this.UPDATE_FIELDS({
+              selectedTiles: [
+                {
+                  id: _selection.y * 8 + (_selection.x - 1) + offset,
+                  x: _selection.x - 1,
+                  y: _selection.y,
+                },
+              ],
+            });
+          } else if (_activeCanvas === AUTOTILE_CANVAS_ID) {
+            this.UPDATE_FIELDS({
+              selectedTiles: [
+                {
+                  id: (_selection.x - 1) * 48 + 47,
+                  x: _selection.x - 1,
+                  y: _selection.y,
+                },
+              ],
+            });
+          }
+          this.focusSelectedTile();
+          break;
+        case D.RIGHT:
+          if (_selection.x === 7) return;
+          if (_activeCanvas === TILESET_CANVAS_ID) {
+            this.UPDATE_FIELDS({
+              selectedTiles: [
+                {
+                  id: _selection.y * 8 + (_selection.x + 1) + offset,
+                  x: _selection.x + 1,
+                  y: _selection.y,
+                },
+              ],
+            });
+          } else if (_activeCanvas === AUTOTILE_CANVAS_ID) {
+            this.UPDATE_FIELDS({
+              selectedTiles: [
+                {
+                  id: (_selection.x + 1) * 48 + 47,
+                  x: _selection.x + 1,
+                  y: _selection.y,
+                },
+              ],
+            });
+          }
+          this.focusSelectedTile();
+          break;
+        case D.UP:
+          if (_selection.y === 0 && _activeCanvas === AUTOTILE_CANVAS_ID)
+            return;
+          else if (_selection.y === 0 && _activeCanvas === TILESET_CANVAS_ID) {
+            this.UPDATE_FIELDS({
+              selectedTiles: [
+                {
+                  id: _selection.x * 48 + 47,
+                  x: _selection.x,
+                  y: 0,
+                },
+              ],
+              activeCanvas: AUTOTILE_CANVAS_ID,
+            });
+            this.focusSelectedTile();
+          } else {
+            this.UPDATE_FIELDS({
+              selectedTiles: [
+                {
+                  id: (_selection.y - 1) * 8 + _selection.x + offset,
+                  x: _selection.x,
+                  y: _selection.y - 1,
+                },
+              ],
+            });
+            this.focusSelectedTile();
+          }
+          break;
+        default:
+          break;
       }
     },
     getTileLocation(event) {
@@ -411,6 +534,35 @@ export default {
         this.mouseX = e.clientX;
         this.mouseY = e.clientY;
         this.isAutotilePopupOpened = true;
+      }
+    },
+    keyDownEvent(e) {
+      const _id = this.fields.selectedTiles[0].id;
+      switch (e.key) {
+        case "ArrowUp":
+          this.moveSelectedTile(e, D.UP);
+          break;
+        case "ArrowDown":
+          this.moveSelectedTile(e, D.DOWN);
+          break;
+        case "ArrowLeft":
+          this.moveSelectedTile(e, D.LEFT);
+          break;
+        case "ArrowRight":
+          this.moveSelectedTile(e, D.RIGHT);
+          break;
+        case "Enter":
+          if (_id < 384) {
+            const autotileId = parseInt(_id / 48) - 1;
+            if (this.autotiles[autotileId]) {
+              e.preventDefault();
+              this.autotileId = autotileId;
+              this.isAutotilePopupOpened = true;
+            }
+          }
+          break;
+        default:
+          break;
       }
     },
     onCloseAutotilePopup() {

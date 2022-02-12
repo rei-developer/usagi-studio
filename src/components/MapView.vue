@@ -312,6 +312,7 @@ export default {
       } else if (_id >= 48) {
         // 오토타일
         const id = parseInt(_id / 48) - 1;
+        if (!this.autotiles[id]) return;
         const index = _id % 48;
         const parts = AUTOTILES[parseInt(index / 8)][index % 8];
         for (let i = 0; i < 5; i++) {
