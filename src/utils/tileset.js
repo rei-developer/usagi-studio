@@ -66,4 +66,5 @@ export const AUTOTILES = [
 export const TILESET_CANVAS_ID = "#tilesetCanvas";
 export const AUTOTILE_CANVAS_ID = "#autotileCanvas";
 export const AUTOTILE_POPUP_CANVAS_ID = "#autotilePopupCanvas";
+export const AUTOTILE_POPUP_CANVAS_UI_ID = "#autotilePopupCanvasUI";
 export const MAP_CANVAS_ID = "#mapCanvas";

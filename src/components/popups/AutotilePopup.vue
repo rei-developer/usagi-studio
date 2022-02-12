@@ -3,18 +3,34 @@
     <canvas id="autotilePopupCanvas" :width="256" :height="192">
       자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해 주세요.
     </canvas>
+    <canvas id="autotilePopupCanvasUI" :width="256" :height="192">
+      자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해 주세요.
+    </canvas>
   </ui-dialog>
 </template>
 
 <style lang="scss" scoped>
+canvas {
+  position: absolute;
+}
 #autotilePopupCanvas {
   border: 1px solid var(--primary);
+  z-index: 1;
+}
+#autotilePopupCanvasUI {
+  border: 1px solid var(--primary);
+  z-index: 2;
 }
 </style>
 
 <script>
 import { mapMutations } from "vuex";
-import { TILESIZE, AUTOTILES, AUTOTILE_POPUP_CANVAS_ID } from "@/utils/tileset";
+import {
+  TILESIZE,
+  AUTOTILES,
+  AUTOTILE_POPUP_CANVAS_ID,
+  AUTOTILE_POPUP_CANVAS_UI_ID,
+} from "@/utils/tileset";
 import UiDialog from "@/components/common/Dialog";
 
 export default {
@@ -57,28 +73,32 @@ export default {
       const canvas = this.$el.querySelector(AUTOTILE_POPUP_CANVAS_ID);
       return canvas.getContext("2d");
     },
+    contextUI() {
+      const canvas = this.$el.querySelector(AUTOTILE_POPUP_CANVAS_UI_ID);
+      return canvas.getContext("2d");
+    },
   },
   mounted() {
     this.draw();
     this.getEventHandler(
-      AUTOTILE_POPUP_CANVAS_ID,
+      AUTOTILE_POPUP_CANVAS_UI_ID,
       "pointerdown",
       this.pointerDownEvent
     );
     this.getEventHandler(
-      AUTOTILE_POPUP_CANVAS_ID,
+      AUTOTILE_POPUP_CANVAS_UI_ID,
       "dblclick",
       this.doubleClickEvent
     );
   },
   beforeUnmount() {
     this.removeEventHandler(
-      AUTOTILE_POPUP_CANVAS_ID,
+      AUTOTILE_POPUP_CANVAS_UI_ID,
       "pointerdown",
       this.pointerDownEvent
     );
     this.removeEventHandler(
-      AUTOTILE_POPUP_CANVAS_ID,
+      AUTOTILE_POPUP_CANVAS_UI_ID,
       "dblclick",
       this.doubleClickEvent
     );
@@ -106,9 +126,10 @@ export default {
       }
     },
     drawRect(x, y, width, height, _style = "rgba(0, 0, 0, 1)") {
+      this.contextUI.clearRect(0, 0, 256, 192);
       const makefillRect = (x, y, width, height, style = _style) => {
-        this.context.fillStyle = style;
-        this.context.fillRect(x, y, width, height);
+        this.contextUI.fillStyle = style;
+        this.contextUI.fillRect(x, y, width, height);
       };
       makefillRect(x, y, width, 4, "#000");
       makefillRect(x, y, 4, height, "#000");
@@ -143,7 +164,6 @@ export default {
     pointerDownEvent(event) {
       const { x, y } = this.getTileLocation(event);
       this.selection = this.getSelectedTile(this.autotileId + 1, x, y);
-      this.draw();
       this.drawRect(x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE);
     },
     doubleClickEvent() {
