@@ -87,14 +87,8 @@
 <script>
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import { TILESIZE, AUTOTILES, MAP_CANVAS_ID } from "@/utils/tileset";
+import { TOOLS } from "@/utils/tools";
 import UiInputRange from "@/components/common/InputRange";
-
-const TOOLS = {
-  BRUSH: 0,
-  SQUARE: 1,
-  CIRCLE: 2,
-  FILL: 3,
-};
 
 export default {
   name: "MapView",
@@ -976,10 +970,12 @@ export default {
             this.prevLayer = this.getPrevLayer(this.layer, preview);
             this.addTiles(e, this.layer, preview);
             this.preview = preview;
-            // this.draw();
-            this.updateCanvas(this.context, preview);
+            this.draw();
+            // this.updateCanvas(this.context, preview);
             this.addTiles(e, this.layer, this.prevLayer);
           }
+        } else if (this.mode === TOOLS.SELECT) {
+          console.log("SELECT");
         }
       }
     },
@@ -1044,9 +1040,9 @@ export default {
           this.mode === TOOLS.FILL
         ) {
           this.addTiles(e, this.layer, this.preview);
-          this.updateCanvas(this.context, this.preview);
+          // this.updateCanvas(this.context, this.preview);
           this.preview = [];
-          // this.draw();
+          this.draw();
         }
         this.ADD_MAP_HISTORY(this.prevLayer);
         this.INIT_MAP_FUTURE();

@@ -65,6 +65,7 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
+import { TOOLS } from "@/utils/tools";
 import DatabasePopup from "@/components/popups/database/DatabasePopup";
 import InfoPopup from "@/components/popups/InfoPopup";
 import UiButton from "@/components/common/Button";
@@ -215,35 +216,35 @@ export default {
         {
           description: "그리기",
           icon: "pencil-alt",
-          active: this.ACTIVE_TOOL === 0,
+          active: this.ACTIVE_TOOL === TOOLS.BRUSH,
           disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(0),
         },
         {
           description: "사각형",
           icon: "square-full",
-          active: this.ACTIVE_TOOL === 1,
+          active: this.ACTIVE_TOOL === TOOLS.SQUARE,
           disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(1),
         },
         {
           description: "원형",
           icon: "circle",
-          active: this.ACTIVE_TOOL === 2,
+          active: this.ACTIVE_TOOL === TOOLS.CIRCLE,
           disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(2),
         },
         {
           description: "채우기",
           icon: "fill-drip",
-          active: this.ACTIVE_TOOL === 3,
+          active: this.ACTIVE_TOOL === TOOLS.FILL,
           disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(3),
         },
         {
           description: "선택하기",
           icon: "vector-square",
-          active: this.ACTIVE_TOOL === 4,
+          active: this.ACTIVE_TOOL === TOOLS.SELECT,
           disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(4),
         },
