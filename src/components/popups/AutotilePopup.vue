@@ -152,7 +152,6 @@ export default {
     },
     setSelection() {
       if (this.selection) this.UPDATE_FIELDS({ selectedTiles: this.selection });
-      console.log(this.selection);
       this.$emit("onClosePopup");
     },
     getEventHandler(id, event, callback) {

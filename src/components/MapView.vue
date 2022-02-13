@@ -123,7 +123,8 @@ export default {
     zoom: 1.0,
     tileset: null,
     tileAddStart: false,
-    tileSelectStart: {},
+    tileSelectStart: null,
+    selectStart: null,
     ix: 0,
     iy: 0,
     mouseX: undefined,
@@ -131,6 +132,8 @@ export default {
     previewOnDrawing: false,
     preview: [],
     prevLayer: [],
+    select: [[], [], []],
+    isMove: false,
   }),
   watch: {
     activeLayer() {
@@ -138,6 +141,13 @@ export default {
     },
     zoom() {
       this.init();
+    },
+    select() {
+      const select = this.select;
+      if (this.select[0].length < 1) return;
+      const width = select[0][select[0].length - 1].x - select[0][0].x + 1;
+      const height = select[0][select[0].length - 1].y - select[0][0].y + 1;
+      this.drawSelect(select[0][0].x, select[0][0].y, width, height);
     },
   },
   created() {
@@ -365,6 +375,9 @@ export default {
           }
         });
       });
+    },
+    getLayer(index) {
+      return this.maps[this.activeMap].data[index - 1];
     },
     getTileLocation(event) {
       const { x, y } = event.target.getBoundingClientRect();
@@ -668,6 +681,43 @@ export default {
 
       return preview;
     },
+    getSelect(event) {
+      const { tx, ty } = this.getTileLocation(event);
+      let newSelection = [[], [], []];
+      if (this.selectStart) {
+        for (
+          let ix = Math.min(this.selectStart.x, tx);
+          ix < Math.max(this.selectStart.x, tx) + 1;
+          ix++
+        ) {
+          for (
+            let iy = Math.min(this.selectStart.y, ty);
+            iy < Math.max(this.selectStart.y, ty) + 1;
+            iy++
+          ) {
+            for (let i = 0; i < 3; i++) {
+              newSelection[i].push({
+                id: this.getLayer(i + 1)[iy][ix],
+                x: ix,
+                y: iy,
+                shiftKey: true,
+              });
+            }
+          }
+        }
+      }
+      if (newSelection[0].length > 1) return newSelection;
+      newSelection = [[], [], []];
+      for (let i = 0; i < 3; i++) {
+        newSelection[i].push({
+          id: this.getLayer(i + 1)[ty][tx],
+          x: tx,
+          y: ty,
+          shiftKey: true,
+        });
+      }
+      return newSelection;
+    },
     getPrevLayer(layer, preview) {
       const prevLayer = [];
       preview.forEach((tile) => {
@@ -721,8 +771,19 @@ export default {
     },
     drawSelectedTile(x, y, width, height) {
       this.draw();
+      this.context.globalAlpha = 1;
       this.drawRect(
         MAP_CANVAS_ID,
+        x * TILESIZE * this.zoom,
+        y * TILESIZE * this.zoom,
+        width * TILESIZE * this.zoom,
+        height * TILESIZE * this.zoom
+      );
+    },
+    drawSelect(x, y, width, height) {
+      this.draw();
+      this.context.globalAlpha = 1;
+      this.drawDotRect(
         x * TILESIZE * this.zoom,
         y * TILESIZE * this.zoom,
         width * TILESIZE * this.zoom,
@@ -928,6 +989,10 @@ export default {
       makefillRect(x + width - 3, y + 1, 2, height - 2, "#fff");
       makefillRect(x + 1, y + height - 3, width - 2, 2, "#fff");
     },
+    drawDotRect(x, y, width, height) {
+      this.context.setLineDash([3, 3]);
+      this.context.strokeRect(x, y, width, height);
+    },
     getPreview(event) {
       let preview = null;
       switch (this.mode) {
@@ -975,7 +1040,23 @@ export default {
             this.addTiles(e, this.layer, this.prevLayer);
           }
         } else if (this.mode === TOOLS.SELECT) {
-          console.log("SELECT");
+          if (e.button === 2 || e.which === 3) return;
+          if (this.select[0].length > 0) {
+            const i = this.select[0][0];
+            const l = this.select[0][this.select[0].length - 1];
+            if (
+              this.mouseX >= i.x &&
+              this.mouseX <= l.x &&
+              this.mouseY >= i.y &&
+              this.mouseY <= l.y
+            ) {
+              this.isMove = true;
+            } else {
+              this.selectStart = this.getSelect(e)[0][0];
+            }
+          } else {
+            this.selectStart = this.getSelect(e)[0][0];
+          }
         }
       }
     },
@@ -1027,6 +1108,12 @@ export default {
                 this.previewSelectedTile(e);
               }
             }
+          } else if (this.mode === TOOLS.SELECT) {
+            if (e.button === 2 || e.which === 3) return;
+            if (this.selectStart) {
+              const selection = this.getSelect(e);
+              this.select = selection;
+            }
           }
         }
       }
@@ -1061,9 +1148,21 @@ export default {
           activeCanvas: MAP_CANVAS_ID,
         });
       }
+      if (this.drawable && this.mode === TOOLS.SELECT) {
+        if (e.button === 2 || e.which === 3) return;
+        if (this.isMove) {
+          // TODO
+          this.isMove = false;
+        } else {
+          const selection = this.getSelect(e);
+          this.selectStart = null;
+          this.select = selection;
+        }
+      }
     },
     mouseLeaveEvent() {
       this.draw();
+      this.select = [[], [], []];
       this.mouseX = undefined;
       this.mouseY = undefined;
     },
