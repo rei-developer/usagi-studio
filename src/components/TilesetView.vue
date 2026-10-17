@@ -63,6 +63,7 @@ export default {
   name: "TilesetView",
   components: { AutotilePopup },
   props: {
+    tileset: { type: Object, default: null },
     mapName: {
       type: String,
       default: "",
@@ -91,7 +92,7 @@ export default {
   data: () => ({
     mouseX: null,
     mouseY: null,
-    tileset: null,
+
     tileSelectStart: null,
     autotileId: null,
     isAutotilePopupOpened: false,
@@ -107,10 +108,9 @@ export default {
       }
     },
   },
-  created() {
-    this.init();
-  },
+
   mounted() {
+    this.init();
     this.getEventHandler(
       TILESET_CANVAS_ID,
       "pointerdown",
@@ -204,21 +204,11 @@ export default {
   methods: {
     ...mapMutations(["UPDATE_FIELDS"]),
     init() {
-      let tileset = new Image();
-      tileset.src = `/tilesets/${this.tilesetName}.png`;
-      tileset.onload = () => {
-        this.tileset = new Image(tileset.width, tileset.height);
-        this.tileset.src = tileset.src;
-        this.tileset.onload = () => {
-          this.draw();
-          this.drawSelectedAutotile(0, 0);
-          this.UPDATE_FIELDS({
-            selectedTiles: [{ id: 0, x: 0, y: 0 }],
-            activeCanvas: AUTOTILE_CANVAS_ID,
-          });
-          tileset = null;
-        };
-      };
+      this.drawSelectedAutotile(0, 0);
+      this.UPDATE_FIELDS({
+        selectedTiles: [{ id: 0, x: 0, y: 0 }],
+        activeCanvas: AUTOTILE_CANVAS_ID,
+      });
     },
     draw() {
       const ctx = this.getContext();
@@ -491,9 +481,17 @@ export default {
       return this.$el.querySelector(id).removeEventListener(event, callback);
     },
     tilesetPointerDownEvent(e) {
+      this.lastPosition = null;
       this.tileSelectStart = this.getSelectedTile(e)[0];
     },
     tilesetPointerMoveEvent(e) {
+      const point = this.getTileLocation(e);
+      if (
+        this.lastPosition?.tx === point.tx &&
+        this.lastPosition?.ty === point.ty
+      )
+        return;
+      this.lastPosition = point;
       if (this.tileSelectStart) {
         const selection = this.getSelectedTile(e);
         const width = selection[selection.length - 1].x - selection[0].x + 1;

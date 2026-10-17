@@ -17,18 +17,20 @@
     >
       {{ fileMessage || $store.state.historyNotice }}
     </div>
-    <div class="row">
+    <div v-if="ready" class="row">
       <tileset-view
         :mapName="mapName"
         :mapWidth="maps[activeMap].width"
         :mapHeight="maps[activeMap].height"
         :tilesetName="tilesetName"
+        :tileset="tileset"
         :autotiles="autotiles"
         :backgroundColor="backgroundColor"
         @selectionChanged="getSelectedTile"
       />
       <map-view
         ref="mapView"
+        :tileset="tileset"
         :activeMap="activeMap"
         :activeLayer="activeLayer"
         :maps="maps"
@@ -71,6 +73,7 @@ export default {
     MapView,
   },
   data: () => ({
+    ready: false,
     fileMessage: "",
     activeMap: "",
     maps: {},
@@ -83,7 +86,7 @@ export default {
     activeLayer: 1,
     backgroundColor: "#333",
   }),
-  created() {
+  async created() {
     this.activeMap = "Map001";
     const sample = require("@/assets/maps/Map001.json");
     this.maps = restoreMaps({
@@ -105,12 +108,27 @@ export default {
     }
     this.mapName = this.maps[this.activeMap].name;
     this.tilesetName = this.maps[this.activeMap].tileset;
-    this.autotiles = this.maps[this.activeMap].autotiles.map((name) => {
-      if (!name) return null;
-      const image = new Image();
-      image.src = `/autotiles/${name}.png`;
-      return image;
-    });
+    try {
+      const load = async (url) => {
+        const image = new Image();
+        image.src = url;
+        await image.decode();
+        return image;
+      };
+      [this.tileset, this.autotiles] = await Promise.all([
+        load(`/tilesets/${this.tilesetName}.png`),
+        Promise.all(
+          this.maps[this.activeMap].autotiles.map((name) =>
+            name ? load(`/autotiles/${name}.png`) : null
+          )
+        ),
+      ]);
+      this.ready = true;
+    } catch {
+      this.fileMessage =
+        "타일 이미지를 불러오지 못했습니다. 새로고침하여 다시 시도해주세요.";
+      this.$store.commit("SET_LOADING", false);
+    }
   },
   mounted() {
     document.addEventListener("keydown", this.saveShortcut);

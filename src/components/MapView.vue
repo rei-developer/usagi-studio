@@ -1,9 +1,30 @@
 <template>
   <div class="map-view-wrapper">
-    <div class="content custom-scroll-box">
-      <canvas id="mapCanvas" :width="width" :height="height">
-        자바스크립트를 지원하지 않는 브라우저입니다. 다시 시도해주세요.
-      </canvas>
+    <div ref="viewport" class="content custom-scroll-box" @scroll="onScroll">
+      <div
+        class="map-surface"
+        :style="{ width: width + 'px', height: height + 'px' }"
+      >
+        <div
+          class="canvas-stage"
+          :style="{
+            width: viewportWidth + 'px',
+            height: viewportHeight + 'px',
+          }"
+        >
+          <canvas
+            id="mapCanvas"
+            :width="viewportWidth"
+            :height="viewportHeight"
+          />
+          <canvas
+            ref="overlay"
+            class="map-overlay"
+            :width="viewportWidth"
+            :height="viewportHeight"
+          />
+        </div>
+      </div>
     </div>
     <div class="bottom">
       <div class="item">
@@ -42,6 +63,20 @@
 </template>
 
 <style lang="scss" scoped>
+.map-surface {
+  position: relative;
+}
+.canvas-stage {
+  position: sticky;
+  left: 0;
+  top: 0;
+}
+.map-overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
 .map-view-wrapper {
   display: flex;
   flex-direction: column;
@@ -49,7 +84,8 @@
   height: calc(100vh - 50px);
   border-left: 1px solid #333;
   > .content {
-    height: inherit;
+    flex: 1;
+    min-height: 0;
     background: #000;
     overflow: auto;
   }
@@ -86,6 +122,7 @@
 
 <script>
 import { markRaw, toRaw } from "vue";
+import { ChunkCache, CHUNK_TILES } from "@/utils/chunkCache";
 import { transaction, writeCell, pack } from "@/utils/editHistory";
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import { TILESIZE, AUTOTILES, MAP_CANVAS_ID } from "@/utils/tileset";
@@ -151,6 +188,7 @@ export default {
   name: "MapView",
   components: { UiInputRange },
   props: {
+    tileset: { type: Object, default: null },
     activeMap: {
       type: String,
       default: null,
@@ -178,7 +216,10 @@ export default {
   },
   data: () => ({
     zoom: 1.0,
-    tileset: null,
+    viewportWidth: 1,
+    viewportHeight: 1,
+    scrollX: 0,
+    scrollY: 0,
     tileAddStart: false,
     tileSelectStart: null,
     selectStart: null,
@@ -197,7 +238,10 @@ export default {
       this.draw();
     },
     zoom() {
-      this.init();
+      this.$nextTick(this.resizeViewport);
+    },
+    "fields.viewTileId"() {
+      this.draw();
     },
     select() {
       const select = this.select;
@@ -208,9 +252,16 @@ export default {
     },
   },
   created() {
-    this.init();
+    this.cache = markRaw(new ChunkCache());
+    this.frame = null;
+    this.mapDirty = false;
+    this.overlayRect = null;
+    this.cursorTile = null;
   },
   mounted() {
+    this.observer = new ResizeObserver(this.resizeViewport);
+    this.observer.observe(this.$refs.viewport);
+    this.init();
     this.getEventHandler(MAP_CANVAS_ID, "pointerdown", this.pointerDownEvent);
     this.getEventHandler(MAP_CANVAS_ID, "pointermove", this.pointerMoveEvent);
     this.getEventHandler(MAP_CANVAS_ID, "pointerup", this.pointerUpEvent);
@@ -219,6 +270,9 @@ export default {
     document.addEventListener("keydown", this.keyDownEvent);
   },
   beforeUnmount() {
+    this.observer.disconnect();
+    cancelAnimationFrame(this.frame);
+    this.cache.clear();
     this.removeEventHandler(
       MAP_CANVAS_ID,
       "pointerdown",
@@ -284,56 +338,160 @@ export default {
     ]),
     ...mapActions(["removeMapHistory", "removeMapFuture"]),
     init() {
-      this.tileset = new Image();
-      this.tileset.src = `/tilesets/${this.maps[this.activeMap].tileset}.png`;
-      this.tileset.onload = () => {
-        this.draw();
-        setTimeout(() => this.SET_LOADING(), 1000);
-      };
+      this.resizeViewport();
+      requestAnimationFrame(() => this.SET_LOADING());
+    },
+    resizeViewport() {
+      if (!this.$refs.viewport) return;
+      this.viewportWidth = Math.max(
+        1,
+        Math.min(Math.ceil(this.width), this.$refs.viewport.clientWidth)
+      );
+      this.viewportHeight = Math.max(
+        1,
+        Math.min(Math.ceil(this.height), this.$refs.viewport.clientHeight)
+      );
+      this.onScroll();
+      this.$nextTick(this.draw);
+    },
+    onScroll() {
+      this.scrollX = this.$refs.viewport.scrollLeft;
+      this.scrollY = this.$refs.viewport.scrollTop;
+      this.draw();
     },
     draw() {
-      this.context.clearRect(0, 0, this.width, this.height);
-      this.maps[this.activeMap].data.forEach((layer, lindex) => {
-        const layerIndex = lindex + 1;
-        for (let y = 0; y < this.maps[this.activeMap].height; y++) {
-          for (let x = 0; x < this.maps[this.activeMap].width; x++) {
-            this.setContext(this.context, layerIndex, x, y);
-            if (this.activeLayer === 4) this.drawBorder(this.context, x, y);
-            const tile = layer[y][x];
-            this.drawTile(this.context, tile, x, y);
-            this.viewTileId(this.context, layerIndex, tile, x, y);
-          }
+      this.mapDirty = true;
+      this.scheduleFrame();
+    },
+    scheduleFrame() {
+      if (this.frame !== null) return;
+      this.frame = requestAnimationFrame(() => {
+        this.frame = null;
+        if (this.mapDirty) {
+          this.mapDirty = false;
+          this.renderMap();
         }
-        if (this.drawable && layerIndex === this.activeLayer - 1) {
-          this.context.fillStyle = "rgba(0, 0, 0, .5)";
-          this.context.fillRect(0, 0, this.width, this.height);
-        }
+        this.renderOverlay();
       });
     },
-    setContext(context, index, x, y) {
-      context.globalAlpha = 1;
-      // 줌 깨짐 제거
-      if (this.zoom !== 1) {
-        context.webkitImageSmoothingEnabled = false;
-        context.mozImageSmoothingEnabled = false;
-        context.msImageSmoothingEnabled = false;
-        context.imageSmoothingEnabled = false;
+    invalidateTile(x, y) {
+      const prefix = `${Math.floor(x / CHUNK_TILES)},${Math.floor(y / CHUNK_TILES)}:`;
+      for (const key of this.cache.entries.keys())
+        if (key.startsWith(prefix)) this.cache.delete(key);
+    },
+    getChunk(cx, cy) {
+      const key = `${cx},${cy}:${this.activeMap}:${this.activeLayer}:${this.zoom}`;
+      let canvas = this.cache.get(key);
+      if (canvas) return canvas;
+      const map = toRaw(this.maps[this.activeMap]);
+      const left = cx * CHUNK_TILES,
+        top = cy * CHUNK_TILES;
+      const columns = Math.min(CHUNK_TILES, map.width - left);
+      const rows = Math.min(CHUNK_TILES, map.height - top);
+      canvas = document.createElement("canvas");
+      canvas.width = Math.ceil(columns * TILESIZE * this.zoom);
+      canvas.height = Math.ceil(rows * TILESIZE * this.zoom);
+      const ctx = canvas.getContext("2d", { alpha: false });
+      ctx.imageSmoothingEnabled = false;
+      ctx.fillStyle = this.backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.translate(-left * TILESIZE * this.zoom, -top * TILESIZE * this.zoom);
+      map.data.forEach((layer, index) => {
+        ctx.globalAlpha =
+          this.drawable && index + 1 > this.activeLayer ? 0.3 : 1;
+        for (let y = top; y < top + rows; y++)
+          for (let x = left; x < left + columns; x++) {
+            this.drawTile(ctx, layer[y][x], x, y);
+          }
+        if (this.drawable && index + 1 === this.activeLayer - 1) {
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = "rgba(0, 0, 0, .5)";
+          ctx.fillRect(
+            left * TILESIZE * this.zoom,
+            top * TILESIZE * this.zoom,
+            canvas.width,
+            canvas.height
+          );
+        }
+      });
+      return this.cache.set(key, canvas);
+    },
+    renderMap() {
+      if (!this.tileset) return;
+      const ctx = this.context;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, this.viewportWidth, this.viewportHeight);
+      ctx.imageSmoothingEnabled = false;
+      const size = CHUNK_TILES * TILESIZE * this.zoom;
+      const map = this.maps[this.activeMap];
+      const right = Math.min(this.scrollX + this.viewportWidth, this.width);
+      const bottom = Math.min(this.scrollY + this.viewportHeight, this.height);
+      for (let cy = Math.floor(this.scrollY / size); cy * size < bottom; cy++) {
+        for (
+          let cx = Math.floor(this.scrollX / size);
+          cx * size < right;
+          cx++
+        ) {
+          ctx.drawImage(
+            this.getChunk(cx, cy),
+            cx * size - this.scrollX,
+            cy * size - this.scrollY
+          );
+        }
       }
-      // 캔버스 배경 설정
-      if (index === 1) {
-        context.fillStyle = this.backgroundColor;
-        context.fillRect(
-          x * TILESIZE * this.zoom,
-          y * TILESIZE * this.zoom,
-          TILESIZE * this.zoom,
-          TILESIZE * this.zoom
-        );
+      ctx.save();
+      ctx.translate(-this.scrollX, -this.scrollY);
+      if (this.fields.viewTileId || this.activeLayer === 4) {
+        for (
+          let y = Math.floor(this.scrollY / (TILESIZE * this.zoom));
+          y < Math.min(map.height, Math.ceil(bottom / (TILESIZE * this.zoom)));
+          y++
+        ) {
+          for (
+            let x = Math.floor(this.scrollX / (TILESIZE * this.zoom));
+            x < Math.min(map.width, Math.ceil(right / (TILESIZE * this.zoom)));
+            x++
+          ) {
+            if (this.activeLayer === 4) this.drawBorder(ctx, x, y);
+            else if (this.drawable)
+              this.viewTileId(ctx, this.activeLayer, this.layer[y][x], x, y);
+          }
+        }
       }
-      // 레이어 반투명 설정
-      if (this.drawable && index > this.activeLayer) {
-        context.globalAlpha = 0.3;
-      } else if (this.drawable && index === this.activeLayer) {
-        context.globalAlpha = 1;
+      ctx.restore();
+    },
+    renderOverlay() {
+      const ctx = this.$refs.overlay.getContext("2d");
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, this.viewportWidth, this.viewportHeight);
+      ctx.translate(-this.scrollX, -this.scrollY);
+      ctx.imageSmoothingEnabled = false;
+      if (
+        this.cursorTile &&
+        this.selectedTiles.length &&
+        this.drawable &&
+        !this.tileAddStart
+      ) {
+        const first = this.selectedTiles[0];
+        ctx.globalAlpha = 0.7;
+        for (const tile of this.selectedTiles)
+          this.drawTile(
+            ctx,
+            tile.id,
+            this.cursorTile.tx + tile.x - first.x,
+            this.cursorTile.ty + tile.y - first.y
+          );
+        ctx.globalAlpha = 1;
+      }
+      if (this.overlayRect) {
+        const { x, y, width, height, dashed } = this.overlayRect;
+        ctx.setLineDash(dashed ? [3, 3] : []);
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y, width, height);
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, width, height);
       }
     },
     viewTileId(context, index, tile, x, y) {
@@ -438,73 +596,47 @@ export default {
       context.stroke();
       context.globalAlpha = 1;
     },
-    updateCanvas(context, preview) {
-      preview.forEach((tile) => {
-        context.clearRect(
-          tile.x * TILESIZE * this.zoom,
-          tile.y * TILESIZE * this.zoom,
-          TILESIZE * this.zoom,
-          TILESIZE * this.zoom
-        );
-        this.maps[this.activeMap].data.forEach((layer, lindex) => {
-          const layerIndex = lindex + 1;
-          this.setContext(this.context, layerIndex);
-          if (this.activeLayer === 4)
-            this.drawBorder(this.context, tile.x, tile.y);
-          this.drawTile(this.context, layer[tile.y][tile.x], tile.x, tile.y);
-          this.viewTileId(this.context, layerIndex, tile, tile.x, tile.y);
-          if (this.drawable && layerIndex === this.activeLayer - 1) {
-            context.fillStyle = "rgba(0, 0, 0, .5)";
-            context.fillRect(
-              tile.x * TILESIZE * this.zoom,
-              tile.y * TILESIZE * this.zoom,
-              TILESIZE * this.zoom,
-              TILESIZE * this.zoom
-            );
-          }
-        });
-      });
-    },
     getLayer(index) {
       return this.maps[this.activeMap].data[index - 1];
     },
     getTileLocation(event) {
-      const { x, y } = event.target.getBoundingClientRect();
-      const tx = Math.floor(
-        Math.max(event.clientX - x, 0) / (TILESIZE * this.zoom)
-      );
-      const ty = Math.floor(
-        Math.max(event.clientY - y, 0) / (TILESIZE * this.zoom)
-      );
-      return { tx, ty };
+      if (event.tilePosition) return event.tilePosition;
+      const { x, y } = this.$el
+        .querySelector(MAP_CANVAS_ID)
+        .getBoundingClientRect();
+      const map = this.maps[this.activeMap];
+      return {
+        tx: Math.min(
+          map.width - 1,
+          Math.max(
+            0,
+            Math.floor(
+              (event.clientX - x + this.scrollX) / (TILESIZE * this.zoom)
+            )
+          )
+        ),
+        ty: Math.min(
+          map.height - 1,
+          Math.max(
+            0,
+            Math.floor(
+              (event.clientY - y + this.scrollY) / (TILESIZE * this.zoom)
+            )
+          )
+        ),
+      };
     },
     previewSelectedTile(event) {
+      if (!this.selectedTiles.length) return;
       const { tx, ty } = this.getTileLocation(event);
-      const ix = this.selectedTiles[0].x;
-      const iy = this.selectedTiles[0].y;
-      this.context.globalAlpha = 0.7;
-      if (!this.tileAddStart || (this.tileAddStart && this.previewOnDrawing)) {
-        this.selectedTiles.forEach((tile) => {
-          const x = tx + tile.x - ix;
-          const y = ty + tile.y - iy;
-          this.drawTile(this.context, tile.id, x, y);
-        });
-      }
-      const width =
-        this.selectedTiles[this.selectedTiles.length - 1].x -
-        this.selectedTiles[0].x +
-        1;
-      const height =
-        this.selectedTiles[this.selectedTiles.length - 1].y -
-        this.selectedTiles[0].y +
-        1;
-      this.context.globalAlpha = 1;
+      this.cursorTile = { tx, ty };
+      const [first, last] = this.getVertex(this.selectedTiles);
       this.drawRect(
         MAP_CANVAS_ID,
         tx * TILESIZE * this.zoom,
         ty * TILESIZE * this.zoom,
-        width * TILESIZE * this.zoom,
-        height * TILESIZE * this.zoom
+        (last.x - first.x + 1) * TILESIZE * this.zoom,
+        (last.y - first.y + 1) * TILESIZE * this.zoom
       );
     },
     getVertex(tiles) {
@@ -733,8 +865,7 @@ export default {
       return [{ id: tileid, x: tx, y: ty, shiftKey: event.shiftKey }];
     },
     drawSelectedTile(x, y, width, height) {
-      this.draw();
-      this.context.globalAlpha = 1;
+      this.cursorTile = null;
       this.drawRect(
         MAP_CANVAS_ID,
         x * TILESIZE * this.zoom,
@@ -744,44 +875,13 @@ export default {
       );
     },
     drawSelect(x, y, width, height) {
-      this.draw();
-      this.context.globalAlpha = 1;
+      this.cursorTile = null;
       this.drawDotRect(
         x * TILESIZE * this.zoom,
         y * TILESIZE * this.zoom,
         width * TILESIZE * this.zoom,
         height * TILESIZE * this.zoom
       );
-    },
-    updateAutotile(x, y) {
-      const d = [
-        [x, y],
-        [x, y - 1],
-        [x - 1, y],
-        [x + 1, y],
-        [x, y + 1],
-        [x - 1, y - 1],
-        [x + 1, y - 1],
-        [x - 1, y + 1],
-        [x + 1, y + 1],
-      ];
-      d.forEach((item) => {
-        if (
-          item[0] >= 0 &&
-          item[1] >= 0 &&
-          item[0] < this.maps[this.activeMap].width &&
-          item[1] < this.maps[this.activeMap].height &&
-          this.layer[item[1]][item[0]] > 0 &&
-          this.layer[item[1]][item[0]] < 384
-        ) {
-          this.layer[item[1]][item[0]] = this.getAutotileId(
-            this.layer,
-            parseInt(this.layer[item[1]][item[0]] / 48),
-            item[0],
-            item[1]
-          );
-        }
-      });
     },
     getAutotileId(layer, _id, x, y) {
       // 주변 타일을 비교하여 오토타일 id를 부여합니다.
@@ -841,23 +941,14 @@ export default {
     removeEventHandler(id, event, callback) {
       return this.$el.querySelector(id).removeEventListener(event, callback);
     },
-    drawRect(canvasId, x, y, width, height, _style = "rgba(0, 0, 0, 1)") {
-      const makefillRect = (x, y, width, height, style = _style) => {
-        this.context.fillStyle = style;
-        this.context.fillRect(x, y, width, height);
-      };
-      makefillRect(x, y, width, 4, "#000");
-      makefillRect(x, y, 4, height, "#000");
-      makefillRect(x + width - 4, y, 4, height, "#000");
-      makefillRect(x, y + height - 4, width, 4, "#000");
-      makefillRect(x + 1, y + 1, width - 2, 2, "#fff");
-      makefillRect(x + 1, y + 1, 2, height - 2, "#fff");
-      makefillRect(x + width - 3, y + 1, 2, height - 2, "#fff");
-      makefillRect(x + 1, y + height - 3, width - 2, 2, "#fff");
+    drawRect(canvasId, x, y, width, height) {
+      this.overlayRect = { x, y, width, height, dashed: false };
+      this.scheduleFrame();
     },
     drawDotRect(x, y, width, height) {
-      this.context.setLineDash([3, 3]);
-      this.context.strokeRect(x, y, width, height);
+      this.overlayRect = { x, y, width, height, dashed: true };
+      this.cursorTile = null;
+      this.scheduleFrame();
     },
     getPreview(event) {
       let preview = null;
@@ -880,6 +971,15 @@ export default {
       return preview;
     },
     pointerDownEvent(e) {
+      e.target.setPointerCapture?.(e.pointerId);
+      const point = this.getTileLocation(e);
+      e = {
+        ...e,
+        button: e.button,
+        buttons: e.buttons,
+        shiftKey: e.shiftKey,
+        tilePosition: point,
+      };
       this.mouseX = this.getTileLocation(e).tx;
       this.mouseY = this.getTileLocation(e).ty;
       this.ix = this.mouseX;
@@ -932,12 +1032,19 @@ export default {
       }
     },
     pointerMoveEvent(e) {
-      if (
-        this.mouseX !== this.getTileLocation(e).tx ||
-        this.mouseY !== this.getTileLocation(e).ty
-      ) {
-        this.mouseX = this.getTileLocation(e).tx;
-        this.mouseY = this.getTileLocation(e).ty;
+      const point = this.getTileLocation(e);
+      const previousX = this.mouseX,
+        previousY = this.mouseY;
+      e = {
+        button: e.button,
+        buttons: e.buttons,
+        which: e.which,
+        shiftKey: e.shiftKey,
+        tilePosition: point,
+      };
+      if (this.mouseX !== point.tx || this.mouseY !== point.ty) {
+        this.mouseX = point.tx;
+        this.mouseY = point.ty;
         if (this.drawable) {
           if (
             this.mode === TOOLS.BRUSH ||
@@ -967,13 +1074,34 @@ export default {
             } else {
               if (this.tileAddStart && this.mode !== TOOLS.FILL) {
                 if (this.mode !== TOOLS.BRUSH) this.rollbackPreview();
-                const preview = this.getPreview(e);
+                let preview;
+                if (this.mode === TOOLS.BRUSH && previousX !== undefined) {
+                  preview = [];
+                  const steps = Math.max(
+                    Math.abs(point.tx - previousX),
+                    Math.abs(point.ty - previousY)
+                  );
+                  for (let i = 1; i <= steps; i++) {
+                    preview.push(
+                      ...this.getPreview({
+                        ...e,
+                        tilePosition: {
+                          tx: Math.round(
+                            previousX + ((point.tx - previousX) * i) / steps
+                          ),
+                          ty: Math.round(
+                            previousY + ((point.ty - previousY) * i) / steps
+                          ),
+                        },
+                      })
+                    );
+                  }
+                } else preview = this.getPreview(e);
                 this.addTiles(e, this.layer, preview);
                 this.preview = preview;
                 this.draw();
                 // this.updateCanvas(this.context, preview);
               } else {
-                this.draw();
                 this.previewSelectedTile(e);
               }
             }
@@ -1033,7 +1161,9 @@ export default {
       }
     },
     mouseLeaveEvent() {
-      this.draw();
+      this.cursorTile = null;
+      this.overlayRect = null;
+      this.scheduleFrame();
       this.select = [[], [], []];
       this.mouseX = undefined;
       this.mouseY = undefined;
