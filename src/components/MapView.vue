@@ -296,7 +296,7 @@ export default {
         );
       }
     },
-    drawTile(context, _id, x, y) {
+    drawTile(context, _id, x, y, zoom = this.zoom) {
       if (_id >= 384) {
         // 일반 타일
         const tileNum = _id - 384; // 오프셋
@@ -308,10 +308,10 @@ export default {
           tileRow * TILESIZE,
           TILESIZE,
           TILESIZE,
-          x * TILESIZE * this.zoom,
-          y * TILESIZE * this.zoom,
-          TILESIZE * this.zoom,
-          TILESIZE * this.zoom
+          x * TILESIZE * zoom,
+          y * TILESIZE * zoom,
+          TILESIZE * zoom,
+          TILESIZE * zoom
         );
       } else if (_id >= 48) {
         // 오토타일
@@ -327,13 +327,45 @@ export default {
             parseInt(tile_position / 6) * 16,
             16,
             16,
-            (x * TILESIZE + (i % 2) * 16) * this.zoom,
-            (y * TILESIZE + parseInt(i / 2) * 16) * this.zoom,
-            16 * this.zoom,
-            16 * this.zoom
+            (x * TILESIZE + (i % 2) * 16) * zoom,
+            (y * TILESIZE + parseInt(i / 2) * 16) * zoom,
+            16 * zoom,
+            16 * zoom
           );
         }
       }
+    },
+    async exportImage(format) {
+      const mime = { png: "image/png", jpg: "image/jpeg", webp: "image/webp" }[
+        format
+      ];
+      if (!mime) throw new Error("지원하지 않는 이미지 형식입니다.");
+      await Promise.all(
+        [this.tileset, ...this.autotiles]
+          .filter(Boolean)
+          .map((image) => image.decode())
+      );
+      const map = this.maps[this.activeMap];
+      const canvas = document.createElement("canvas");
+      canvas.width = map.width * TILESIZE;
+      canvas.height = map.height * TILESIZE;
+      const context = canvas.getContext("2d");
+      context.imageSmoothingEnabled = false;
+      if (format === "jpg") {
+        context.fillStyle = this.backgroundColor;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      map.data.forEach((layer) =>
+        layer.forEach((row, y) =>
+          row.forEach((tile, x) => this.drawTile(context, tile, x, y, 1))
+        )
+      );
+      const blob = await new Promise((resolve) =>
+        canvas.toBlob(resolve, mime, 0.95)
+      );
+      if (!blob || blob.type !== mime)
+        throw new Error("이미지 인코딩을 지원하지 않습니다.");
+      return blob;
     },
     drawBorder(context, x, y) {
       context.globalAlpha = 0.6;

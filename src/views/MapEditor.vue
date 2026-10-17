@@ -142,22 +142,33 @@ export default {
           "저장하지 못했습니다. 브라우저 저장 공간 또는 권한을 확인하고 JSON으로 내보내세요.";
       }
     },
-    exportMap() {
+    async exportMap(format = "json") {
       let url;
       try {
-        const map = serializeMap(this.maps[this.activeMap]);
-        url = URL.createObjectURL(
-          new Blob([JSON.stringify(map, null, 2)], { type: "application/json" })
-        );
+        const blob =
+          format === "json"
+            ? new Blob(
+                [
+                  JSON.stringify(
+                    serializeMap(this.maps[this.activeMap]),
+                    null,
+                    2
+                  ),
+                ],
+                { type: "application/json" }
+              )
+            : await this.$refs.mapView.exportImage(format);
+        url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `${this.activeMap}.json`;
+        link.download = `${this.activeMap}.${format}`;
         document.body.appendChild(link);
         link.click();
         link.remove();
-        this.fileMessage = "현재 맵 JSON 다운로드를 요청했습니다.";
+        this.fileMessage = `현재 맵 ${format.toUpperCase()} 다운로드를 요청했습니다.`;
       } catch {
-        this.fileMessage = "맵을 내보내지 못했습니다. 다시 시도해주세요.";
+        this.fileMessage =
+          "맵을 내보내지 못했습니다. 이미지 로딩과 브라우저의 형식 지원을 확인하고 다시 시도해주세요.";
       } finally {
         if (url) setTimeout(() => URL.revokeObjectURL(url), 1000);
       }

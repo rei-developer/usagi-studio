@@ -16,6 +16,17 @@
             {{ item.label }}
           </ui-button>
         </ui-button-group>
+        <ui-select
+          v-if="menuIndex === 0"
+          aria-label="내보내기 형식"
+          :value="exportFormat"
+          @onChange="exportFormat = $event"
+        >
+          <option value="json">JSON</option>
+          <option value="png">PNG</option>
+          <option value="jpg">JPG</option>
+          <option value="webp">WebP</option>
+        </ui-select>
       </div>
       <div class="item">
         <font-awesome-icon icon="music" />
@@ -69,6 +80,7 @@ import { TOOLS } from "@/utils/tools";
 import DatabasePopup from "@/components/popups/database/DatabasePopup";
 import InfoPopup from "@/components/popups/InfoPopup";
 import UiButton from "@/components/common/Button";
+import UiSelect from "@/components/common/Select";
 import UiButtonGroup from "@/components/common/ButtonGroup";
 
 export default {
@@ -78,8 +90,10 @@ export default {
     InfoPopup,
     UiButton,
     UiButtonGroup,
+    UiSelect,
   },
   data: () => ({
+    exportFormat: "json",
     ACTIVE_TOOL: 0,
     ACTIVE_LAYER: 1,
     isDatabasePopupOpened: false,
@@ -115,10 +129,10 @@ export default {
           click: () => {},
         },
         {
-          description: "현재 맵 JSON 내보내기",
+          description: "선택한 형식으로 현재 맵 내보내기",
           icon: "file-export",
           active: null,
-          click: () => this.$emit("export"),
+          click: () => this.$emit("export", this.exportFormat),
         },
         {
           description: "모두 저장 (Ctrl+S)",
