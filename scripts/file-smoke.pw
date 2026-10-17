@@ -1,0 +1,67 @@
+async (page) => {
+  const checks = [];
+  const errors = [];
+  const onError = error => errors.push(error.message);
+  page.on("pageerror", onError);
+  const assert = (ok, label) => { if (!ok) throw Error(label); checks.push(label); };
+  const key = "usagi-studio.maps.v1";
+  const ready = async () => {
+    await page.locator("#mapCanvas").waitFor();
+    await page.locator(".logo-wrapper").waitFor({state:"hidden"});
+  };
+  const state = async () => {
+    const pending = page.waitForEvent("download");
+    await icon("file-export").click();
+    const stream = await (await pending).createReadStream();
+    let text = "";
+    for await (const chunk of stream) text += chunk.toString("utf8");
+    return JSON.stringify(JSON.parse(text));
+  };
+  const icon = name => page.locator(`svg[data-icon="${name}"]`).first();
+  const original = await page.evaluate(key => localStorage.getItem(key), key);
+  try {
+    await page.setViewportSize({width:1920,height:1000});
+    await page.evaluate(key => localStorage.removeItem(key), key);
+    await page.reload(); await ready();
+    const before = await state();
+    const palette = await page.locator("#tilesetCanvas").boundingBox();
+    await page.mouse.click(palette.x + palette.width * 1.5 / 8, palette.y + 48 * palette.width / 256);
+    const map = await page.locator("#mapCanvas").boundingBox();
+    await page.mouse.click(map.x+176,map.y+176);
+    const edited = await state();
+    assert(edited !== before, "real brush edit changes map");
+    await icon("floppy-disk").click();
+    assert((await page.getByRole("status").textContent()).includes("저장했습니다"), "save button succeeds");
+    const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), key);
+    const flat = JSON.parse(edited);
+    assert(JSON.stringify(saved.maps.Map001)===JSON.stringify(flat), "save preserves all map data and metadata");
+    await page.reload(); await ready();
+    assert(await state()===edited, "reload restores exact edited map");
+    const downloadPromise = page.waitForEvent("download");
+    await icon("file-export").click();
+    const download = await downloadPromise;
+    assert(download.suggestedFilename()==="Map001.json", "JSON filename");
+    const stream = await download.createReadStream();
+    let text = "";
+    for await (const chunk of stream) text += chunk.toString("utf8");
+    assert(JSON.stringify(JSON.parse(text))===JSON.stringify(flat), "download contains all layers and metadata");
+    await page.keyboard.press("Control+s");
+    assert((await page.getByRole("status").textContent()).includes("저장했습니다"), "Ctrl+S saves");
+    await page.evaluate(() => { Storage.prototype.setItem = () => { throw new DOMException("Full", "QuotaExceededError"); }; });
+    await icon("floppy-disk").click();
+    assert((await page.getByRole("status").textContent()).includes("저장하지 못했습니다"), "quota failure is visible");
+    assert(await state()===edited, "failed save preserves edits");
+    await page.reload(); await ready();
+    await page.evaluate(key=>localStorage.setItem(key, '{"version":1,"activeMap":"Map001","maps":{"Map001":{}}}'), key);
+    await page.reload(); await ready();
+    assert((await page.getByRole("status").textContent()).includes("복원하지 못했습니다"), "malformed save handled");
+    assert(await state()===before, "malformed save falls back to intact sample");
+    assert((await page.evaluate(key=>localStorage.getItem(key),key)).includes('"Map001":{}'), "malformed save is retained");
+    assert(errors.length===0, `no runtime errors: ${errors.join("; ")}`);
+    return {passed:checks.length,checks};
+  } finally {
+    await page.reload();
+    await page.evaluate(({key,original}) => { if(original===null) localStorage.removeItem(key); else localStorage.setItem(key,original); },{key,original});
+    page.off("pageerror",onError);
+  }
+}

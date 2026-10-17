@@ -6,7 +6,12 @@
         @activeLayer="getActiveLayer"
         @undo="undo"
         @redo="redo"
+        @save="saveMaps"
+        @export="exportMap"
       />
+    </div>
+    <div v-if="fileMessage" role="status" class="file-status">
+      {{ fileMessage }}
     </div>
     <div class="row">
       <tileset-view
@@ -32,6 +37,13 @@
 </template>
 
 <style lang="scss" scoped>
+.file-status {
+  position: fixed;
+  top: 0;
+  left: 8px;
+  font-size: 12px;
+  z-index: 1;
+}
 .container {
   display: flex;
   flex-direction: column;
@@ -42,6 +54,7 @@
 </style>
 
 <script>
+import { SAVE_KEY, serializeMap, restoreMaps } from "@/utils/mapFiles";
 import Tools from "@/components/Tools.vue";
 import TilesetView from "@/components/TilesetView.vue";
 import MapView from "@/components/MapView.vue";
@@ -54,6 +67,7 @@ export default {
     MapView,
   },
   data: () => ({
+    fileMessage: "",
     activeMap: "",
     maps: {},
     mapName: "",
@@ -67,20 +81,38 @@ export default {
   }),
   created() {
     this.activeMap = "Map001";
-    this.maps[this.activeMap] = require("@/assets/maps/Map001.json");
-    this.maps[this.activeMap].data = this.getMaps(
-      this.maps[this.activeMap].data,
-      this.maps[this.activeMap].width
-    );
+    const sample = require("@/assets/maps/Map001.json");
+    this.maps = restoreMaps({
+      version: 1,
+      activeMap: this.activeMap,
+      maps: { Map001: sample },
+    });
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        this.maps = restoreMaps(saved);
+        this.activeMap = saved.activeMap;
+        this.fileMessage = "저장한 맵을 복원했습니다.";
+      }
+    } catch {
+      this.fileMessage =
+        "저장 데이터를 복원하지 못했습니다. 기본 맵을 표시합니다. 기존 저장 데이터는 유지됩니다.";
+    }
     this.mapName = this.maps[this.activeMap].name;
     this.tilesetName = this.maps[this.activeMap].tileset;
-    this.maps[this.activeMap].autotiles.forEach((autotile) => {
-      if (autotile) {
-        const atImage = new Image();
-        atImage.src = `/autotiles/${autotile}.png`;
-        this.autotiles.push(atImage);
-      }
+    this.autotiles = this.maps[this.activeMap].autotiles.map((name) => {
+      if (!name) return null;
+      const image = new Image();
+      image.src = `/autotiles/${name}.png`;
+      return image;
     });
+  },
+  mounted() {
+    document.addEventListener("keydown", this.saveShortcut);
+  },
+  beforeUnmount() {
+    document.removeEventListener("keydown", this.saveShortcut);
   },
   methods: {
     getSelectedTile(event) {
@@ -89,19 +121,46 @@ export default {
     getSelectedTool(event) {
       this.activeTool = event;
     },
-    getMaps(data, width) {
-      let datas = [];
-      data.forEach((layer) => {
-        const len = layer.length;
-        const cnt =
-          Math.floor(len / width) + (Math.floor(len % width) > 0 ? 1 : 0);
-        let temp = [];
-        for (let i = 0; i < cnt; i++) {
-          temp.push(layer.splice(0, width));
-        }
-        datas.push(temp);
-      });
-      return datas;
+    saveShortcut(event) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        this.saveMaps();
+      }
+    },
+    saveMaps() {
+      try {
+        const maps = Object.fromEntries(
+          Object.entries(this.maps).map(([id, map]) => [id, serializeMap(map)])
+        );
+        localStorage.setItem(
+          SAVE_KEY,
+          JSON.stringify({ version: 1, activeMap: this.activeMap, maps })
+        );
+        this.fileMessage = "모든 맵을 이 브라우저에 저장했습니다.";
+      } catch {
+        this.fileMessage =
+          "저장하지 못했습니다. 브라우저 저장 공간 또는 권한을 확인하고 JSON으로 내보내세요.";
+      }
+    },
+    exportMap() {
+      let url;
+      try {
+        const map = serializeMap(this.maps[this.activeMap]);
+        url = URL.createObjectURL(
+          new Blob([JSON.stringify(map, null, 2)], { type: "application/json" })
+        );
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${this.activeMap}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        this.fileMessage = "현재 맵 JSON 다운로드를 요청했습니다.";
+      } catch {
+        this.fileMessage = "맵을 내보내지 못했습니다. 다시 시도해주세요.";
+      } finally {
+        if (url) setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
     },
     getActiveLayer(e) {
       this.activeLayer = e;

@@ -115,16 +115,16 @@ export default {
           click: () => {},
         },
         {
-          description: "맵 추출하기",
+          description: "현재 맵 JSON 내보내기",
           icon: "file-export",
           active: null,
-          click: () => {},
+          click: () => this.$emit("export"),
         },
         {
-          description: "모두 저장",
+          description: "모두 저장 (Ctrl+S)",
           icon: "save",
           active: null,
-          click: () => {},
+          click: () => this.$emit("save"),
         },
       ];
     },

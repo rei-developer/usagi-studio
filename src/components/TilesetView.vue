@@ -231,6 +231,7 @@ export default {
       atctx.fillRect(0, 0, 256, 32);
       ctx.drawImage(this.tileset, 0, 0, this.width, this.height);
       this.autotiles.forEach((autotile, index) => {
+        if (!autotile) return;
         atctx.drawImage(
           autotile,
           0,
