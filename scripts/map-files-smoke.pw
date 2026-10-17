@@ -1,0 +1,104 @@
+async (page) => {
+  const checks = [], errors = [], timings = [];
+  const assert = (ok, message) => { if (!ok) throw Error(message); checks.push(message); };
+  const onError = e => errors.push(e.message);
+  page.on("pageerror", onError);
+  const icon = name => page.locator(`svg[data-icon="${name}"]`).first();
+  const ready = async () => { await page.locator("#mapCanvas").waitFor(); await page.locator(".logo-wrapper").waitFor({state:"hidden"}); };
+  const database = (mode, value) => page.evaluate(({mode,value}) => new Promise((resolve,reject) => {
+    const r=indexedDB.open("usagi-studio",1);r.onupgradeneeded=()=>r.result.createObjectStore("projects");
+    r.onsuccess=()=>{const db=r.result,tx=db.transaction("projects",mode==="read"?"readonly":"readwrite"),s=tx.objectStore("projects");
+      const op=mode==="read"?s.get("current"):mode==="clear"?s.delete("current"):s.put(value,"current");
+      tx.oncomplete=()=>{db.close();resolve(op.result??null);};tx.onerror=()=>reject(tx.error);};r.onerror=()=>reject(r.error);
+  }),{mode,value});
+  const original = await database("read");
+  const download = async format => {
+    await page.getByLabel("내보내기 형식").selectOption(format);
+    const pending=page.waitForEvent("download");await icon("file-export").click();
+    const chunks=[];for await(const chunk of await(await pending).createReadStream())chunks.push(chunk);
+    return Buffer.concat(chunks);
+  };
+  const read = async () => JSON.parse((await download("json")).toString("utf8"));
+  const upload = async value => {
+    await page.locator('input[type="file"]').setInputFiles({name:"map.json",mimeType:"application/json",buffer:Buffer.from(typeof value === "string" ? value : JSON.stringify(value))});
+    await page.waitForFunction(() => !document.querySelector('[aria-label="맵 선택"]').disabled);
+  };
+  const choose = async id => { await page.getByLabel("맵 선택").selectOption(id); await page.waitForFunction(id => document.querySelector('[aria-label="맵 선택"]').value===id && !document.querySelector('[aria-label="맵 선택"]').disabled,id); };
+  const create = async (name,width=50,height=20) => {
+    await page.getByRole("button",{name:"새 맵",exact:true}).click();
+    await page.getByLabel("맵 이름").fill(name);
+    await page.getByLabel("맵 너비").fill(String(width));await page.getByLabel("맵 높이").fill(String(height));
+    await page.getByRole("button",{name:"확인",exact:true}).click();await page.getByRole("dialog").waitFor({state:"hidden"});
+  };
+  const brush = async () => {
+    const palette=await page.locator("#tilesetCanvas").boundingBox();
+    await page.mouse.click(palette.x+48*palette.width/256,palette.y+48*palette.width/256);
+    const canvas=await page.locator("#mapCanvas").boundingBox();await page.mouse.click(canvas.x+48,canvas.y+48);
+  };
+  try {
+    await page.setViewportSize({width:1920,height:1080});await page.reload();await ready();
+    const base=await read();
+    await create("첫 맵");const first=await page.getByLabel("맵 선택").inputValue();
+    let map=await read();assert(map.data.flat().every(id=>id===0)&&map.events.length===0,"new map has 3 empty layers");
+    assert(JSON.stringify(map.collisions)===JSON.stringify(base.collisions),"new map retains tile metadata");
+    await brush();const edited=await read();assert(edited.data[0][51]===393,"draw on new map");
+    await create("두 번째 맵");const second=await page.getByLabel("맵 선택").inputValue();await brush();
+    await icon("arrow-rotate-left").click();assert((await read()).data[0][51]===0,"undo applies to current map");
+    await choose(first);assert((await read()).data[0][51]===393,"switch retains other map edit");
+    await icon("arrow-rotate-left").click();assert((await read()).data[0][51]===0,"first map undo independent");
+    await brush();await choose(second);await icon("arrow-rotate-right").click();assert((await read()).data[0][51]===393,"other map edit preserves redo");
+    await page.getByRole("button",{name:"크기 변경",exact:true}).click();
+    await page.getByLabel("맵 너비").fill("0");await page.getByRole("button",{name:"확인",exact:true}).click();
+    assert(await page.getByRole("alert").isVisible(),"invalid dimensions keep dialog open");
+    await page.keyboard.press("Escape");assert(await page.getByRole("dialog").count()===0,"Escape closes dialog");
+    await page.getByRole("button",{name:"크기 변경",exact:true}).click();
+    await page.getByLabel("맵 너비").fill("1");await page.getByLabel("맵 높이").fill("1");
+    assert((await page.getByRole("dialog").textContent()).includes("잘리는 타일: 1개"),"crop count shown before confirmation");
+    await page.getByRole("button",{name:"취소",exact:true}).click();assert((await read()).width===50,"resize cancellation retains dimensions");
+    await page.getByRole("button",{name:"크기 변경",exact:true}).click();
+    await page.getByLabel("맵 너비").fill("1");await page.getByLabel("맵 높이").fill("1");await page.getByRole("button",{name:"확인",exact:true}).click();
+    await page.getByRole("dialog").waitFor({state:"hidden"});assert((await read()).data[0].length===1,"confirmed crop changes all layer dimensions");
+    assert(await icon("arrow-rotate-left").locator("..").evaluate(el=>el.classList.contains("disabled")),"resized map history cleared");
+    await choose(first);assert(!(await icon("arrow-rotate-left").locator("..").evaluate(el=>el.classList.contains("disabled"))),"other map history preserved after resize");
+    await page.getByRole("button",{name:"크기 변경",exact:true}).click();
+    await page.getByRole("button",{name:"확인",exact:true}).click();await page.getByRole("dialog").waitFor({state:"hidden"});
+    assert(!(await icon("arrow-rotate-left").locator("..").evaluate(el=>el.classList.contains("disabled"))),"same-size resize preserves history");
+    await page.getByRole("button",{name:"크기 변경",exact:true}).click();
+    await page.getByLabel("맵 너비").fill("52");await page.getByLabel("맵 높이").fill("22");
+    await page.getByRole("button",{name:"확인",exact:true}).click();await page.getByRole("dialog").waitFor({state:"hidden"});
+    const enlarged=await read();assert(enlarged.data[0][53]===393&&enlarged.data[0].at(-1)===0,"enlargement keeps top-left tiles and adds empty cells");
+    const json=await read(),png=await download("png");
+    await upload(json);assert(await page.getByLabel("맵 선택").inputValue()!==first,"import adds a new map");
+    assert(JSON.stringify(await read())===JSON.stringify(json),"JSON import preserves map and metadata");
+    assert((await download("png")).equals(png),"import preserves exported image pixels");
+    const count=await page.getByLabel("맵 선택").locator("option").count();
+    await upload(json);assert(await page.getByLabel("맵 선택").locator("option").count()===count+1,"duplicate file receives unique map ID");
+    for(const value of ["{",{...json,width:257},{...json,tileset:"../hospital"},{...json,tileset:"missing-test-tileset"},{...json,data:[[999999],[],[]]}]) {
+      const before=await page.getByLabel("맵 선택").inputValue();await upload(value);
+      assert(await page.getByLabel("맵 선택").inputValue()===before,"invalid import retains active map");
+      assert((await page.getByRole("status").textContent()).includes("가져오기 실패"),"invalid import reports failure");
+    }
+    const activeBeforeCancel=await page.getByLabel("맵 선택").inputValue();
+    await page.locator('input[type="file"]').setInputFiles([]);
+    assert(await page.getByLabel("맵 선택").inputValue()===activeBeforeCancel,"file picker cancellation preserves active map");
+    await page.locator('input[type="file"]').setInputFiles({name:"large.json",mimeType:"application/json",buffer:Buffer.alloc(16*1024*1024+1,32)});
+    await page.waitForFunction(()=>!document.querySelector('[aria-label="맵 선택"]').disabled);
+    assert((await page.getByRole("status").textContent()).includes("16MiB"),"oversized file rejected before parsing");
+    assert(await page.getByLabel("맵 선택").inputValue()===activeBeforeCancel,"oversized file retains active map");
+    assert(JSON.stringify(await database("read"))===JSON.stringify(original),"create, resize and import do not overwrite stored project");
+    for(let i=0;i<3;i++)await create(`대형 ${i}`,256,256);
+    await page.evaluate(()=>{
+      window.saveTasks=[];window.saveObserver=new PerformanceObserver(list=>window.saveTasks.push(...list.getEntries().map(e=>e.duration)));window.saveObserver.observe({type:"longtask"});
+    });
+    for(let run=0;run<6;run++){
+      const start=Date.now();await icon("floppy-disk").click();await page.getByRole("status").filter({hasText:"저장했습니다"}).waitFor();
+      if(run)timings.push(Date.now()-start);
+    }
+    const tasks=await page.evaluate(()=>{window.saveObserver.disconnect();return window.saveTasks;});
+    const saved=await database("read");assert(Object.values(saved.maps).filter(m=>m.width===256&&m.height===256).length===3,"save includes three 256x256 maps");
+    const active=await page.getByLabel("맵 선택").inputValue();await page.reload();await ready();assert(await page.getByLabel("맵 선택").inputValue()===active,"reload restores active map");
+    assert(await page.getByLabel("맵 선택").locator("option").count()===Object.keys(saved.maps).length,"reload restores complete map list");
+    assert(errors.length===0,`browser errors: ${errors.join("; ")}`);
+    return {checks,saveDurationMs:timings,longTasksMs:tasks,errors};
+  } finally {await database(original?"write":"clear",original);page.off("pageerror",onError);await page.reload();}
+}

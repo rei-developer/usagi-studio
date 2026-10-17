@@ -34,7 +34,8 @@ async (page) => {
     assert(await page.getByText("4096 × 4096 px",{exact:true}).isVisible(),"output dimensions shown");
     await page.evaluate(()=>{
       window.timings=[];window.longTasks=[];
-      window.perfObserver=new PerformanceObserver(list=>window.longTasks.push(...list.getEntries().map(e=>e.duration)));
+      window.longTaskDetails=[];window.perfStages=[{name:"fill",time:performance.now()}];
+      window.perfObserver=new PerformanceObserver(list=>{for(const e of list.getEntries()){window.longTasks.push(e.duration);window.longTaskDetails.push({duration:e.duration,stage:window.perfStages.findLast(stage=>stage.time<=e.startTime)?.name});}});
       window.perfObserver.observe({type:"longtask",buffered:false});
       const canvas=document.querySelector("#mapCanvas");
       for(const type of ["pointerdown","pointermove","pointerup"]){
@@ -60,6 +61,7 @@ async (page) => {
       await icon("arrow-rotate-left").click();
     }
     await icon("pencil").click();
+    await page.evaluate(()=>window.perfStages.push({name:"brush",time:performance.now()}));
     report.brushFrames=[];
     for(let run=0;run<5;run++){
       await page.evaluate(()=>{window.timings=[];});
@@ -70,6 +72,7 @@ async (page) => {
     }
     const painted=await readMap();
     assert(painted.data[0].slice(0,26).every(id=>id===393),"fast brush interpolates all crossed cells");
+    await page.evaluate(()=>window.perfStages.push({name:"scroll",time:performance.now()}));
     report.scrollFrames=[];
     for(let run=0;run<5;run++){
       await page.evaluate(async run=>{
@@ -83,15 +86,18 @@ async (page) => {
     await page.mouse.click(box.x+16,box.y+16);
     const scrolled=await readMap();
     assert(scrolled.data[0][Math.floor((origin.y+16)/32)*256+Math.floor((origin.x+16)/32)]===393,"drawing after scroll uses map coordinates");
+    await page.evaluate(()=>window.perfStages.push({name:"zoom",time:performance.now()}));
     await page.getByRole("slider").fill("0.5");
     await page.mouse.click(box.x+8,box.y+8);
     const halfOrigin=await page.locator("#mapCanvas").evaluate(el=>{const v=el.closest(".custom-scroll-box");return{x:v.scrollLeft,y:v.scrollTop};});
     assert((await readMap()).data[0][Math.floor((halfOrigin.y+8)/16)*256+Math.floor((halfOrigin.x+8)/16)]===393,"zoom and scroll coordinate mapping");
+    await page.evaluate(()=>window.perfStages.push({name:"save",time:performance.now()}));
     await icon("floppy-disk").click();await page.getByRole("status").filter({hasText:"저장했습니다"}).waitFor();
     const saved=await database("read");assert(saved.maps.Map001.width===256&&saved.maps.Map001.data[0].length===65536,"large map saved to IndexedDB");
 
     report.jsHeapBytes=await page.evaluate(()=>performance.memory?.usedJSHeapSize??null);
     await page.getByLabel("내보내기 형식").selectOption("png");
+    await page.evaluate(()=>window.perfStages.push({name:"png",time:performance.now()}));
     const pending=page.waitForEvent("download");await icon("file-export").click();
     const file=await pending;const stream=await file.createReadStream();let hex="";for await(const chunk of stream)hex+=chunk.toString("hex");
     assert(parseInt(hex.slice(32,40),16)===4096&&parseInt(hex.slice(40,48),16)===4096,"large PNG is directly rendered at 4096 square");
@@ -105,6 +111,7 @@ async (page) => {
     await icon("file-export").click();
     await page.getByRole("status").filter({hasText:"취소했습니다"}).waitFor();assert(true,"large image export can be cancelled");
     report.longTasks=await page.evaluate(()=>window.longTasks);
+    report.longTaskDetails=await page.evaluate(()=>window.longTaskDetails);
     const p95=values=>values.slice().sort((a,b)=>a-b)[Math.ceil(values.length*.95)-1];
     report.brushP95=report.brushFrames.map(p95);report.scrollP95=report.scrollFrames.map(p95);
     assert(Math.max(...report.fillMs)<=500,"256 fill under 500ms");

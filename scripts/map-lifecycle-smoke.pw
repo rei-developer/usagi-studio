@@ -1,0 +1,65 @@
+async (page) => {
+  const checks=[];
+  await page.reload();await page.locator("#mapCanvas").waitFor();await page.locator(".logo-wrapper").waitFor({state:"hidden"});
+  const database=(value,write=false)=>page.evaluate(({value,write})=>new Promise((resolve,reject)=>{
+    const r=indexedDB.open("usagi-studio",1);r.onsuccess=()=>{const db=r.result,tx=db.transaction("projects",write?"readwrite":"readonly"),store=tx.objectStore("projects");const op=write?(value?store.put(value,"current"):store.delete("current")):store.get("current");tx.oncomplete=()=>{db.close();resolve(op.result??null);};tx.onerror=()=>reject(tx.error);};r.onerror=()=>reject(r.error);
+  }),{value,write});
+  const original=await database();
+  try {
+  const result=await page.locator("#mapCanvas").evaluate(async canvas=>{
+    const view=canvas.__vueParentComponent.proxy, editor=view.$parent;
+    const palette=document.querySelector("#autotileCanvas").__vueParentComponent.proxy;
+    const checks=[];const assert=(ok,text)=>{if(!ok)throw Error(text);checks.push(text);};
+    const target=document.querySelector("#autotileCanvas"),rect=target.getBoundingClientRect();
+    const event={target,clientX:rect.x+48,clientY:rect.y+10};
+    let calls=0;const original=palette.drawSelectedAutotile;
+    palette.drawSelectedAutotile=(...args)=>{calls++;return original(...args);};
+    palette.tilesetPointerDownEvent(event);
+    for(let i=0;i<20;i++)palette.autotilePointerMoveEvent({...event,clientX:event.clientX+i/10});
+    assert(calls===1,"autotile palette updates once within same cell");
+    palette.drawSelectedAutotile=original;palette.cancelSelection();
+    const map=editor.maps[editor.activeMap],before=map.data[0][0][0],other=map.data[1][0][0];
+    view.$store.commit("UPDATE_FIELDS",{selectedTiles:[{id:393,x:0,y:0}]});
+    const e={target:{},tilePosition:{tx:0,ty:0},button:0,buttons:1,shiftKey:false};
+    view.pointerDownEvent(e);window.dispatchEvent(new Event("blur"));
+    assert(map.data[0][0][0]===before&&!view.tileAddStart&&!view.selectStart,"blur restores pending brush and clears input");
+    view.pointerDownEvent(e);editor.activeLayer=2;await editor.$nextTick();
+    assert(map.data[0][0][0]===before&&map.data[1][0][0]===other,"layer change rolls back original layer");
+    editor.activeLayer=1;await editor.$nextTick();
+    const oldMap=editor.activeMap,oldAssets=editor.autotileAtlases,selection=view.select;
+    editor.maps.Bad={...map,tileset:"missing-map-switch-test"};
+    await editor.switchMap("Bad");
+    assert(editor.activeMap===oldMap&&editor.autotileAtlases===oldAssets&&view.select===selection,"failed map switch retains map, assets and selection");
+    delete editor.maps.Bad;
+    // Force a yield to inspect the real save snapshot lock, then mutate after capture.
+    for(let i=0;i<3;i++)editor.maps[`Large${i}`]={...map,width:256,height:256,data:Array.from({length:3},()=>Array.from({length:256},()=>Array(256).fill(0)))};
+    const realNow=performance.now.bind(performance);let clock=0;performance.now=()=>clock+=9;
+    const pending=editor.saveMaps();await editor.$nextTick();
+    assert(editor.snapshotting&&view.locked,"snapshot locks editor input");
+    view.pointerDownEvent(e);assert(!view.tileAddStart,"locked editor rejects brush input");
+    const active=editor.activeMap;await editor.switchMap("Large0");assert(editor.activeMap===active,"save blocks map structure changes");
+    await pending;performance.now=realNow;
+    assert(!editor.snapshotting&&!editor.saving&&!view.locked,"save releases input locks");
+    const r=indexedDB.open("usagi-studio",1);const saved=await new Promise((resolve,reject)=>{r.onsuccess=()=>{const db=r.result,tx=db.transaction("projects"),q=tx.objectStore("projects").get("current");tx.oncomplete=()=>{db.close();resolve(q.result);};};r.onerror=()=>reject(r.error);});
+    map.data[0][0][0]=before===393?0:393;
+    assert(saved.maps[active].data[0][0]===before,"stored snapshot stays independent of later edits");map.data[0][0][0]=before;
+    const oldCache=view.cache,oldPalette=palette;
+    await editor.activateMap("Large0",editor.maps.Large0,null);
+    assert(oldCache.bytes===0&&view.frame!==undefined,"map switch releases previous chunk buffers");
+    oldPalette.tileSelectStart={x:0,y:0};window.dispatchEvent(new Event("blur"));
+    assert(oldPalette.tileSelectStart!==null,"unmounted palette removes blur listener");
+    let finishAssets;
+    const lateCanvas=document.createElement("canvas");lateCanvas.width=32;lateCanvas.height=32;
+    editor.maps.Slow={...editor.maps.Large0};
+    editor.prepareAssets=()=>new Promise(resolve=>{finishAssets=resolve;});
+    const switching=editor.switchMap("Slow");
+    editor.$.appContext.app.unmount();
+    finishAssets({tileset:null,autotiles:[],autotileAtlases:[lateCanvas]});
+    await switching;
+    assert(editor.activeMap!=="Slow"&&lateCanvas.width===0,"late asset completion after unmount releases buffers without changing active map");
+    return checks;
+  });
+  checks.push(...result);
+  return {checks};
+  } finally { await database(original,true); await page.reload(); }
+}
