@@ -165,5 +165,429 @@
     "files": 17,
     "images": 22,
     "production": 8
+  },
+  "fileWorkflow": {
+    "buildHash": "2cf94fffd0e11b22",
+    "checks": {
+      "files-editor": 36,
+      "files-autotile": 282,
+      "files-history": 9,
+      "files-save": 17,
+      "files-image": 22,
+      "files-production": 8,
+      "files-large": 15,
+      "map-files": 38,
+      "map-lifecycle": 12
+    },
+    "totalChecks": 439,
+    "largeMap": {
+      "fillMs": [
+        23,
+        19.799999997019768,
+        16.100000001490116,
+        20.5,
+        13.800000004470348
+      ],
+      "brushFrames": [
+        [
+          0.5,
+          3.899999998509884,
+          1.3000000044703484,
+          0.8999999985098839,
+          0.8999999985098839,
+          0.7999999970197678,
+          0.7000000029802322,
+          0.6999999955296516,
+          0.7000000029802322,
+          0.8000000044703484,
+          0.6000000014901161,
+          0.8000000044703484,
+          0.8999999985098839,
+          0.8999999985098839,
+          1
+        ],
+        [
+          0.4000000059604645,
+          3.5,
+          1,
+          1,
+          0.6000000014901161,
+          0.8999999985098839,
+          0.6999999955296516,
+          1,
+          0.7000000029802322,
+          1,
+          0.7999999970197678,
+          1,
+          1,
+          0.7000000029802322,
+          1.7999999970197678
+        ],
+        [
+          0.20000000298023224,
+          3.899999998509884,
+          1.2000000029802322,
+          0.7999999970197678,
+          0.6999999955296516,
+          0.5999999940395355,
+          0.7000000029802322,
+          0.8000000044703484,
+          1,
+          0.7999999970197678,
+          0.6999999955296516,
+          1,
+          0.7999999970197678,
+          0.9000000059604645,
+          1.5
+        ],
+        [
+          0.20000000298023224,
+          4,
+          1.3999999985098839,
+          1,
+          1,
+          1.2000000029802322,
+          0.7000000029802322,
+          0.7000000029802322,
+          0.7999999970197678,
+          0.8999999985098839,
+          1.1000000014901161,
+          0.8999999985098839,
+          0.8999999985098839,
+          0.8000000044703484,
+          1.7000000029802322
+        ],
+        [
+          0.29999999701976776,
+          3.600000001490116,
+          1.1000000014901161,
+          1.1000000014901161,
+          1.1000000014901161,
+          0.8000000044703484,
+          0.9000000059604645,
+          0.8999999985098839,
+          1,
+          0.7999999970197678,
+          0.6999999955296516,
+          1.3999999985098839,
+          1,
+          0.8999999985098839,
+          1.5
+        ]
+      ],
+      "scrollFrames": [
+        [
+          1.1000000014901161,
+          0.10000000149011612,
+          0.20000000298023224,
+          0.10000000149011612,
+          0.10000000149011612,
+          1.2000000029802322,
+          0,
+          0.10000000149011612,
+          0,
+          0.10000000149011612,
+          0.09999999403953552,
+          0.10000000149011612,
+          0,
+          1.2999999970197678,
+          0,
+          0.10000000149011612,
+          0.10000000149011612,
+          0,
+          0
+        ],
+        [
+          0.10000000149011612,
+          0.10000000149011612,
+          0.09999999403953552,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.09999999403953552,
+          0,
+          0,
+          0.10000000149011612,
+          0.09999999403953552,
+          0,
+          0.10000000149011612,
+          0.10000000149011612,
+          0,
+          0.10000000149011612,
+          0,
+          0,
+          0.10000000149011612,
+          0,
+          1.1999999955296516
+        ],
+        [
+          0.10000000149011612,
+          0,
+          0.10000000149011612,
+          0.09999999403953552,
+          0.10000000149011612,
+          0,
+          0.10000000149011612,
+          0.09999999403953552,
+          0.10000000149011612,
+          0.10000000149011612,
+          0,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0,
+          0,
+          0.10000000149011612,
+          0,
+          0
+        ],
+        [
+          0.09999999403953552,
+          0.10000000149011612,
+          0.10000000149011612,
+          0,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0,
+          0,
+          0.20000000298023224,
+          0.10000000149011612,
+          0,
+          0,
+          0.10000000149011612,
+          0,
+          0,
+          0,
+          0.10000000149011612,
+          0.09999999403953552,
+          1.2000000029802322
+        ],
+        [
+          0.10000000149011612,
+          0.10000000149011612,
+          0,
+          0.20000000298023224,
+          0,
+          0.10000000149011612,
+          0.09999999403953552,
+          0.20000000298023224,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.09999999403953552,
+          0.19999999552965164,
+          0,
+          0.10000000149011612
+        ]
+      ],
+      "jsHeapBytes": 260018578,
+      "longTasks": [
+        50
+      ],
+      "longTaskDetails": [
+        {
+          "duration": 50,
+          "stage": "png"
+        }
+      ],
+      "brushP95": [
+        3.899999998509884,
+        3.5,
+        3.899999998509884,
+        4,
+        3.600000001490116
+      ],
+      "scrollP95": [
+        1.2999999970197678,
+        0.10000000149011612,
+        0.10000000149011612,
+        0.20000000298023224,
+        0.20000000298023224
+      ]
+    },
+    "fileOperations": {
+      "checks": [
+        "new map has 3 empty layers",
+        "new map retains tile metadata",
+        "draw on new map",
+        "undo applies to current map",
+        "switch retains other map edit",
+        "first map undo independent",
+        "other map edit preserves redo",
+        "invalid dimensions keep dialog open",
+        "Escape closes dialog",
+        "crop count shown before confirmation",
+        "resize cancellation retains dimensions",
+        "confirmed crop changes all layer dimensions",
+        "resized map history cleared",
+        "other map history preserved after resize",
+        "same-size resize preserves history",
+        "enlargement keeps top-left tiles and adds empty cells",
+        "import adds a new map",
+        "JSON import preserves map and metadata",
+        "import preserves exported image pixels",
+        "duplicate file receives unique map ID",
+        "invalid import retains active map",
+        "invalid import reports failure",
+        "invalid import retains active map",
+        "invalid import reports failure",
+        "invalid import retains active map",
+        "invalid import reports failure",
+        "invalid import retains active map",
+        "invalid import reports failure",
+        "invalid import retains active map",
+        "invalid import reports failure",
+        "file picker cancellation preserves active map",
+        "oversized file rejected before parsing",
+        "oversized file retains active map",
+        "create, resize and import do not overwrite stored project",
+        "save includes three 256x256 maps",
+        "reload restores active map",
+        "reload restores complete map list",
+        "browser errors: "
+      ],
+      "saveDurationMs": [
+        25,
+        27,
+        20,
+        26,
+        23
+      ],
+      "longTasksMs": [],
+      "errors": []
+    },
+    "lifecycle": {
+      "checks": [
+        "autotile palette updates once within same cell",
+        "blur restores pending brush and clears input",
+        "layer change rolls back original layer",
+        "failed map switch retains map, assets and selection",
+        "snapshot locks editor input",
+        "locked editor rejects brush input",
+        "save blocks map structure changes",
+        "save releases input locks",
+        "stored snapshot stays independent of later edits",
+        "map switch releases previous chunk buffers",
+        "unmounted palette removes blur listener",
+        "late asset completion after unmount releases buffers without changing active map"
+      ]
+    },
+    "fixtures": {
+      "report": [
+        {
+          "label": "sample-50x20",
+          "width": 50,
+          "height": 20,
+          "scroll": [
+            7.399999998509884,
+            7.200000002980232,
+            7.200000002980232,
+            7.200000002980232,
+            10.5
+          ],
+          "fill": [],
+          "longTasks": [],
+          "jsHeapBytes": 64155382,
+          "canvas": {
+            "width": 160,
+            "height": 64
+          }
+        },
+        {
+          "label": "sample-57x128",
+          "width": 57,
+          "height": 128,
+          "scroll": [
+            11.099999994039536,
+            7.299999997019768,
+            7.299999997019768,
+            8.5,
+            7.200000002980232
+          ],
+          "fill": [],
+          "longTasks": [],
+          "jsHeapBytes": 66150381,
+          "canvas": {
+            "width": 183,
+            "height": 410
+          }
+        },
+        {
+          "label": "autotiles-256",
+          "width": 256,
+          "height": 256,
+          "scroll": [
+            13.699999995529652,
+            7.300000004470348,
+            7.200000002980232,
+            11.799999997019768,
+            7.200000002980232
+          ],
+          "fill": [
+            31.899999998509884,
+            22.700000002980232,
+            19.899999998509884,
+            25.299999997019768,
+            19.69999999552965
+          ],
+          "longTasks": [],
+          "jsHeapBytes": 101882430,
+          "canvas": {
+            "width": 820,
+            "height": 820
+          }
+        },
+        {
+          "label": "mixed-256",
+          "width": 256,
+          "height": 256,
+          "scroll": [
+            13.100000001490116,
+            7.200000002980232,
+            7.200000002980232,
+            11.600000001490116,
+            7.200000002980232
+          ],
+          "fill": [],
+          "longTasks": [],
+          "jsHeapBytes": 83634137,
+          "canvas": {
+            "width": 820,
+            "height": 820
+          }
+        },
+        {
+          "label": "limit-512",
+          "width": 512,
+          "height": 512,
+          "scroll": [
+            13.300000004470348,
+            7.200000002980232,
+            7.200000002980232,
+            10.600000001490116,
+            7.200000002980232
+          ],
+          "fill": [],
+          "longTasks": [],
+          "jsHeapBytes": 104507736,
+          "canvas": {
+            "width": 1639,
+            "height": 960
+          }
+        }
+      ],
+      "errors": []
+    },
+    "earlierLongTask": {
+      "durationMs": 64,
+      "stage": "unknown",
+      "note": "Observed before phase instrumentation; not reproduced in diagnostic run."
+    }
   }
 }
