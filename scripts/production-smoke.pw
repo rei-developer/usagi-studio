@@ -38,9 +38,9 @@ async (page) => {
     await page.getByText("Layer 1", {exact: true}).click();
     assert(await pixels() === before, "production cross-layer undo");
     await page.getByRole("slider").fill("0.5");
-    assert(await canvas.evaluate(el => el.width) === 800, "production zoom dimensions");
+    assert(await page.locator(".map-surface").evaluate(el => parseFloat(el.style.width)) === 800, "production zoom dimensions");
     await icon("bullseye").click();
-    assert(await canvas.evaluate(el => el.width) === 1600, "production reset zoom");
+    assert(await page.locator(".map-surface").evaluate(el => parseFloat(el.style.width)) === 1600, "production reset zoom");
     await page.getByText("Database", {exact: true}).click();
     await page.getByText("타일셋", {exact: true}).first().waitFor();
     assert(await page.getByRole("listbox").count() > 0, "production database renders");

@@ -1,0 +1,35 @@
+async (page) => {
+  await page.reload();await page.locator("#mapCanvas").waitFor();await page.locator(".logo-wrapper").waitFor({state:"hidden"});
+  try {
+    return await page.locator("#mapCanvas").evaluate(async canvas=>{
+      const view=canvas.__vueParentComponent.proxy,store=view.$store,checks=[];
+      const assert=(ok,label)=>{if(!ok)throw Error(label);checks.push(label);};
+      let id=view.layer[0][0]===384?385:384;
+      const event={target:{},tilePosition:{tx:0,ty:0},button:0,buttons:1,shiftKey:true};
+      for(let i=0;i<501;i++){
+        view.UPDATE_FIELDS({selectedTiles:[{id,x:0,y:0}]});
+        view.pointerDownEvent(event);view.pointerUpEvent(event);id=id===384?385:384;
+      }
+      assert(store.state.mapHistory.length===500,"501 real edits retain 500 history records");
+      assert(store.state.historyNotice.length>0,"history truncation is announced");
+      assert(store.state.mapHistory.every(item=>item.cells.length===3),"single cell edits never store full maps");
+      await view.undo();const future=store.state.mapFuture.length;
+      view.UPDATE_FIELDS({selectedTiles:[{id:view.layer[0][0],x:0,y:0}]});
+      view.pointerDownEvent(event);view.pointerUpEvent(event);
+      assert(store.state.mapFuture.length===future,"no-op preserves redo");
+      assert(view.cache.bytes<=64*1024*1024,"render cache stays within budget");
+      await view.redo();
+      assert(store.state.mapHistory.length===500,"redo respects combined history count");
+      const tiles=Array.from({length:64},(_,i)=>({id:384+i,x:i%8,y:Math.floor(i/8)}));
+      view.UPDATE_FIELDS({selectedTiles:tiles});view.ix=10;view.iy=10;
+      const square=view.getSquare({tilePosition:{tx:25,ty:18}});
+      assert(square.length===144&&square.every(t=>t.id===384+(t.y-10)%8*8+(t.x-10)%8),"8x8 pattern rectangle preserves its origin");
+      const fill=view.getFill({tilePosition:{tx:7,ty:5}},Array.from({length:17},()=>Array(17).fill(0)));
+      assert(fill.length===289&&fill.every(t=>t.id===384+((t.y-5)%8+8)%8*8+((t.x-7)%8+8)%8),"8x8 fill pattern wraps around negative offsets");
+      const before=JSON.stringify(view.maps),history=store.state.mapHistory.length;
+      view.pointerDownEvent(event);view.cancelStroke();
+      assert(JSON.stringify(view.maps)===before&&store.state.mapHistory.length===history,"cancelled pointer stroke restores cells without history");
+      return {passed:checks.length,checks};
+    });
+  } finally {await page.reload();}
+}

@@ -31,7 +31,7 @@ async (page) => {
     await page.reload();
     await page.locator("#mapCanvas").waitFor();
     await page.locator(".logo-wrapper").waitFor({state:"hidden"});
-    const size = await page.locator("#mapCanvas").evaluate(el=>({width:el.width,height:el.height}));
+    const size = await page.locator(".map-surface").evaluate(el=>({width:parseFloat(el.style.width),height:parseFloat(el.style.height)}));
     const png = await download("png");
     assert(png.startsWith("89504e470d0a1a0a"), "PNG signature");
     const image = await pixels(png);

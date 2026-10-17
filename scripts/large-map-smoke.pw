@@ -1,0 +1,121 @@
+async (page) => {
+  const checks=[], errors=[];
+  const assert=(ok,label)=>{if(!ok)throw Error(label);checks.push(label);};
+  const onError=e=>errors.push(e.message);
+  page.on("pageerror",onError);
+  const icon=name=>page.locator(`svg[data-icon="${name}"]`).first();
+  const ready=async()=>{await page.locator("#mapCanvas").waitFor();await page.locator(".logo-wrapper").waitFor({state:"hidden"});};
+  const database=(mode,value)=>page.evaluate(({mode,value})=>new Promise((resolve,reject)=>{
+    const r=indexedDB.open("usagi-studio",1);r.onupgradeneeded=()=>r.result.createObjectStore("projects");
+    r.onsuccess=()=>{const db=r.result,tx=db.transaction("projects",mode==="read"?"readonly":"readwrite"),s=tx.objectStore("projects");
+      const op=mode==="read"?s.get("current"):mode==="clear"?s.delete("current"):s.put(value,"current");
+      tx.oncomplete=()=>{db.close();resolve(op.result??null);};tx.onerror=()=>{db.close();reject(tx.error);};};
+    r.onerror=()=>reject(r.error);
+  }),{mode,value});
+  const readMap=async()=>{
+    await page.getByLabel("내보내기 형식").selectOption("json");
+    const pending=page.waitForEvent("download");await icon("file-export").click();
+    let text="";for await(const chunk of await(await pending).createReadStream())text+=chunk.toString("utf8");
+    return JSON.parse(text);
+  };
+  const original=await database("read");
+  const report={};
+  try {
+    await page.setViewportSize({width:1920,height:1080});await page.reload();await ready();
+    const base=await readMap();
+    const map={...base,width:256,height:256,data:Array.from({length:3},()=>Array(256*256).fill(0))};
+    await database("write",{version:1,activeMap:"Map001",maps:{Map001:map}});
+    await page.reload();await ready();
+    const size=await page.locator("#mapCanvas").evaluate(el=>({width:el.width,height:el.height}));
+    assert(size.width<1920&&size.height<1080,"256 map uses viewport sized canvas");
+    await page.getByLabel("내보내기 형식").selectOption("png");
+    assert(await page.getByLabel("이미지 배율").inputValue()==="0.5","256 map defaults to safe 50% image");
+    assert(await page.getByLabel("이미지 배율").locator('option[value="1"]').isDisabled(),"unsafe original export disabled");
+    assert(await page.getByText("4096 × 4096 px",{exact:true}).isVisible(),"output dimensions shown");
+    await page.evaluate(()=>{
+      window.timings=[];window.longTasks=[];
+      window.perfObserver=new PerformanceObserver(list=>window.longTasks.push(...list.getEntries().map(e=>e.duration)));
+      window.perfObserver.observe({type:"longtask",buffered:false});
+      const canvas=document.querySelector("#mapCanvas");
+      for(const type of ["pointerdown","pointermove","pointerup"]){
+        let start;
+        canvas.addEventListener(type,()=>{start=performance.now();},true);
+        canvas.addEventListener(type,()=>{const sync=performance.now()-start;requestAnimationFrame(()=>window.timings.push({type,sync,frame:performance.now()-start}));});
+      }
+      const viewport=canvas.closest(".custom-scroll-box");
+      viewport.addEventListener("scroll",()=>{const start=performance.now();requestAnimationFrame(()=>window.timings.push({type:"scroll",frame:performance.now()-start}));});
+    });
+    const palette=await page.locator("#tilesetCanvas").boundingBox();
+    await page.mouse.click(palette.x+palette.width*1.5/8,palette.y+48*palette.width/256);
+    const box=await page.locator("#mapCanvas").boundingBox();
+    await icon("fill-drip").click();
+    report.fillMs=[];
+    for(let run=0;run<6;run++){
+      await page.evaluate(()=>{window.timings=[];});
+      await page.mouse.click(box.x+16,box.y+16);
+      await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+      const timings=await page.evaluate(()=>window.timings);
+      if(run)report.fillMs.push(Math.max(...timings.filter(t=>t.type==="pointerdown").map(t=>t.frame)));
+      if(run===1){const filled=await readMap();assert(filled.data[0].every(id=>id===393),"large fill commits entire region");}
+      await icon("arrow-rotate-left").click();
+    }
+    await icon("pencil").click();
+    report.brushFrames=[];
+    for(let run=0;run<5;run++){
+      await page.evaluate(()=>{window.timings=[];});
+      await page.mouse.move(box.x+16,box.y+16+run*32);await page.mouse.down();
+      await page.mouse.move(box.x+32*25+16,box.y+16+run*32,{steps:12});await page.mouse.up();
+      await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+      report.brushFrames.push(await page.evaluate(()=>window.timings.map(t=>t.frame)));
+    }
+    const painted=await readMap();
+    assert(painted.data[0].slice(0,26).every(id=>id===393),"fast brush interpolates all crossed cells");
+    report.scrollFrames=[];
+    for(let run=0;run<5;run++){
+      await page.evaluate(async run=>{
+        window.timings=[];
+        const viewport=document.querySelector("#mapCanvas").closest(".custom-scroll-box");
+        for(let i=0;i<20;i++){viewport.scrollTo({left:run*150+i*70,top:run*200+i*80,behavior:"instant"});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));}
+      },run);
+      report.scrollFrames.push(await page.evaluate(()=>window.timings.filter(t=>t.type==="scroll").map(t=>t.frame)));
+    }
+    const origin=await page.locator("#mapCanvas").evaluate(el=>{const v=el.closest(".custom-scroll-box");return{x:v.scrollLeft,y:v.scrollTop};});
+    await page.mouse.click(box.x+16,box.y+16);
+    const scrolled=await readMap();
+    assert(scrolled.data[0][Math.floor((origin.y+16)/32)*256+Math.floor((origin.x+16)/32)]===393,"drawing after scroll uses map coordinates");
+    await page.getByRole("slider").fill("0.5");
+    await page.mouse.click(box.x+8,box.y+8);
+    const halfOrigin=await page.locator("#mapCanvas").evaluate(el=>{const v=el.closest(".custom-scroll-box");return{x:v.scrollLeft,y:v.scrollTop};});
+    assert((await readMap()).data[0][Math.floor((halfOrigin.y+8)/16)*256+Math.floor((halfOrigin.x+8)/16)]===393,"zoom and scroll coordinate mapping");
+    await icon("floppy-disk").click();await page.getByRole("status").filter({hasText:"저장했습니다"}).waitFor();
+    const saved=await database("read");assert(saved.maps.Map001.width===256&&saved.maps.Map001.data[0].length===65536,"large map saved to IndexedDB");
+
+    report.jsHeapBytes=await page.evaluate(()=>performance.memory?.usedJSHeapSize??null);
+    await page.getByLabel("내보내기 형식").selectOption("png");
+    const pending=page.waitForEvent("download");await icon("file-export").click();
+    const file=await pending;const stream=await file.createReadStream();let hex="";for await(const chunk of stream)hex+=chunk.toString("hex");
+    assert(parseInt(hex.slice(32,40),16)===4096&&parseInt(hex.slice(40,48),16)===4096,"large PNG is directly rendered at 4096 square");
+    await page.evaluate(()=>{
+      const observer=new MutationObserver(()=>{
+        const cancel=Array.from(document.querySelectorAll(".ui-button")).find(el=>el.textContent.trim()==="취소");
+        if(cancel){observer.disconnect();cancel.click();}
+      });
+      observer.observe(document.body,{childList:true,subtree:true});
+    });
+    await icon("file-export").click();
+    await page.getByRole("status").filter({hasText:"취소했습니다"}).waitFor();assert(true,"large image export can be cancelled");
+    report.longTasks=await page.evaluate(()=>window.longTasks);
+    const p95=values=>values.slice().sort((a,b)=>a-b)[Math.ceil(values.length*.95)-1];
+    report.brushP95=report.brushFrames.map(p95);report.scrollP95=report.scrollFrames.map(p95);
+    assert(Math.max(...report.fillMs)<=500,"256 fill under 500ms");
+    assert(Math.max(...report.brushP95)<=33,"brush frame p95 under 33ms");
+    assert(Math.max(...report.scrollP95)<=33,"scroll frame p95 under 33ms");
+    assert(errors.length===0,`no runtime errors: ${errors.join("; ")}`);
+    await page.screenshot({path:"output/playwright/large-map.png"});
+    return {passed:checks.length,checks,report};
+  } finally {
+    await page.evaluate(()=>window.perfObserver?.disconnect());
+    await database(original===null?"clear":"write",original);
+    page.off("pageerror",onError);await page.reload();
+  }
+}

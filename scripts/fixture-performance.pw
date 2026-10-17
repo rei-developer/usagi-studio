@@ -1,0 +1,62 @@
+async (page) => {
+  const fixtures = /* FIXTURES */ [];
+  if (!fixtures.length) throw Error("Run node scripts/prepare-performance-fixtures.mjs, then use output/fixture-performance.pw");
+  const report=[];
+  const errors=[];const onError=e=>errors.push(e.message);page.on("pageerror",onError);
+  const icon=name=>page.locator(`svg[data-icon="${name}"]`).first();
+  const database=(mode,value)=>page.evaluate(({mode,value})=>new Promise((resolve,reject)=>{
+    const r=indexedDB.open("usagi-studio",1);r.onupgradeneeded=()=>r.result.createObjectStore("projects");
+    r.onsuccess=()=>{const db=r.result,tx=db.transaction("projects",mode==="read"?"readonly":"readwrite"),s=tx.objectStore("projects");
+      const op=mode==="read"?s.get("current"):mode==="clear"?s.delete("current"):s.put(value,"current");
+      tx.oncomplete=()=>{db.close();resolve(op.result??null);};tx.onerror=()=>{db.close();reject(tx.error);};};r.onerror=()=>reject(r.error);
+  }),{mode,value});
+  const original=await database("read");
+  await page.route("**/tilesets/Province%20de%20Vigo.png",route=>route.fulfill({path: /* PROVINCE */ ""}));
+  try {
+    await page.setViewportSize({width:1920,height:1080});
+    for(const {label,map} of fixtures) {
+      await database("write",{version:1,activeMap:"Map001",maps:{Map001:map}});
+      await page.reload();await page.locator("#mapCanvas").waitFor();await page.locator(".logo-wrapper").waitFor({state:"hidden"});
+      await page.evaluate(()=>{window.tasks=[];window.observer=new PerformanceObserver(list=>window.tasks.push(...list.getEntries().map(e=>e.duration)));window.observer.observe({type:"longtask"});});
+      const metrics={label,width:map.width,height:map.height,scroll:[],fill:[]};
+      for(let run=0;run<5;run++){
+        metrics.scroll.push(await page.evaluate(async run=>{
+          const viewport=document.querySelector("#mapCanvas").closest(".custom-scroll-box");
+          const times=[];
+          for(let i=0;i<10;i++){
+            const start=performance.now();viewport.scrollTo({left:(i+run)*160,top:(i+run)*190,behavior:"instant"});
+            await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));times.push(performance.now()-start);
+          }
+          return times.sort((a,b)=>a-b)[9];
+        },run));
+      }
+      await page.locator("#mapCanvas").evaluate(el=>el.closest(".custom-scroll-box").scrollTo({left:0,top:0,behavior:"instant"}));
+      if(label==="autotiles-256"){
+        const palette=await page.locator("#autotileCanvas").boundingBox();
+        await page.mouse.click(palette.x+palette.width*2.5/8,palette.y+16);
+        await icon("fill-drip").click();
+        const box=await page.locator("#mapCanvas").boundingBox();
+        await page.evaluate(()=>{
+          const canvas=document.querySelector("#mapCanvas");
+          canvas.addEventListener("pointerdown",()=>{window.fillStart=performance.now();},true);
+          canvas.addEventListener("pointerup",()=>{window.fillEnd=performance.now();});
+        });
+        for(let i=0;i<6;i++){
+          await page.mouse.click(box.x+16,box.y+16);
+          if(i)metrics.fill.push(await page.evaluate(()=>window.fillEnd-window.fillStart));
+          await icon("arrow-rotate-left").click();
+        }
+      }
+      await page.getByRole("slider").fill("0.1");
+      await page.evaluate(()=>new Promise(r=>setTimeout(r,500)));
+      metrics.longTasks=await page.evaluate(()=>{window.observer.disconnect();return window.tasks;});
+      metrics.jsHeapBytes=await page.evaluate(()=>performance.memory?.usedJSHeapSize??null);
+      metrics.canvas=await page.locator("#mapCanvas").evaluate(el=>({width:el.width,height:el.height}));
+      report.push(metrics);
+    }
+    if(errors.length)throw Error(errors.join("; "));
+    return {report,errors};
+  } finally {
+    await database(original===null?"clear":"write",original);await page.unroute("**/tilesets/Province%20de%20Vigo.png");page.off("pageerror",onError);await page.reload();
+  }
+}
