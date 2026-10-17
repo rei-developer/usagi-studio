@@ -1,0 +1,71 @@
+async (page) => {
+  const errors = [];
+  const onError = error => errors.push(error.message);
+  page.on("pageerror", onError);
+  const icon = name => page.locator(`svg[data-icon="${name}"]`).first();
+  const pause = () => page.waitForTimeout(1000);
+  const tile = async (selector, x, y) => {
+    const box = await page.locator(selector).boundingBox();
+    const size = selector === "#mapCanvas" ? box.width / 50 : box.width / 8;
+    return {x: box.x + (x + 0.5) * size, y: box.y + (y + 0.5) * size};
+  };
+  const clickTile = async (selector, x, y) => {
+    const p = await tile(selector, x, y);
+    await page.mouse.click(p.x, p.y);
+  };
+  const pixels = async () => {
+    await page.mouse.move(1420, 680);
+    return page.locator("#mapCanvas").evaluate(el => el.toDataURL());
+  };
+  try {
+    await pause();
+    await clickTile("#tilesetCanvas", 2, 3);
+    await pause();
+    await icon("square-full").hover();
+    await pause();
+    await icon("square-full").click();
+    const before = await pixels();
+    const start = await tile("#mapCanvas", 31, 5);
+    const end = await tile("#mapCanvas", 37, 8);
+    await page.mouse.move(start.x, start.y);
+    await page.mouse.down();
+    for (let step = 1; step <= 20; step++) {
+      await page.mouse.move(start.x + (end.x-start.x)*step/20, start.y + (end.y-start.y)*step/20);
+      await page.waitForTimeout(60);
+    }
+    await page.mouse.up();
+    const painted = await pixels();
+    if (painted === before) throw new Error("Rectangle did not change the canvas");
+    await pause();
+    await page.screenshot({path: "docs/media/editor-drawing.png"});
+    await icon("arrow-rotate-left").hover();
+    await pause();
+    await icon("arrow-rotate-left").click();
+    if (await pixels() !== before) throw new Error("Undo did not restore the canvas");
+    await pause();
+    await icon("arrow-rotate-right").hover();
+    await pause();
+    await icon("arrow-rotate-right").click();
+    if (await pixels() !== painted) throw new Error("Redo did not restore the drawing");
+    await pause();
+    await page.getByText("Layer 2", {exact:true}).click();
+    await icon("pencil").click();
+    await clickTile("#tilesetCanvas", 0, 7);
+    await clickTile("#mapCanvas", 33, 6);
+    await clickTile("#mapCanvas", 34, 6);
+    await clickTile("#mapCanvas", 35, 6);
+    await pause();
+    await page.getByText("Layer 3", {exact:true}).click();
+    await pause();
+    await page.getByRole("slider").fill("0.5");
+    await pause();
+    await page.getByRole("slider").fill("0.7");
+    await page.getByText("Layer 1", {exact:true}).click();
+    await pixels();
+    await pause();
+    if (errors.length) throw new Error(errors.join("; "));
+    return {rectangle:true,undo:true,redo:true,layers:true,zoom:true,errors};
+  } finally {
+    page.off("pageerror", onError);
+  }
+}

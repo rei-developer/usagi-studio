@@ -17,13 +17,34 @@
 [![ESLint 10](https://img.shields.io/badge/ESLint-10-4B32C3?style=flat-square&logo=eslint&logoColor=white)](eslint.config.mjs)
 [![Browser checks: Playwright CLI](https://img.shields.io/badge/browser_checks-Playwright_CLI-2EAD33?style=flat-square)](#검증)
 
-[빠른 시작](#빠른-시작) · [기본 조작](#기본-조작) · [검증](#검증) · [프로젝트 구조](#프로젝트-구조) · [기여 안내](#개발자와-기여)
+[사용 화면](#사용-화면) · [빠른 시작](#빠른-시작) · [기본 조작](#기본-조작) · [검증](#검증) · [기여 안내](#개발자와-기여)
 
 ---
 
 브라우저에서 32×32 픽셀 타일과 오토타일로 맵을 편집하는 **Vue 3 기반 타일맵 에디터**입니다. 타일 팔레트, 3개 레이어, 그리기 도구와 실행 취소 기능을 갖추고 있으며, 포함된 병원 샘플 맵으로 바로 사용해 볼 수 있습니다.
 
 > **개발 중인 프로토타입입니다.** 편집 내용은 브라우저 메모리에만 유지됩니다. 저장·내보내기는 미구현이며, 새로고침하면 변경 내용이 사라집니다.
+
+## 사용 화면
+
+실제 프로덕션 빌드를 Chromium에서 실행한 화면입니다. 왼쪽은 타일 팔레트, 상단은 도구·레이어, 오른쪽은 병원 샘플 맵입니다.
+
+![Usagi Studio 편집기: 타일 팔레트와 병원 샘플 맵](docs/media/editor-overview.png)
+
+### 편집 시연
+
+타일 선택 → 사각형 그리기 → 실행 취소·다시 실행 → 레이어 변경과 브러시 그리기 → 줌 조절 순서입니다. 아래 GIF는 **3배속·약 20초**이며, [실제 속도 MP4 영상 보기/다운로드](docs/media/editor-demo.mp4)는 **약 59초**입니다. 소리는 없습니다.
+
+![실제 편집 시연: 타일 그리기, 실행 취소와 다시 실행, 레이어 및 줌 조절](docs/media/editor-demo.gif)
+
+<details>
+<summary>사각형 도구로 타일을 배치한 화면 보기</summary>
+
+![병원 맵 오른쪽에 사각형 도구로 타일을 배치한 모습](docs/media/editor-drawing.png)
+
+</details>
+
+2026-10-17에 1440×720으로 캡처했습니다. 녹화 중 그리기와 실행 취소·다시 실행의 캔버스 픽셀 변화를 확인했습니다. 조작 순서는 [capture-demo.pw](scripts/capture-demo.pw)에 있으며, 새로 연 프로덕션 화면을 1440×720, 줌 70%로 맞춘 상태에서 실행합니다.
 
 ## 주요 기능
 
