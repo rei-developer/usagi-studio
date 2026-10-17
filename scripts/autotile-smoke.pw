@@ -1,0 +1,72 @@
+async (page) => {
+  await page.setViewportSize({width:1920,height:1000});
+  await page.reload();
+  await page.locator("#mapCanvas").waitFor();
+  await page.locator(".logo-wrapper").waitFor({state:"hidden"});
+  const checks = await page.locator("#mapCanvas").evaluate(canvas => {
+    const editor = canvas.__vueParentComponent.proxy;
+    const checks = [];
+    const assert = (ok, label) => {
+      if (!ok) throw new Error(label);
+      checks.push(label);
+    };
+    const fixture = {
+      autotiles:editor.autotiles,
+      maps:{fixture:{width:3,height:3}},
+      activeMap:"fixture",
+    };
+    const shape = (layer,x,y) => editor.$options.methods.getAutotileId.call(fixture,layer,1,x,y)-48;
+    for (let y=0;y<3;y++) for(let x=0;x<3;x++) {
+      const layer=Array.from({length:3},()=>[0,0,0]);layer[y][x]=94;
+      assert(shape(layer,x,y)===46, `isolated tile closes all edges at ${x},${y}`);
+    }
+    for(const [dx,dy,expected] of [[0,-1,44],[1,0,43],[0,1,42],[-1,0,45]]) {
+      const layer=Array.from({length:3},()=>[0,0,0]);layer[1][1]=94;layer[1+dy][1+dx]=94;
+      assert(shape(layer,1,1)===expected, `connect only toward neighbor ${dx},${dy}`);
+    }
+    assert(shape([[0,94,0],[94,94,0],[0,0,0]],1,1)===39,"empty diagonal keeps inside corner closed");
+    assert(shape([[94,94,0],[94,94,0],[0,0,0]],1,1)===38,"matching diagonal joins inside corner");
+    assert(shape([[0,0,0],[0,94,142],[0,0,0]],1,1)===46,"different autotile does not connect");
+    assert(shape([[0,0,0],[0,94,384],[0,0,0]],1,1)===46,"regular tile does not connect");
+    for(let mask=0;mask<256;mask++) {
+      const layer=Array.from({length:3},()=>[0,0,0]);layer[1][1]=94;
+      [[0,0],[1,0],[2,0],[0,1],[2,1],[0,2],[1,2],[2,2]].forEach(([x,y],bit)=>{if(mask&(1<<bit))layer[y][x]=94;});
+      const result=shape(layer,1,1);
+      assert(Number.isInteger(result)&&result>=0&&result<=46,`valid border pattern ${mask}`);
+    }
+    const draws=[];
+    editor.drawTile({drawImage:(...args)=>draws.push(args)},94,1,1);
+    assert(draws.length===4 && draws.every(args=>args.slice(1).every(Number.isFinite)),"render exactly four finite quadrants");
+    return checks;
+  });
+  const icon = name=>page.locator(`svg[data-icon="${name}"]`).first();
+  const state = ()=>page.locator("#mapCanvas").evaluate(c=>JSON.parse(JSON.stringify(c.__vueParentComponent.proxy.maps.Map001.data)));
+  const clickTile = async (selector,x,y)=>{
+    const b=await page.locator(selector).boundingBox();
+    const unit=b.width/(selector==="#mapCanvas"?50:8);
+    await page.mouse.click(b.x+(x+0.5)*unit,b.y+(y+0.5)*unit);
+  };
+  const assert=(ok,label)=>{if(!ok)throw new Error(label);checks.push(label);};
+  await page.getByText("Layer 3",{exact:true}).click();
+  const initial=await state();
+  assert(initial[2][0][0]===0&&initial[2][0][1]===0,"fixture starts empty");
+  await clickTile("#autotileCanvas",1,0);
+  await clickTile("#mapCanvas",0,0);
+  let painted=await state();
+  assert(painted[2][0][0]===94,"corner brush closes outside and blank edges");
+  assert(painted[2][0][1]===0&&painted[2][1][0]===0,"empty neighbors remain empty");
+  await clickTile("#mapCanvas",1,0);
+  painted=await state();
+  assert(painted[2][0][0]===91&&painted[2][0][1]===93,"adjacent tiles connect only to each other");
+  await clickTile("#autotileCanvas",0,0);
+  await clickTile("#mapCanvas",1,0);
+  const erased=await state();
+  assert(erased[2][0][0]===94&&erased[2][0][1]===0,"erasing neighbor closes exposed border");
+  await icon("arrow-rotate-left").click();
+  assert(JSON.stringify(await state())===JSON.stringify(painted),"undo restores border and erased neighbor");
+  await icon("arrow-rotate-right").click();
+  assert(JSON.stringify(await state())===JSON.stringify(erased),"redo restores closed border");
+  await page.mouse.move(1900,950);
+  await page.screenshot({path:"output/playwright/autotile-borders.png"});
+  return {passed:checks.length,checks};
+}

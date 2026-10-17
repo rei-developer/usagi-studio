@@ -133,6 +133,14 @@ npx --yes @playwright/cli -s=usagi-editor close
 
 [editor-smoke.pw](scripts/editor-smoke.pw)는 실제 마우스·키보드 입력 후 Vue 개발 상태를 읽어 타일 선택, 도형·채우기, 오토타일, 레이어, 줌, 히스토리 복원을 검사합니다. 프로덕션 빌드에서는 해당 개발 상태를 제공하지 않으므로 이 스크립트를 사용하지 않습니다.
 
+오토타일 경계 변경은 같은 개발 서버에서 [autotile-smoke.pw](scripts/autotile-smoke.pw)도 실행하세요. 빈 칸·맵 바깥·대각선 연결, 256개 이웃 조합, 지우기와 실행 취소·다시 실행을 검사합니다.
+
+```sh
+npx --yes @playwright/cli -s=usagi-autotile open http://127.0.0.1:8081/
+npx --yes @playwright/cli -s=usagi-autotile run-code --filename scripts/autotile-smoke.pw
+npx --yes @playwright/cli -s=usagi-autotile close
+```
+
 ### 프로덕션 검사
 
 위의 HTTP 서버로 `dist/`를 제공한 상태에서 실행합니다.

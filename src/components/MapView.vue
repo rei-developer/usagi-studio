@@ -319,7 +319,7 @@ export default {
         if (!this.autotiles[id]) return;
         const index = _id % 48;
         const parts = AUTOTILES[parseInt(index / 8)][index % 8];
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < parts.length; i++) {
           const tile_position = parts[i] - 1;
           context.drawImage(
             this.autotiles[id],
@@ -869,81 +869,22 @@ export default {
         16: 43,
         2: 44,
         8: 45,
-        256: 46,
-        0: 47,
+        0: 46,
         255: 0,
       };
       if (!this.autotiles[_id - 1]) return 0;
-      const checkAutotile = (id) => {
-        return _id === parseInt(id / 48);
-      };
-      let sum = 0;
-      let n = false,
-        e = false,
-        s = false,
-        w = false;
-      if ((y > 0 && checkAutotile(layer[y - 1][x])) || y === 0) {
-        n = true;
-        sum += N;
-      }
-      if ((x > 0 && checkAutotile(layer[y][x - 1])) || x === 0) {
-        w = true;
-        sum += W;
-      }
-      if (
-        (x < this.maps[this.activeMap].width - 1 &&
-          checkAutotile(layer[y][x + 1])) ||
-        x === this.maps[this.activeMap].width - 1
-      ) {
-        e = true;
-        sum += E;
-      }
-      if (
-        (y < this.maps[this.activeMap].height - 1 &&
-          checkAutotile(layer[y + 1][x])) ||
-        y === this.maps[this.activeMap].height - 1
-      ) {
-        s = true;
-        sum += S;
-      }
-      if (
-        n &&
-        w &&
-        ((y > 0 && x > 0 && checkAutotile(layer[y - 1][x - 1])) ||
-          y === 0 ||
-          x === 0)
-      )
-        sum += NW;
-      if (
-        n &&
-        e &&
-        ((y > 0 &&
-          x < this.maps[this.activeMap].width - 1 &&
-          checkAutotile(layer[y - 1][x + 1])) ||
-          y === 0 ||
-          x === this.maps[this.activeMap].width - 1)
-      )
-        sum += NE;
-      if (
-        s &&
-        w &&
-        ((y < this.maps[this.activeMap].height - 1 &&
-          x > 0 &&
-          checkAutotile(layer[y + 1][x - 1])) ||
-          y === this.maps[this.activeMap].height - 1 ||
-          x === 0)
-      )
-        sum += SW;
-      if (
-        s &&
-        e &&
-        ((x < this.maps[this.activeMap].width - 1 &&
-          y < this.maps[this.activeMap].height - 1 &&
-          checkAutotile(layer[y + 1][x + 1])) ||
-          x === this.maps[this.activeMap].width - 1 ||
-          y === this.maps[this.activeMap].height - 1)
-      )
-        sum += SE;
+      // Empty cells and positions outside the map never connect.
+      const connected = (dx, dy) =>
+        _id === Math.floor(layer[y + dy]?.[x + dx] / 48);
+      const n = connected(0, -1);
+      const e = connected(1, 0);
+      const s = connected(0, 1);
+      const w = connected(-1, 0);
+      let sum = (n ? N : 0) + (e ? E : 0) + (s ? S : 0) + (w ? W : 0);
+      if (n && w && connected(-1, -1)) sum += NW;
+      if (n && e && connected(1, -1)) sum += NE;
+      if (s && w && connected(-1, 1)) sum += SW;
+      if (s && e && connected(1, 1)) sum += SE;
       return BITMASK[sum] + 48 * _id;
     },
     captureMap(map = this.activeMap) {

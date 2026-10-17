@@ -109,7 +109,7 @@ export default {
       this.context.clearRect(0, 0, 256, 192);
       for (let i = 0; i < 48; i++) {
         const parts = AUTOTILES[parseInt(i / 8)][i % 8];
-        for (let j = 0; j < 5; j++) {
+        for (let j = 0; j < parts.length; j++) {
           const tile_position = parts[j] - 1;
           this.context.drawImage(
             this.autotiles[this.autotileId],
