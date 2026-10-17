@@ -87,8 +87,63 @@
 <script>
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import { TILESIZE, AUTOTILES, MAP_CANVAS_ID } from "@/utils/tileset";
+import {
+  connectedArea,
+  pattern,
+  ellipseContains,
+} from "@/utils/editAlgorithms";
 import { TOOLS } from "@/utils/tools";
 import UiInputRange from "@/components/common/InputRange";
+
+const BITMASK = {
+  254: 1,
+  251: 2,
+  250: 3,
+  127: 4,
+  126: 5,
+  123: 6,
+  122: 7,
+  223: 8,
+  222: 9,
+  219: 10,
+  218: 11,
+  95: 12,
+  94: 13,
+  91: 14,
+  90: 15,
+  214: 16,
+  210: 17,
+  86: 18,
+  82: 19,
+  248: 20,
+  120: 21,
+  216: 22,
+  88: 23,
+  107: 24,
+  75: 25,
+  106: 26,
+  74: 27,
+  31: 28,
+  30: 29,
+  27: 30,
+  26: 31,
+  66: 32,
+  24: 33,
+  208: 34,
+  80: 35,
+  104: 36,
+  72: 37,
+  11: 38,
+  10: 39,
+  22: 40,
+  18: 41,
+  64: 42,
+  16: 43,
+  2: 44,
+  8: 45,
+  0: 46,
+  255: 0,
+};
 
 export default {
   name: "MapView",
@@ -519,198 +574,50 @@ export default {
       });
       return preview;
     },
+    patternTile(tile, event, x, y) {
+      return {
+        id:
+          tile.id >= 384 || tile.shiftKey
+            ? tile.id
+            : event.shiftKey
+              ? Math.floor(tile.id / 48) * 48
+              : this.getAutotileId(this.layer, Math.floor(tile.id / 48), x, y),
+        x,
+        y,
+      };
+    },
     getSquare(event) {
-      const preview = [];
-      const { tx, ty } = this.getTileLocation(event);
-      const vertex = this.getVertex(this.selectedTiles);
-      const width = vertex[1].x - vertex[0].x + 1;
-      const height = vertex[1].y - vertex[0].y + 1;
-      this.selectedTiles.forEach((tile) => {
-        const tileOffsetX = tile.x - vertex[0].x;
-        const tileOffsetY = tile.y - vertex[0].y;
-        for (let y = Math.min(this.iy, ty); y <= Math.max(this.iy, ty); y++) {
-          for (let x = Math.min(this.ix, tx); x <= Math.max(this.ix, tx); x++) {
-            if (
-              (x - Math.min(this.ix, tx)) % width === tileOffsetX &&
-              (y - Math.min(this.iy, ty)) % height === tileOffsetY
-            ) {
-              preview.push({
-                id:
-                  tile.id >= 384 || tile.shiftKey
-                    ? tile.id
-                    : event.shiftKey
-                      ? parseInt(tile.id / 48) * 48
-                      : this.getAutotileId(
-                          this.layer,
-                          parseInt(tile.id / 48),
-                          x,
-                          y
-                        ),
-                x: x,
-                y: y,
-              });
-            }
-          }
-        }
-      });
-      return preview;
+      return this.getShape(event, false);
     },
     getCircle(event) {
-      const preview = [];
+      return this.getShape(event, true);
+    },
+    getShape(event, ellipse) {
       const { tx, ty } = this.getTileLocation(event);
-      const vertex = this.getVertex(this.selectedTiles);
-      const width = vertex[1].x - vertex[0].x + 1;
-      const height = vertex[1].y - vertex[0].y + 1;
-      const twidth = Math.abs(tx - this.ix) + 1;
-      const theight = Math.abs(ty - this.iy) + 1;
-      const c = Math.sqrt(Math.abs((twidth / 2) ** 2 - (theight / 2) ** 2));
-      const longAxis = theight > twidth ? theight : twidth;
-      const focus = [
-        {
-          x: twidth > theight ? (this.ix + tx) / 2 - c : (this.ix + tx) / 2,
-          y: twidth > theight ? (this.iy + ty) / 2 : (this.iy + ty) / 2 - c,
-        },
-        {
-          x: twidth > theight ? (this.ix + tx) / 2 + c : (this.ix + tx) / 2,
-          y: twidth > theight ? (this.iy + ty) / 2 : (this.iy + ty) / 2 + c,
-        },
-      ];
-      const getDistance = (a, b) => {
-        return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
-      };
-      const isInsideCircle = (a) => {
-        return (
-          Math.round(getDistance(a, focus[0]) + getDistance(a, focus[1])) <
-          longAxis
-        );
-      };
-      this.selectedTiles.forEach((tile) => {
-        const tileOffsetX = tile.x - vertex[0].x;
-        const tileOffsetY = tile.y - vertex[0].y;
-        for (let y = Math.min(this.iy, ty); y <= Math.max(this.iy, ty); y++) {
-          for (let x = Math.min(this.ix, tx); x <= Math.max(this.ix, tx); x++) {
-            if (
-              (x - Math.min(this.ix, tx)) % width === tileOffsetX &&
-              (y - Math.min(this.iy, ty)) % height === tileOffsetY &&
-              isInsideCircle({ x, y })
-            ) {
-              preview.push({
-                id:
-                  tile.id >= 384 || tile.shiftKey
-                    ? tile.id
-                    : event.shiftKey
-                      ? parseInt(tile.id / 48) * 48
-                      : this.getAutotileId(
-                          this.layer,
-                          parseInt(tile.id / 48),
-                          x,
-                          y
-                        ),
-                x: x,
-                y: y,
-              });
-            }
-          }
+      const at = pattern(this.selectedTiles);
+      const left = Math.min(this.ix, tx),
+        top = Math.min(this.iy, ty);
+      const preview = [];
+      for (let y = top; y <= Math.max(this.iy, ty); y++) {
+        for (let x = left; x <= Math.max(this.ix, tx); x++) {
+          if (ellipse && !ellipseContains(x, y, this.ix, this.iy, tx, ty))
+            continue;
+          const tile = at(x - left, y - top);
+          if (tile) preview.push(this.patternTile(tile, event, x, y));
         }
-      });
+      }
       return preview;
     },
     getFill(event, layer) {
-      const preview = [];
       const { tx, ty } = this.getTileLocation(event);
-      const vertex = this.getVertex(this.selectedTiles);
-      const width = vertex[1].x - vertex[0].x + 1;
-      const height = vertex[1].y - vertex[0].y + 1;
-      const id =
-        layer[ty][tx] >= 384 || layer[ty][tx] === 0
-          ? layer[ty][tx]
-          : parseInt(layer[ty][tx] / 48) * 48;
-
-      const dfs = (layer, x, y, _id) => {
-        const contains = (array, object) => {
-          return array.some((item) => {
-            return JSON.stringify(object) === JSON.stringify(item);
-          });
-        };
-        const result = [];
-        const visited = [];
-        const queue = [];
-        queue.push({ id: _id, x, y });
-        while (queue.length !== 0) {
-          const node = queue.shift();
-          if (!contains(visited, node)) {
-            visited.push(node);
-            if (
-              _id ===
-              (node.id >= 384 || node.id === 0
-                ? node.id
-                : parseInt(node.id / 48) * 48)
-            ) {
-              result.push({ id: node.id, x: node.x, y: node.y });
-              if (node.y - 1 >= 0)
-                queue.push({
-                  id: layer[node.y - 1][node.x],
-                  x: node.x,
-                  y: node.y - 1,
-                });
-              if (node.y + 1 <= layer.length - 1)
-                queue.push({
-                  id: layer[node.y + 1][node.x],
-                  x: node.x,
-                  y: node.y + 1,
-                });
-              if (node.x - 1 >= 0)
-                queue.push({
-                  id: layer[node.y][node.x - 1],
-                  x: node.x - 1,
-                  y: node.y,
-                });
-              if (node.x + 1 <= layer[0].length - 1)
-                queue.push({
-                  id: layer[node.y][node.x + 1],
-                  x: node.x + 1,
-                  y: node.y,
-                });
-            }
-          }
-        }
-        return result;
-      };
-
-      const result = dfs(layer, tx, ty, id);
-      this.selectedTiles.forEach((tile) => {
-        const tileOffsetX = tile.x - vertex[0].x;
-        const tileOffsetY = tile.y - vertex[0].y;
-        result.forEach((prev) => {
-          if (
-            (prev.x - tx > 0 ? prev.x - tx : width + ((prev.x - tx) % width)) %
-              width ===
-              tileOffsetX &&
-            (prev.y - ty > 0
-              ? prev.y - ty
-              : height + ((prev.y - ty) % height)) %
-              height ===
-              tileOffsetY
-          ) {
-            preview.push({
-              id:
-                tile.id >= 384 || tile.shiftKey
-                  ? tile.id
-                  : event.shiftKey
-                    ? parseInt(tile.id / 48) * 48
-                    : this.getAutotileId(
-                        this.layer,
-                        parseInt(tile.id / 48),
-                        prev.x,
-                        prev.y
-                      ),
-              x: prev.x,
-              y: prev.y,
-            });
-          }
-        });
-      });
-
+      const at = pattern(this.selectedTiles);
+      const preview = [];
+      for (const index of connectedArea(layer, tx, ty)) {
+        const x = index % layer[0].length,
+          y = Math.floor(index / layer[0].length);
+        const tile = at(x - tx, y - ty);
+        if (tile) preview.push(this.patternTile(tile, event, x, y));
+      }
       return preview;
     },
     getSelect(event) {
@@ -855,55 +762,6 @@ export default {
       const SW = Math.pow(2, 5);
       const S = Math.pow(2, 6);
       const SE = Math.pow(2, 7);
-      const BITMASK = {
-        254: 1,
-        251: 2,
-        250: 3,
-        127: 4,
-        126: 5,
-        123: 6,
-        122: 7,
-        223: 8,
-        222: 9,
-        219: 10,
-        218: 11,
-        95: 12,
-        94: 13,
-        91: 14,
-        90: 15,
-        214: 16,
-        210: 17,
-        86: 18,
-        82: 19,
-        248: 20,
-        120: 21,
-        216: 22,
-        88: 23,
-        107: 24,
-        75: 25,
-        106: 26,
-        74: 27,
-        31: 28,
-        30: 29,
-        27: 30,
-        26: 31,
-        66: 32,
-        24: 33,
-        208: 34,
-        80: 35,
-        104: 36,
-        72: 37,
-        11: 38,
-        10: 39,
-        22: 40,
-        18: 41,
-        64: 42,
-        16: 43,
-        2: 44,
-        8: 45,
-        0: 46,
-        255: 0,
-      };
       if (!this.autotiles[_id - 1]) return 0;
       // Empty cells and positions outside the map never connect.
       const connected = (dx, dy) =>
