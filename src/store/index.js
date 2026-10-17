@@ -1,8 +1,11 @@
+import { markRaw } from "vue";
+import { trimHistory } from "@/utils/editHistory";
 import { createStore } from "vuex";
 
 export default createStore({
   state: {
     data: {},
+    historyNotice: "",
     mapHistory: [],
     mapFuture: [],
     loading: true,
@@ -24,8 +27,14 @@ export default createStore({
   mutations: {
     UPDATE_FIELDS: (state, data) => (state.data = { ...state.data, ...data }),
     INIT_MAP_FUTURE: (state) => (state.mapFuture = []),
-    ADD_MAP_HISTORY: (state, data) => state.mapHistory.push(data),
-    ADD_MAP_FUTURE: (state, data) => state.mapFuture.push(data),
+    ADD_MAP_HISTORY: (state, data) => {
+      state.mapHistory.push(markRaw(data));
+      trimHistory(state);
+    },
+    ADD_MAP_FUTURE: (state, data) => {
+      state.mapFuture.push(markRaw(data));
+      trimHistory(state);
+    },
     REMOVE_MAP_HISTORY: (state) => state.mapHistory.pop(),
     REMOVE_MAP_FUTURE: (state) => state.mapFuture.pop(),
     SET_LOADING: (state, data = false) => (state.loading = data),

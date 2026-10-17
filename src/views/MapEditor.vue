@@ -10,8 +10,12 @@
         @export="exportMap"
       />
     </div>
-    <div v-if="fileMessage" role="status" class="file-status">
-      {{ fileMessage }}
+    <div
+      v-if="fileMessage || $store.state.historyNotice"
+      role="status"
+      class="file-status"
+    >
+      {{ fileMessage || $store.state.historyNotice }}
     </div>
     <div class="row">
       <tileset-view

@@ -85,6 +85,8 @@
 </style>
 
 <script>
+import { markRaw, toRaw } from "vue";
+import { transaction, writeCell, pack } from "@/utils/editHistory";
 import { mapGetters, mapMutations, mapActions } from "vuex";
 import { TILESIZE, AUTOTILES, MAP_CANVAS_ID } from "@/utils/tileset";
 import {
@@ -256,7 +258,7 @@ export default {
     },
     layer() {
       return this.drawable
-        ? this.maps[this.activeMap].data[this.activeLayer - 1]
+        ? toRaw(this.maps[this.activeMap].data[this.activeLayer - 1])
         : null;
     },
     zoomLabel() {
@@ -657,18 +659,47 @@ export default {
       }
       return newSelection;
     },
-    addTiles(event, layer, preview) {
-      const prevLayer = [];
-      preview.forEach((tile) => {
-        prevLayer.push({ id: layer[tile.y][tile.x], x: tile.x, y: tile.y });
-        layer[tile.y][tile.x] = tile.id;
-      });
-      if (!event.shiftKey || (event.shiftKey && this.isCtrlZ(event))) {
-        preview.forEach((tile) => {
-          this.updateAutotile(tile.x, tile.y);
-        });
+    writeTile(x, y, id) {
+      if (!this.beforeEdit) return;
+      if (writeCell(this.beforeEdit, this.layer, x, y, id))
+        this.invalidateTile?.(x, y);
+    },
+    rollbackPreview() {
+      if (!this.beforeEdit) return;
+      for (const [index, change] of this.beforeEdit.changes) {
+        const x = index % this.beforeEdit.width,
+          y = Math.floor(index / this.beforeEdit.width);
+        this.layer[y][x] = change.before;
+        this.invalidateTile?.(x, y);
       }
-      return prevLayer;
+      this.beforeEdit.changes.clear();
+    },
+    addTiles(event, layer, preview) {
+      const affected = new Set();
+      const width = layer[0].length;
+      for (const tile of preview) {
+        this.writeTile(tile.x, tile.y, tile.id);
+        if (!event.shiftKey) {
+          for (let dy = -1; dy <= 1; dy++)
+            for (let dx = -1; dx <= 1; dx++) {
+              const x = tile.x + dx,
+                y = tile.y + dy;
+              if (x >= 0 && x < width && y >= 0 && y < layer.length)
+                affected.add(y * width + x);
+            }
+        }
+      }
+      for (const index of affected) {
+        const x = index % width,
+          y = Math.floor(index / width),
+          id = layer[y][x];
+        if (id >= 48 && id < 384)
+          this.writeTile(
+            x,
+            y,
+            this.getAutotileId(layer, Math.floor(id / 48), x, y)
+          );
+      }
     },
     getSelectedTile(event) {
       // const offset = 384;
@@ -777,34 +808,32 @@ export default {
       if (s && e && connected(1, 1)) sum += SE;
       return BITMASK[sum] + 48 * _id;
     },
-    captureMap(map = this.activeMap) {
-      // shortcut: snapshot whole maps; use tile diffs if large maps exhaust memory.
-      return {
-        map,
-        data: this.maps[map].data.map((layer) =>
-          layer.map((row) => row.slice())
-        ),
-      };
-    },
-    restoreMap(snapshot) {
-      const map = this.maps[snapshot.map];
-      map.data = snapshot.data.map((layer) => layer.map((row) => row.slice()));
+    applyHistory(item, after) {
+      const layer = toRaw(this.maps[item.map].data[item.layer]);
+      for (let i = 0; i < item.cells.length; i += 3) {
+        const x = item.cells[i] % item.width,
+          y = Math.floor(item.cells[i] / item.width);
+        layer[y][x] = item.cells[i + (after ? 2 : 1)];
+        this.invalidateTile?.(x, y);
+      }
     },
     async undo() {
-      const previous = await this.removeMapHistory();
-      if (previous) {
-        this.ADD_MAP_FUTURE(this.captureMap(previous.map));
-        this.restoreMap(previous);
+      if (this.tileAddStart) return null;
+      const item = await this.removeMapHistory();
+      if (item) {
+        this.applyHistory(item, false);
+        this.ADD_MAP_FUTURE(item);
       }
-      return previous;
+      return item;
     },
     async redo() {
-      const next = await this.removeMapFuture();
-      if (next) {
-        this.ADD_MAP_HISTORY(this.captureMap(next.map));
-        this.restoreMap(next);
+      if (this.tileAddStart) return null;
+      const item = await this.removeMapFuture();
+      if (item) {
+        this.applyHistory(item, true);
+        this.ADD_MAP_HISTORY(item);
       }
-      return next;
+      return item;
     },
     getEventHandler(id, event, callback) {
       return this.$el.querySelector(id).addEventListener(event, callback);
@@ -834,7 +863,7 @@ export default {
       let preview = null;
       switch (this.mode) {
         case TOOLS.BRUSH:
-          preview = this.getBrush(event, this.layer, this.preview);
+          preview = this.getBrush(event, this.layer, []);
           break;
         case TOOLS.SQUARE:
           preview = this.getSquare(event);
@@ -867,14 +896,19 @@ export default {
             this.tileSelectStart = this.getSelectedTile(e)[0];
           } else {
             // 좌클릭
-            this.beforeEdit = this.captureMap();
+            this.beforeEdit = markRaw(
+              transaction(
+                this.activeMap,
+                this.activeLayer - 1,
+                this.maps[this.activeMap].width
+              )
+            );
             this.tileAddStart = true;
             const preview = this.getPreview(e);
             this.addTiles(e, this.layer, preview);
             this.preview = preview;
             this.draw();
             // this.updateCanvas(this.context, preview);
-            this.restoreMap(this.beforeEdit);
           }
         } else if (this.mode === TOOLS.SELECT) {
           if (e.button === 2 || e.which === 3) return;
@@ -932,12 +966,12 @@ export default {
               }
             } else {
               if (this.tileAddStart && this.mode !== TOOLS.FILL) {
+                if (this.mode !== TOOLS.BRUSH) this.rollbackPreview();
                 const preview = this.getPreview(e);
                 this.addTiles(e, this.layer, preview);
                 this.preview = preview;
                 this.draw();
                 // this.updateCanvas(this.context, preview);
-                this.restoreMap(this.beforeEdit);
               } else {
                 this.draw();
                 this.previewSelectedTile(e);
@@ -961,13 +995,15 @@ export default {
           this.mode === TOOLS.CIRCLE ||
           this.mode === TOOLS.FILL
         ) {
-          this.addTiles(e, this.layer, this.preview);
           // this.updateCanvas(this.context, this.preview);
           this.preview = [];
           this.draw();
         }
-        this.ADD_MAP_HISTORY(this.beforeEdit);
-        this.INIT_MAP_FUTURE();
+        const item = pack(this.beforeEdit);
+        if (item) {
+          this.INIT_MAP_FUTURE();
+          this.ADD_MAP_HISTORY(item);
+        }
         this.previewSelectedTile(e);
       }
       this.tileAddStart = false;
