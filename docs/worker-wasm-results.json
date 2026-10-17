@@ -1,0 +1,1302 @@
+{
+  "checks": [
+    "png decoded pixels equal baseline",
+    "jpg decoded pixels equal baseline",
+    "webp decoded pixels equal baseline",
+    "PNG pixels equal baseline at scale 0.5",
+    "PNG pixels equal baseline at scale 0.25",
+    "PNG pixels equal baseline at scale 0.125",
+    "4096x4096 scaled PNG decoded pixels equal baseline",
+    "worker cancellation rejects without blob",
+    "export works after cancellation"
+  ],
+  "kernels": {
+    "loadMs": 9.200000002980232,
+    "results": [
+      {
+        "size": 50,
+        "dense": false,
+        "operation": "fill",
+        "modes": {
+          "js": [
+            {
+              "totalMs": 0.5999999940395355,
+              "kernelAndCopyMs": 0.09999999403953552,
+              "applyMs": 0.5
+            },
+            {
+              "totalMs": 0.20000000298023224,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.20000000298023224
+            },
+            {
+              "totalMs": 0.20000000298023224,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0.10000000149011612
+            },
+            {
+              "totalMs": 0.19999999552965164,
+              "kernelAndCopyMs": 0.09999999403953552,
+              "applyMs": 0.10000000149011612
+            },
+            {
+              "totalMs": 0.20000000298023224,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.20000000298023224
+            }
+          ],
+          "wasm": [
+            {
+              "totalMs": 0.3999999985098839,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.3999999985098839,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.20000000298023224,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.20000000298023224,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.19999999552965164,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.19999999552965164,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.20000000298023224,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0.10000000149011612,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.30000000447034836,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0.20000000298023224,
+              "prepareMs": 0,
+              "computeMs": 0.10000000149011612,
+              "copyMs": 0
+            }
+          ]
+        },
+        "jsMedianMs": 0.20000000298023224,
+        "wasmMedianMs": 0.20000000298023224
+      },
+      {
+        "size": 50,
+        "dense": false,
+        "operation": "autotiles",
+        "modes": {
+          "js": [
+            {
+              "totalMs": 0.10000000149011612,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.10000000149011612
+            },
+            {
+              "totalMs": 0.19999999552965164,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.19999999552965164
+            },
+            {
+              "totalMs": 0.10000000149011612,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.10000000149011612
+            },
+            {
+              "totalMs": 0.09999999403953552,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.09999999403953552
+            },
+            {
+              "totalMs": 0.20000000298023224,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0.10000000149011612
+            }
+          ],
+          "wasm": [
+            {
+              "totalMs": 0.10000000149011612,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.10000000149011612,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.10000000149011612,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.10000000149011612,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.10000000149011612,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.10000000149011612,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.20000000298023224,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0.10000000149011612,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0
+            }
+          ]
+        },
+        "jsMedianMs": 0.10000000149011612,
+        "wasmMedianMs": 0.10000000149011612
+      },
+      {
+        "size": 50,
+        "dense": true,
+        "operation": "fill",
+        "modes": {
+          "js": [
+            {
+              "totalMs": 0.10000000149011612,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.10000000149011612
+            },
+            {
+              "totalMs": 0.20000000298023224,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0.10000000149011612
+            },
+            {
+              "totalMs": 0.20000000298023224,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0.10000000149011612
+            },
+            {
+              "totalMs": 0.20000000298023224,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.20000000298023224
+            },
+            {
+              "totalMs": 0.10000000149011612,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0
+            }
+          ],
+          "wasm": [
+            {
+              "totalMs": 0.29999999701976776,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0.19999999552965164,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.19999999552965164,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0.09999999403953552,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.3999999985098839,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0.29999999701976776,
+              "prepareMs": 0,
+              "computeMs": 0.10000000149011612,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.10000000149011612,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.10000000149011612,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.20000000298023224,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.20000000298023224,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0
+            }
+          ]
+        },
+        "jsMedianMs": 0.20000000298023224,
+        "wasmMedianMs": 0.20000000298023224
+      },
+      {
+        "size": 50,
+        "dense": true,
+        "operation": "autotiles",
+        "modes": {
+          "js": [
+            {
+              "totalMs": 0.6000000014901161,
+              "kernelAndCopyMs": 0.30000000447034836,
+              "applyMs": 0.29999999701976776
+            },
+            {
+              "totalMs": 0.3999999985098839,
+              "kernelAndCopyMs": 0.20000000298023224,
+              "applyMs": 0.19999999552965164
+            },
+            {
+              "totalMs": 0.3999999985098839,
+              "kernelAndCopyMs": 0.19999999552965164,
+              "applyMs": 0.20000000298023224
+            },
+            {
+              "totalMs": 0.3999999985098839,
+              "kernelAndCopyMs": 0.19999999552965164,
+              "applyMs": 0.20000000298023224
+            },
+            {
+              "totalMs": 0.30000000447034836,
+              "kernelAndCopyMs": 0.20000000298023224,
+              "applyMs": 0.10000000149011612
+            }
+          ],
+          "wasm": [
+            {
+              "totalMs": 0.20000000298023224,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.20000000298023224,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.10000000149011612,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.10000000149011612,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.20000000298023224,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.20000000298023224,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.19999999552965164,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.19999999552965164,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.10000000149011612,
+              "kernelAndCopyMs": 0,
+              "applyMs": 0.10000000149011612,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0
+            }
+          ]
+        },
+        "jsMedianMs": 0.3999999985098839,
+        "wasmMedianMs": 0.19999999552965164
+      },
+      {
+        "size": 256,
+        "dense": false,
+        "operation": "fill",
+        "modes": {
+          "js": [
+            {
+              "totalMs": 5.5999999940395355,
+              "kernelAndCopyMs": 1.3999999985098839,
+              "applyMs": 4.199999995529652
+            },
+            {
+              "totalMs": 4,
+              "kernelAndCopyMs": 0.8000000044703484,
+              "applyMs": 3.1999999955296516
+            },
+            {
+              "totalMs": 4,
+              "kernelAndCopyMs": 0.4000000059604645,
+              "applyMs": 3.5999999940395355
+            },
+            {
+              "totalMs": 4.299999997019768,
+              "kernelAndCopyMs": 0.5,
+              "applyMs": 3.7999999970197678
+            },
+            {
+              "totalMs": 4.399999998509884,
+              "kernelAndCopyMs": 0.5,
+              "applyMs": 3.899999998509884
+            }
+          ],
+          "wasm": [
+            {
+              "totalMs": 3.399999998509884,
+              "kernelAndCopyMs": 0.5,
+              "applyMs": 2.899999998509884,
+              "prepareMs": 0,
+              "computeMs": 0.3999999985098839,
+              "copyMs": 0.10000000149011612
+            },
+            {
+              "totalMs": 5.600000001490116,
+              "kernelAndCopyMs": 0.3999999985098839,
+              "applyMs": 5.200000002980232,
+              "prepareMs": 0,
+              "computeMs": 0.3999999985098839,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 4.299999997019768,
+              "kernelAndCopyMs": 0.5,
+              "applyMs": 3.7999999970197678,
+              "prepareMs": 0,
+              "computeMs": 0.3999999985098839,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 5.200000002980232,
+              "kernelAndCopyMs": 0.6000000014901161,
+              "applyMs": 4.600000001490116,
+              "prepareMs": 0.20000000298023224,
+              "computeMs": 0.20000000298023224,
+              "copyMs": 0.19999999552965164
+            },
+            {
+              "totalMs": 3.600000001490116,
+              "kernelAndCopyMs": 0.5,
+              "applyMs": 3.100000001490116,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 0.3999999985098839,
+              "copyMs": 0
+            }
+          ]
+        },
+        "jsMedianMs": 4.299999997019768,
+        "wasmMedianMs": 4.299999997019768
+      },
+      {
+        "size": 256,
+        "dense": false,
+        "operation": "autotiles",
+        "modes": {
+          "js": [
+            {
+              "totalMs": 2.5,
+              "kernelAndCopyMs": 0.7000000029802322,
+              "applyMs": 1.7999999970197678
+            },
+            {
+              "totalMs": 1.3000000044703484,
+              "kernelAndCopyMs": 0.6000000014901161,
+              "applyMs": 0.7000000029802322
+            },
+            {
+              "totalMs": 1.2000000029802322,
+              "kernelAndCopyMs": 0.5,
+              "applyMs": 0.7000000029802322
+            },
+            {
+              "totalMs": 1.3999999985098839,
+              "kernelAndCopyMs": 0.5,
+              "applyMs": 0.8999999985098839
+            },
+            {
+              "totalMs": 1.2999999970197678,
+              "kernelAndCopyMs": 0.5999999940395355,
+              "applyMs": 0.7000000029802322
+            }
+          ],
+          "wasm": [
+            {
+              "totalMs": 0.7999999970197678,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0.6999999955296516,
+              "prepareMs": 0,
+              "computeMs": 0.10000000149011612,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.7999999970197678,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0.6999999955296516,
+              "prepareMs": 0,
+              "computeMs": 0.10000000149011612,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.8999999985098839,
+              "kernelAndCopyMs": 0.20000000298023224,
+              "applyMs": 0.6999999955296516,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 0,
+              "copyMs": 0.10000000149011612
+            },
+            {
+              "totalMs": 0.7999999970197678,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0.6999999955296516,
+              "prepareMs": 0,
+              "computeMs": 0.10000000149011612,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 0.8000000044703484,
+              "kernelAndCopyMs": 0.10000000149011612,
+              "applyMs": 0.7000000029802322,
+              "prepareMs": 0,
+              "computeMs": 0,
+              "copyMs": 0.10000000149011612
+            }
+          ]
+        },
+        "jsMedianMs": 1.3000000044703484,
+        "wasmMedianMs": 0.7999999970197678
+      },
+      {
+        "size": 256,
+        "dense": true,
+        "operation": "fill",
+        "modes": {
+          "js": [
+            {
+              "totalMs": 5.399999998509884,
+              "kernelAndCopyMs": 2.600000001490116,
+              "applyMs": 2.7999999970197678
+            },
+            {
+              "totalMs": 3.899999998509884,
+              "kernelAndCopyMs": 1.1000000014901161,
+              "applyMs": 2.7999999970197678
+            },
+            {
+              "totalMs": 3.899999998509884,
+              "kernelAndCopyMs": 1.0999999940395355,
+              "applyMs": 2.8000000044703484
+            },
+            {
+              "totalMs": 4,
+              "kernelAndCopyMs": 1.1000000014901161,
+              "applyMs": 2.899999998509884
+            },
+            {
+              "totalMs": 3.4000000059604645,
+              "kernelAndCopyMs": 0.6000000014901161,
+              "applyMs": 2.8000000044703484
+            }
+          ],
+          "wasm": [
+            {
+              "totalMs": 3.4000000059604645,
+              "kernelAndCopyMs": 0.8000000044703484,
+              "applyMs": 2.600000001490116,
+              "prepareMs": 0,
+              "computeMs": 0.4000000059604645,
+              "copyMs": 0.09999999403953552
+            },
+            {
+              "totalMs": 3.1999999955296516,
+              "kernelAndCopyMs": 0.3999999985098839,
+              "applyMs": 2.7999999970197678,
+              "prepareMs": 0,
+              "computeMs": 0.3999999985098839,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 3.0999999940395355,
+              "kernelAndCopyMs": 0.29999999701976776,
+              "applyMs": 2.7999999970197678,
+              "prepareMs": 0,
+              "computeMs": 0.29999999701976776,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 3.2999999970197678,
+              "kernelAndCopyMs": 0.3999999985098839,
+              "applyMs": 2.899999998509884,
+              "prepareMs": 0,
+              "computeMs": 0.3999999985098839,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 3.2999999970197678,
+              "kernelAndCopyMs": 0.5,
+              "applyMs": 2.7999999970197678,
+              "prepareMs": 0.09999999403953552,
+              "computeMs": 0.4000000059604645,
+              "copyMs": 0
+            }
+          ]
+        },
+        "jsMedianMs": 3.899999998509884,
+        "wasmMedianMs": 3.2999999970197678
+      },
+      {
+        "size": 256,
+        "dense": true,
+        "operation": "autotiles",
+        "modes": {
+          "js": [
+            {
+              "totalMs": 8.200000002980232,
+              "kernelAndCopyMs": 5.399999998509884,
+              "applyMs": 2.8000000044703484
+            },
+            {
+              "totalMs": 7.5,
+              "kernelAndCopyMs": 4.799999997019768,
+              "applyMs": 2.7000000029802322
+            },
+            {
+              "totalMs": 7.699999995529652,
+              "kernelAndCopyMs": 4.899999998509884,
+              "applyMs": 2.7999999970197678
+            },
+            {
+              "totalMs": 7.600000001490116,
+              "kernelAndCopyMs": 4.799999997019768,
+              "applyMs": 2.8000000044703484
+            },
+            {
+              "totalMs": 7.5,
+              "kernelAndCopyMs": 4.700000002980232,
+              "applyMs": 2.7999999970197678
+            }
+          ],
+          "wasm": [
+            {
+              "totalMs": 3.5,
+              "kernelAndCopyMs": 0.6999999955296516,
+              "applyMs": 2.8000000044703484,
+              "prepareMs": 0,
+              "computeMs": 0.6999999955296516,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 3.5,
+              "kernelAndCopyMs": 0.7999999970197678,
+              "applyMs": 2.7000000029802322,
+              "prepareMs": 0,
+              "computeMs": 0.7000000029802322,
+              "copyMs": 0.09999999403953552
+            },
+            {
+              "totalMs": 5.4000000059604645,
+              "kernelAndCopyMs": 0.8000000044703484,
+              "applyMs": 4.600000001490116,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 0.7000000029802322,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 5.200000002980232,
+              "kernelAndCopyMs": 0.7000000029802322,
+              "applyMs": 4.5,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 0.6000000014901161,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 3.4000000059604645,
+              "kernelAndCopyMs": 0.7000000029802322,
+              "applyMs": 2.7000000029802322,
+              "prepareMs": 0,
+              "computeMs": 0.7000000029802322,
+              "copyMs": 0
+            }
+          ]
+        },
+        "jsMedianMs": 7.600000001490116,
+        "wasmMedianMs": 3.5
+      },
+      {
+        "size": 512,
+        "dense": false,
+        "operation": "fill",
+        "modes": {
+          "js": [
+            {
+              "totalMs": 15.300000004470348,
+              "kernelAndCopyMs": 1.8999999985098839,
+              "applyMs": 13.400000005960464
+            },
+            {
+              "totalMs": 19.399999998509884,
+              "kernelAndCopyMs": 2,
+              "applyMs": 17.399999998509884
+            },
+            {
+              "totalMs": 20.19999999552965,
+              "kernelAndCopyMs": 2,
+              "applyMs": 18.19999999552965
+            },
+            {
+              "totalMs": 24.600000001490116,
+              "kernelAndCopyMs": 1.8999999985098839,
+              "applyMs": 22.700000002980232
+            },
+            {
+              "totalMs": 15.600000001490116,
+              "kernelAndCopyMs": 1.9000000059604645,
+              "applyMs": 13.699999995529652
+            }
+          ],
+          "wasm": [
+            {
+              "totalMs": 15.5,
+              "kernelAndCopyMs": 1.8000000044703484,
+              "applyMs": 13.699999995529652,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 1.5,
+              "copyMs": 0.20000000298023224
+            },
+            {
+              "totalMs": 24.30000000447035,
+              "kernelAndCopyMs": 1.7000000029802322,
+              "applyMs": 22.600000001490116,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 1.5,
+              "copyMs": 0.10000000149011612
+            },
+            {
+              "totalMs": 15.299999997019768,
+              "kernelAndCopyMs": 1.7999999970197678,
+              "applyMs": 13.5,
+              "prepareMs": 0.19999999552965164,
+              "computeMs": 1.3999999985098839,
+              "copyMs": 0.20000000298023224
+            },
+            {
+              "totalMs": 15.399999998509884,
+              "kernelAndCopyMs": 1.7999999970197678,
+              "applyMs": 13.600000001490116,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 1.5,
+              "copyMs": 0.19999999552965164
+            },
+            {
+              "totalMs": 15.5,
+              "kernelAndCopyMs": 1.8999999985098839,
+              "applyMs": 13.600000001490116,
+              "prepareMs": 0.20000000298023224,
+              "computeMs": 1.5,
+              "copyMs": 0.19999999552965164
+            }
+          ]
+        },
+        "jsMedianMs": 19.399999998509884,
+        "wasmMedianMs": 15.5
+      },
+      {
+        "size": 512,
+        "dense": false,
+        "operation": "autotiles",
+        "modes": {
+          "js": [
+            {
+              "totalMs": 3.899999998509884,
+              "kernelAndCopyMs": 2.2000000029802322,
+              "applyMs": 1.6999999955296516
+            },
+            {
+              "totalMs": 3.8000000044703484,
+              "kernelAndCopyMs": 2.2000000029802322,
+              "applyMs": 1.6000000014901161
+            },
+            {
+              "totalMs": 3.600000001490116,
+              "kernelAndCopyMs": 2.100000001490116,
+              "applyMs": 1.5
+            },
+            {
+              "totalMs": 3.6999999955296516,
+              "kernelAndCopyMs": 2.1999999955296516,
+              "applyMs": 1.5
+            },
+            {
+              "totalMs": 3.7999999970197678,
+              "kernelAndCopyMs": 2.1999999955296516,
+              "applyMs": 1.6000000014901161
+            }
+          ],
+          "wasm": [
+            {
+              "totalMs": 2.100000001490116,
+              "kernelAndCopyMs": 0.6000000014901161,
+              "applyMs": 1.5,
+              "prepareMs": 0.20000000298023224,
+              "computeMs": 0.20000000298023224,
+              "copyMs": 0.19999999552965164
+            },
+            {
+              "totalMs": 2.100000001490116,
+              "kernelAndCopyMs": 0.6000000014901161,
+              "applyMs": 1.5,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 0.29999999701976776,
+              "copyMs": 0.20000000298023224
+            },
+            {
+              "totalMs": 2.0999999940395355,
+              "kernelAndCopyMs": 0.5999999940395355,
+              "applyMs": 1.5,
+              "prepareMs": 0.19999999552965164,
+              "computeMs": 0.20000000298023224,
+              "copyMs": 0.19999999552965164
+            },
+            {
+              "totalMs": 2.100000001490116,
+              "kernelAndCopyMs": 0.6000000014901161,
+              "applyMs": 1.5,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 0.3999999985098839,
+              "copyMs": 0.10000000149011612
+            },
+            {
+              "totalMs": 2.100000001490116,
+              "kernelAndCopyMs": 0.5,
+              "applyMs": 1.6000000014901161,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 0.29999999701976776,
+              "copyMs": 0.10000000149011612
+            }
+          ]
+        },
+        "jsMedianMs": 3.7999999970197678,
+        "wasmMedianMs": 2.100000001490116
+      },
+      {
+        "size": 512,
+        "dense": true,
+        "operation": "fill",
+        "modes": {
+          "js": [
+            {
+              "totalMs": 16.5,
+              "kernelAndCopyMs": 2.8000000044703484,
+              "applyMs": 13.699999995529652
+            },
+            {
+              "totalMs": 16.600000001490116,
+              "kernelAndCopyMs": 2.7000000029802322,
+              "applyMs": 13.899999998509884
+            },
+            {
+              "totalMs": 16.599999994039536,
+              "kernelAndCopyMs": 2.899999998509884,
+              "applyMs": 13.699999995529652
+            },
+            {
+              "totalMs": 17.099999994039536,
+              "kernelAndCopyMs": 3.0999999940395355,
+              "applyMs": 14
+            },
+            {
+              "totalMs": 17.399999998509884,
+              "kernelAndCopyMs": 2.7999999970197678,
+              "applyMs": 14.600000001490116
+            }
+          ],
+          "wasm": [
+            {
+              "totalMs": 15.399999998509884,
+              "kernelAndCopyMs": 1.8999999985098839,
+              "applyMs": 13.5,
+              "prepareMs": 0.19999999552965164,
+              "computeMs": 1.5,
+              "copyMs": 0.10000000149011612
+            },
+            {
+              "totalMs": 15.800000004470348,
+              "kernelAndCopyMs": 2.2000000029802322,
+              "applyMs": 13.600000001490116,
+              "prepareMs": 0.20000000298023224,
+              "computeMs": 1.7999999970197678,
+              "copyMs": 0.20000000298023224
+            },
+            {
+              "totalMs": 15.199999995529652,
+              "kernelAndCopyMs": 2,
+              "applyMs": 13.199999995529652,
+              "prepareMs": 0.19999999552965164,
+              "computeMs": 1.7000000029802322,
+              "copyMs": 0.10000000149011612
+            },
+            {
+              "totalMs": 19.19999999552965,
+              "kernelAndCopyMs": 1.8999999985098839,
+              "applyMs": 17.299999997019768,
+              "prepareMs": 0.19999999552965164,
+              "computeMs": 1.5,
+              "copyMs": 0.20000000298023224
+            },
+            {
+              "totalMs": 23.700000002980232,
+              "kernelAndCopyMs": 1.8999999985098839,
+              "applyMs": 21.80000000447035,
+              "prepareMs": 0.10000000149011612,
+              "computeMs": 1.6000000014901161,
+              "copyMs": 0.19999999552965164
+            }
+          ]
+        },
+        "jsMedianMs": 16.600000001490116,
+        "wasmMedianMs": 15.800000004470348
+      },
+      {
+        "size": 512,
+        "dense": true,
+        "operation": "autotiles",
+        "modes": {
+          "js": [
+            {
+              "totalMs": 36.70000000298023,
+              "kernelAndCopyMs": 23.30000000447035,
+              "applyMs": 13.399999998509884
+            },
+            {
+              "totalMs": 38.899999998509884,
+              "kernelAndCopyMs": 19,
+              "applyMs": 19.899999998509884
+            },
+            {
+              "totalMs": 32.79999999701977,
+              "kernelAndCopyMs": 19.099999994039536,
+              "applyMs": 13.700000002980232
+            },
+            {
+              "totalMs": 38.899999998509884,
+              "kernelAndCopyMs": 25.30000000447035,
+              "applyMs": 13.599999994039536
+            },
+            {
+              "totalMs": 38.100000001490116,
+              "kernelAndCopyMs": 19,
+              "applyMs": 19.100000001490116
+            }
+          ],
+          "wasm": [
+            {
+              "totalMs": 21.400000005960464,
+              "kernelAndCopyMs": 3,
+              "applyMs": 18.400000005960464,
+              "prepareMs": 0.20000000298023224,
+              "computeMs": 2.600000001490116,
+              "copyMs": 0.19999999552965164
+            },
+            {
+              "totalMs": 22.799999997019768,
+              "kernelAndCopyMs": 2.899999998509884,
+              "applyMs": 19.899999998509884,
+              "prepareMs": 0.19999999552965164,
+              "computeMs": 2.5,
+              "copyMs": 0.20000000298023224
+            },
+            {
+              "totalMs": 24.5,
+              "kernelAndCopyMs": 3.100000001490116,
+              "applyMs": 21.399999998509884,
+              "prepareMs": 0.3999999985098839,
+              "computeMs": 2.5,
+              "copyMs": 0.20000000298023224
+            },
+            {
+              "totalMs": 20.099999994039536,
+              "kernelAndCopyMs": 2.899999998509884,
+              "applyMs": 17.19999999552965,
+              "prepareMs": 0.29999999701976776,
+              "computeMs": 2.600000001490116,
+              "copyMs": 0
+            },
+            {
+              "totalMs": 25.899999998509884,
+              "kernelAndCopyMs": 2.899999998509884,
+              "applyMs": 23,
+              "prepareMs": 0.19999999552965164,
+              "computeMs": 2.5,
+              "copyMs": 0.20000000298023224
+            }
+          ]
+        },
+        "jsMedianMs": 38.100000001490116,
+        "wasmMedianMs": 22.799999997019768
+      }
+    ],
+    "batchSizes": [
+      {
+        "count": 9,
+        "samples": {
+          "js": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "wasm": [
+            0.19999999552965164,
+            0,
+            0,
+            0.10000000149011612,
+            0
+          ]
+        },
+        "jsMedianMs": 0,
+        "wasmMedianMs": 0
+      },
+      {
+        "count": 256,
+        "samples": {
+          "js": [
+            0,
+            0.10000000149011612,
+            0.20000000298023224,
+            0.10000000149011612,
+            0
+          ],
+          "wasm": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "jsMedianMs": 0.10000000149011612,
+        "wasmMedianMs": 0
+      },
+      {
+        "count": 4096,
+        "samples": {
+          "js": [
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "wasm": [
+            0.30000000447034836,
+            0.30000000447034836,
+            0.29999999701976776,
+            0.20000000298023224,
+            0.09999999403953552
+          ]
+        },
+        "jsMedianMs": 0.5,
+        "wasmMedianMs": 0.29999999701976776
+      },
+      {
+        "count": 65536,
+        "samples": {
+          "js": [
+            6.5,
+            7.5,
+            7,
+            6.9000000059604645,
+            6.600000001490116
+          ],
+          "wasm": [
+            3.2000000029802322,
+            3.100000001490116,
+            3.1999999955296516,
+            3,
+            5.100000001490116
+          ]
+        },
+        "jsMedianMs": 6.9000000059604645,
+        "wasmMedianMs": 3.1999999955296516
+      }
+    ]
+  },
+  "exports": {
+    "legacy": [
+      {
+        "totalMs": 320.20000000298023,
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 19.200000002980232,
+        "timerLagMaxMs": 90,
+        "rafGapP95Ms": 10.700000000000728,
+        "rafGapMaxMs": 89.40000000000055,
+        "longTasks": [
+          94
+        ]
+      },
+      {
+        "totalMs": 303.5,
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 17.69999999552965,
+        "timerLagMaxMs": 78.10000000149012,
+        "rafGapP95Ms": 10.800000000000182,
+        "rafGapMaxMs": 75,
+        "longTasks": [
+          80
+        ]
+      },
+      {
+        "totalMs": 298,
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 62.899999998509884,
+        "timerLagMaxMs": 62.899999998509884,
+        "rafGapP95Ms": 10.700000000000728,
+        "rafGapMaxMs": 64.30000000000018,
+        "longTasks": [
+          68
+        ]
+      },
+      {
+        "totalMs": 314.79999999701977,
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 17.5,
+        "timerLagMaxMs": 87.70000000298023,
+        "rafGapP95Ms": 10.699999999999818,
+        "rafGapMaxMs": 85.59999999999945,
+        "longTasks": [
+          90
+        ]
+      },
+      {
+        "totalMs": 307.79999999701977,
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 17.899999998509884,
+        "timerLagMaxMs": 80.90000000596046,
+        "rafGapP95Ms": 10.799999999999272,
+        "rafGapMaxMs": 82.10000000000036,
+        "longTasks": [
+          84
+        ]
+      }
+    ],
+    "worker": [
+      {
+        "totalMs": 308.69999999552965,
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 1.6000000014901161,
+        "timerLagMaxMs": 1.7999999970197678,
+        "rafGapP95Ms": 3.699999999999818,
+        "rafGapMaxMs": 10.699999999999818,
+        "longTasks": []
+      },
+      {
+        "totalMs": 318,
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 1.2000000029802322,
+        "timerLagMaxMs": 1.7000000029802322,
+        "rafGapP95Ms": 3.600000000000364,
+        "rafGapMaxMs": 10.699999999999818,
+        "longTasks": []
+      },
+      {
+        "totalMs": 315.70000000298023,
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 1.1999999955296516,
+        "timerLagMaxMs": 1.6000000014901161,
+        "rafGapP95Ms": 3.699999999999818,
+        "rafGapMaxMs": 10.700000000000728,
+        "longTasks": []
+      },
+      {
+        "totalMs": 316.8999999985099,
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 1,
+        "timerLagMaxMs": 1,
+        "rafGapP95Ms": 3.6999999999989086,
+        "rafGapMaxMs": 10.700000000000728,
+        "longTasks": []
+      },
+      {
+        "totalMs": 313.8999999985099,
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 1.5,
+        "timerLagMaxMs": 1.6999999955296516,
+        "rafGapP95Ms": 3.600000000000364,
+        "rafGapMaxMs": 7.199999999998909,
+        "longTasks": []
+      }
+    ]
+  },
+  "errors": [],
+  "editor": {
+    "checks": [
+      "js fill uses requested autotile group",
+      "js connected interior variant",
+      "js undo restores exact original IDs",
+      "js backend exercised",
+      "js redo restores full transaction",
+      "WASM and fallback produce identical editor map",
+      "wasm fill uses requested autotile group",
+      "wasm connected interior variant",
+      "wasm undo restores exact original IDs",
+      "wasm backend exercised",
+      "wasm redo restores full transaction",
+      "WASM and fallback produce identical editor map",
+      "wasm fill uses requested autotile group",
+      "wasm connected interior variant",
+      "wasm undo restores exact original IDs",
+      "wasm backend exercised",
+      "wasm redo restores full transaction",
+      "WASM and fallback produce identical editor map",
+      "js fill uses requested autotile group",
+      "js connected interior variant",
+      "js undo restores exact original IDs",
+      "js backend exercised",
+      "js redo restores full transaction"
+    ],
+    "results": {
+      "js": [
+        21.700000002980232,
+        19.5,
+        18.100000001490116,
+        19.100000001490116,
+        17,
+        20.00000000745058,
+        19.99999999254942,
+        17.600000001490116,
+        19.899999998509884,
+        18
+      ],
+      "wasm": [
+        18.399999998509884,
+        18.69999999552965,
+        16.799999997019768,
+        17.899999998509884,
+        15.899999998509884,
+        17.399999998509884,
+        17.799999997019768,
+        15.399999998509884,
+        16.600000001490116,
+        16.00000000745058
+      ]
+    }
+  },
+  "previousEditor": {
+    "checks": [
+      "js fill uses requested autotile group",
+      "js connected interior variant",
+      "js undo restores exact original IDs",
+      "js backend exercised",
+      "js redo restores full transaction",
+      "WASM and fallback produce identical editor map",
+      "wasm fill uses requested autotile group",
+      "wasm connected interior variant",
+      "wasm undo restores exact original IDs",
+      "wasm backend exercised",
+      "wasm redo restores full transaction",
+      "WASM and fallback produce identical editor map",
+      "wasm fill uses requested autotile group",
+      "wasm connected interior variant",
+      "wasm undo restores exact original IDs",
+      "wasm backend exercised",
+      "wasm redo restores full transaction",
+      "WASM and fallback produce identical editor map",
+      "js fill uses requested autotile group",
+      "js connected interior variant",
+      "js undo restores exact original IDs",
+      "js backend exercised",
+      "js redo restores full transaction"
+    ],
+    "results": {
+      "js": [
+        23.69999999552965,
+        22.899999998509884,
+        21.200000002980232,
+        20.600000001490116,
+        19.899999998509884,
+        19.69999999552965,
+        22.899999991059303,
+        21.600000001490116,
+        18.799999997019768,
+        20
+      ],
+      "wasm": [
+        23.899999998509884,
+        20.200000002980232,
+        16.799999997019768,
+        17,
+        17.100000001490116,
+        24.80000000447035,
+        22.5,
+        17.99999999254942,
+        16.200000002980232,
+        21.299999997019768
+      ]
+    }
+  },
+  "environment": {
+    "date": "2026-10-17",
+    "platform": "Windows",
+    "cpu": "AMD Ryzen 7 7700",
+    "logicalCpus": 16,
+    "ramGiB": 31,
+    "node": "22.22.2",
+    "rust": "1.94.0",
+    "browser": "Playwright CLI Chromium",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "productionBuild": "d0ae56e0b990c8ec",
+    "experimentalBuild": "439b5e79409566f2",
+    "baselineCommit": "933521af1c7c08bd89ee9a706784b7eb5a4d3e5b"
+  },
+  "regression": {
+    "editor-smoke": {
+      "passed": 36
+    },
+    "autotile-smoke": {
+      "passed": 282
+    },
+    "history-browser-smoke": {
+      "passed": 9
+    },
+    "map-lifecycle-smoke": {
+      "passed": 12
+    },
+    "worker-export-smoke": {
+      "passed": 7
+    },
+    "file-smoke": {
+      "passed": 17
+    },
+    "image-export-smoke": {
+      "passed": 22
+    },
+    "production-smoke": {
+      "passed": 8
+    },
+    "large-map-smoke": {
+      "passed": 15
+    },
+    "map-files-smoke": {
+      "passed": 38
+    }
+  }
+}
