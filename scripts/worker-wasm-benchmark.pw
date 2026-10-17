@@ -1,0 +1,18 @@
+async (page) => {
+  await page.setViewportSize({width:1920,height:1080});await page.reload();
+  await page.locator("#mapCanvas").waitFor();await page.locator(".logo-wrapper").waitFor({state:"hidden"});
+  const errors=[];const onError=e=>errors.push(e.message);page.on("pageerror",onError);
+  try {
+    await page.addScriptTag({url:"/performance-harness.js"});
+    await page.evaluate(()=>window.usagiBenchmark.ready);
+    const checks=await page.evaluate(()=>window.usagiBenchmark.exportChecks());
+    const kernels=await page.evaluate(()=>window.usagiBenchmark.kernelBenchmark());
+    const exports={legacy:[],worker:[]};
+    for(let run=0;run<6;run++)for(const mode of (run%2?["worker","legacy"]:["legacy","worker"])) {
+      const result=await page.evaluate(mode=>window.usagiBenchmark.measureExport(mode),mode);
+      if(run)exports[mode].push(result);
+    }
+    if(errors.length)throw Error(errors.join("; "));
+    return {checks,kernels,exports,errors};
+  } finally {page.off("pageerror",onError);}
+}

@@ -4,7 +4,7 @@ import prettier from "@vue/eslint-config-prettier";
 import globals from "globals";
 
 export default [
-  { ignores: ["dist/**"] },
+  { ignores: ["dist/**", "output/**", "rust/**/target/**"] },
   js.configs.recommended,
   ...vue.configs["flat/essential"],
   {

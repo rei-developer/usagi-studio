@@ -1,0 +1,49 @@
+async (page) => {
+  const checks=[],results={js:[],wasm:[]};
+  const assert=(ok,label)=>{if(!ok)throw Error(label);checks.push(label);};
+  const icon=name=>page.locator(`svg[data-icon="${name}"]`).first();
+  const database=(mode,value)=>page.evaluate(({mode,value})=>new Promise((resolve,reject)=>{
+    const r=indexedDB.open("usagi-studio",1);r.onupgradeneeded=()=>r.result.createObjectStore("projects");r.onsuccess=()=>{const db=r.result,tx=db.transaction("projects",mode==="read"?"readonly":"readwrite"),s=tx.objectStore("projects");const op=mode==="read"?s.get("current"):mode==="clear"?s.delete("current"):s.put(value,"current");tx.oncomplete=()=>{db.close();resolve(op.result??null);};tx.onerror=()=>reject(tx.error);};r.onerror=()=>reject(r.error);
+  }),{mode,value});
+  const readMap=async()=>{const pending=page.waitForEvent("download");await icon("file-export").click();let text="";for await(const chunk of await(await pending).createReadStream())text+=chunk.toString("utf8");return JSON.parse(text);};
+  await page.setViewportSize({width:1920,height:1080});await page.reload();await page.locator("#mapCanvas").waitFor();await page.locator(".logo-wrapper").waitFor({state:"hidden"});
+  const original=await database("read"),base=await readMap();
+  const map={...base,width:256,height:256,data:[Array(65536).fill(94),Array(65536).fill(0),Array(65536).fill(0)]};
+  await page.addInitScript(()=>{
+    const instantiate=WebAssembly.instantiate.bind(WebAssembly);window.wasmBatchCalls=0;window.kernelReady=false;
+    WebAssembly.instantiate=async(...args)=>{
+      if(sessionStorage.getItem("benchmark-wasm")==="js")throw Error("Forced WASM load failure");
+      const result=await instantiate(...args);const exports=result.instance.exports;
+      if(!exports.autotile_batch)return result;
+      window.kernelReady=true;
+      return {...result,instance:{exports:{...exports,autotile_batch(...values){window.wasmBatchCalls++;return exports.autotile_batch(...values);}}}};
+    };
+  });
+  try {
+    let reference;
+    for(const mode of ["js","wasm","wasm","js"]) {
+      await database("write",{version:1,activeMap:"Map001",maps:{Map001:map}});
+      await page.evaluate(mode=>sessionStorage.setItem("benchmark-wasm",mode),mode);await page.reload();await page.locator("#mapCanvas").waitFor();await page.locator(".logo-wrapper").waitFor({state:"hidden"});
+      if(mode==="wasm")await page.waitForFunction(()=>window.kernelReady);
+      await page.evaluate(()=>{
+        window.fillTimings=[];const canvas=document.querySelector("#mapCanvas");
+        for(const type of ["pointerdown","pointerup"]){let start;canvas.addEventListener(type,()=>{start=performance.now();},true);canvas.addEventListener(type,()=>window.fillTimings.push(performance.now()-start));}
+      });
+      const palette=await page.locator("#autotileCanvas").boundingBox();await page.mouse.click(palette.x+80,palette.y+16);await icon("fill-drip").click();
+      const box=await page.locator("#mapCanvas").boundingBox();
+      for(let run=0;run<8;run++){
+        await page.evaluate(()=>{window.fillTimings=[];});await page.mouse.click(box.x+16,box.y+16);
+        const duration=await page.evaluate(()=>window.fillTimings.reduce((a,b)=>a+b,0));if(run>=3)results[mode].push(duration);
+        if(run===0){const filled=await readMap();const data=JSON.stringify(filled.data);if(reference)assert(reference===data,"WASM and fallback produce identical editor map");else reference=data;
+          assert(filled.data[0].every(id=>id>=96&&id<144),`${mode} fill uses requested autotile group`);
+          assert(filled.data[0][257]===96,`${mode} connected interior variant`);
+        }
+        await icon("arrow-rotate-left").click();
+        if(run===0)assert(JSON.stringify((await readMap()).data)===JSON.stringify(map.data),`${mode} undo restores exact original IDs`);
+      }
+      assert(await page.evaluate(mode=>mode==="wasm"?window.wasmBatchCalls>=6:window.wasmBatchCalls===0,mode),`${mode} backend exercised`);
+      await icon("arrow-rotate-right").click();assert(JSON.stringify((await readMap()).data)===reference,`${mode} redo restores full transaction`);
+    }
+    return {checks,results};
+  } finally {await page.evaluate(()=>sessionStorage.removeItem("benchmark-wasm"));await database(original?"write":"clear",original);await page.reload();}
+}
