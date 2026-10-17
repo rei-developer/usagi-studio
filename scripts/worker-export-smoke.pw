@@ -1,0 +1,43 @@
+async (page) => {
+  const checks=[];const assert=(ok,label)=>{if(!ok)throw Error(label);checks.push(label);};
+  const icon=name=>page.locator(`svg[data-icon="${name}"]`).first();
+  const ready=async()=>{await page.locator("#mapCanvas").waitFor();await page.locator(".logo-wrapper").waitFor({state:"hidden"});};
+  await page.setViewportSize({width:1920,height:1080});await page.reload();await ready();
+  await page.evaluate(()=>{
+    const Original=window.Worker;window.workerState={created:0,active:0};
+    window.Worker=class extends Original {
+      constructor(...args){super(...args);window.workerState.created++;window.workerState.active++;}
+      terminate(){if(!this.ended){this.ended=true;window.workerState.active--;}super.terminate();}
+    };
+    const create=URL.createObjectURL.bind(URL);URL.createObjectURL=blob=>{window.lastExportBlob=blob;return create(blob);};
+  });
+  await page.getByRole("button",{name:"새 맵",exact:true}).click();await page.getByLabel("맵 너비").fill("256");await page.getByLabel("맵 높이").fill("256");
+  await page.getByRole("button",{name:"확인",exact:true}).click();await page.getByRole("dialog").waitFor({state:"hidden"});
+  await page.getByLabel("내보내기 형식").selectOption("png");
+  const palette=await page.locator("#tilesetCanvas").boundingBox();await page.mouse.click(palette.x+48*palette.width/256,palette.y+48*palette.width/256);
+  const box=await page.locator("#mapCanvas").boundingBox();
+  const pending=page.waitForEvent("download");await icon("file-export").click();
+  await page.mouse.click(box.x+48,box.y+48);
+  await pending;
+  assert(await page.evaluate(()=>window.workerState.created===1&&window.workerState.active===0),"completed export terminates its worker");
+  const alpha=await page.evaluate(async()=>{const bitmap=await createImageBitmap(window.lastExportBlob);const c=new OffscreenCanvas(1,1),ctx=c.getContext("2d");ctx.drawImage(bitmap,24,24,1,1,0,0,1,1);bitmap.close();return ctx.getImageData(0,0,1,1).data[3];});
+  assert(alpha===0,"export preserves initial snapshot while user draws");
+  await page.getByLabel("내보내기 형식").selectOption("json");
+  const jsonDownload=page.waitForEvent("download");await icon("file-export").click();let text="";for await(const chunk of await(await jsonDownload).createReadStream())text+=chunk.toString("utf8");
+  assert(JSON.parse(text).data[0][257]===393,"editor accepts brush input during image export");
+  await page.getByLabel("내보내기 형식").selectOption("png");
+  await page.evaluate(()=>{const observer=new MutationObserver(()=>{const cancel=[...document.querySelectorAll(".ui-button")].find(el=>el.textContent.trim()==="취소");if(cancel&&window.workerState.active){observer.disconnect();cancel.click();}});observer.observe(document.body,{childList:true,subtree:true,characterData:true});});
+  await icon("file-export").click();await page.getByRole("status").filter({hasText:"취소했습니다"}).waitFor();
+  assert(await page.evaluate(()=>window.workerState.active===0),"cancel terminates worker immediately");
+  await page.evaluate(()=>{window.OffscreenCanvas=undefined;});
+  const fallback=page.waitForEvent("download");await icon("file-export").click();await fallback;
+  assert(await page.evaluate(()=>window.workerState.created===2),"missing OffscreenCanvas uses main-thread fallback");
+  await page.reload();await ready();
+  await page.getByLabel("내보내기 형식").selectOption("png");
+  await page.evaluate(()=>{window.Worker=class {postMessage(){setTimeout(()=>this.onerror?.({preventDefault(){}}),0);}terminate(){window.failedWorkerTerminated=true;}};});
+  await icon("file-export").click();await page.getByRole("status").filter({hasText:"내보내지 못했습니다"}).waitFor();
+  assert(await page.evaluate(()=>window.failedWorkerTerminated===true),"worker failure releases worker and shows error");
+  assert(!(await page.getByRole("button",{name:"새 맵",exact:true}).isDisabled()),"worker error releases structure lock");
+  await page.reload();
+  return {checks};
+}

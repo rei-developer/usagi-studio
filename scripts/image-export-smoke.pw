@@ -72,10 +72,10 @@ async (page) => {
     assert(await download("png")!==png, "unsaved drawing included in PNG");
     await icon("arrow-rotate-left").click();
     assert(await download("png")===png, "undo restores exported pixels");
-    await page.evaluate(()=>{ HTMLCanvasElement.prototype.toBlob=function(callback){callback(null);}; });
+    await page.evaluate(()=>{ window.OffscreenCanvas=undefined; HTMLCanvasElement.prototype.toBlob=function(callback){callback(null);}; });
     await icon("file-export").click();
     await page.getByRole("status").filter({hasText:"내보내지 못했습니다"}).waitFor();
-    assert(true, "encoding failure is visible");
+    assert(true, "fallback encoding failure is visible");
     assert(errors.length===0, `no runtime errors: ${errors.join("; ")}`);
     return {passed:checks.length,checks};
   } finally {
