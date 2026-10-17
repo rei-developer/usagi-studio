@@ -122,11 +122,12 @@
 
 <script>
 import { markRaw, toRaw } from "vue";
+import { autotileId } from "@/utils/autotileId";
 import { canExport, imageSize } from "@/utils/imageExport";
 import { ChunkCache, CHUNK_TILES } from "@/utils/chunkCache";
 import { transaction, writeCell, pack } from "@/utils/editHistory";
 import { mapGetters, mapMutations, mapActions } from "vuex";
-import { TILESIZE, AUTOTILES, MAP_CANVAS_ID } from "@/utils/tileset";
+import { TILESIZE, MAP_CANVAS_ID } from "@/utils/tileset";
 import {
   connectedArea,
   pattern,
@@ -135,61 +136,12 @@ import {
 import { TOOLS } from "@/utils/tools";
 import UiInputRange from "@/components/common/InputRange";
 
-const BITMASK = {
-  254: 1,
-  251: 2,
-  250: 3,
-  127: 4,
-  126: 5,
-  123: 6,
-  122: 7,
-  223: 8,
-  222: 9,
-  219: 10,
-  218: 11,
-  95: 12,
-  94: 13,
-  91: 14,
-  90: 15,
-  214: 16,
-  210: 17,
-  86: 18,
-  82: 19,
-  248: 20,
-  120: 21,
-  216: 22,
-  88: 23,
-  107: 24,
-  75: 25,
-  106: 26,
-  74: 27,
-  31: 28,
-  30: 29,
-  27: 30,
-  26: 31,
-  66: 32,
-  24: 33,
-  208: 34,
-  80: 35,
-  104: 36,
-  72: 37,
-  11: 38,
-  10: 39,
-  22: 40,
-  18: 41,
-  64: 42,
-  16: 43,
-  2: 44,
-  8: 45,
-  0: 46,
-  255: 0,
-};
-
 export default {
   name: "MapView",
   components: { UiInputRange },
   props: {
     tileset: { type: Object, default: null },
+    autotileAtlases: { type: Array, default: () => [] },
     activeMap: {
       type: String,
       default: null,
@@ -229,7 +181,6 @@ export default {
     mouseX: undefined,
     mouseY: undefined,
     previewOnDrawing: false,
-    preview: [],
     beforeEdit: null,
     select: [[], [], []],
     isMove: false,
@@ -266,6 +217,7 @@ export default {
     this.getEventHandler(MAP_CANVAS_ID, "pointerdown", this.pointerDownEvent);
     this.getEventHandler(MAP_CANVAS_ID, "pointermove", this.pointerMoveEvent);
     this.getEventHandler(MAP_CANVAS_ID, "pointerup", this.pointerUpEvent);
+    this.getEventHandler(MAP_CANVAS_ID, "pointercancel", this.cancelStroke);
     this.getEventHandler(MAP_CANVAS_ID, "mouseleave", this.mouseLeaveEvent);
     this.getEventHandler(MAP_CANVAS_ID, "contextmenu", this.contextMenuEvent);
     document.addEventListener("keydown", this.keyDownEvent);
@@ -285,6 +237,7 @@ export default {
       this.pointerMoveEvent
     );
     this.removeEventHandler(MAP_CANVAS_ID, "pointerup", this.pointerUpEvent);
+    this.removeEventHandler(MAP_CANVAS_ID, "pointercancel", this.cancelStroke);
     this.removeEventHandler(MAP_CANVAS_ID, "mouseleave", this.mouseLeaveEvent);
     this.removeEventHandler(
       MAP_CANVAS_ID,
@@ -340,7 +293,6 @@ export default {
     ...mapActions(["removeMapHistory", "removeMapFuture"]),
     init() {
       this.resizeViewport();
-      requestAnimationFrame(() => this.SET_LOADING());
     },
     resizeViewport() {
       if (!this.$refs.viewport) return;
@@ -423,6 +375,7 @@ export default {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, this.viewportWidth, this.viewportHeight);
       ctx.imageSmoothingEnabled = false;
+      const started = performance.now();
       const size = CHUNK_TILES * TILESIZE * this.zoom;
       const map = this.maps[this.activeMap];
       const right = Math.min(this.scrollX + this.viewportWidth, this.width);
@@ -438,8 +391,17 @@ export default {
             cx * size - this.scrollX,
             cy * size - this.scrollY
           );
+          if (performance.now() - started >= 8 && (cx + 1) * size < right) {
+            this.draw();
+            return;
+          }
+        }
+        if (performance.now() - started >= 8 && (cy + 1) * size < bottom) {
+          this.draw();
+          return;
         }
       }
+      if (this.$store.state.loading) this.SET_LOADING();
       ctx.save();
       ctx.translate(-this.scrollX, -this.scrollY);
       if (this.fields.viewTileId || this.activeLayer === 4) {
@@ -534,21 +496,17 @@ export default {
         const id = parseInt(_id / 48) - 1;
         if (!this.autotiles[id]) return;
         const index = _id % 48;
-        const parts = AUTOTILES[parseInt(index / 8)][index % 8];
-        for (let i = 0; i < parts.length; i++) {
-          const tile_position = parts[i] - 1;
-          context.drawImage(
-            this.autotiles[id],
-            (tile_position % 6) * 16,
-            parseInt(tile_position / 6) * 16,
-            16,
-            16,
-            (x * TILESIZE + (i % 2) * 16) * zoom,
-            (y * TILESIZE + parseInt(i / 2) * 16) * zoom,
-            16 * zoom,
-            16 * zoom
-          );
-        }
+        context.drawImage(
+          this.autotileAtlases[id],
+          (index % 8) * TILESIZE,
+          Math.floor(index / 8) * TILESIZE,
+          TILESIZE,
+          TILESIZE,
+          x * TILESIZE * zoom,
+          y * TILESIZE * zoom,
+          TILESIZE * zoom,
+          TILESIZE * zoom
+        );
       }
     },
     async exportImage(format, scale = 1, onProgress = () => {}, signal) {
@@ -664,25 +622,19 @@ export default {
       );
     },
     getVertex(tiles) {
-      const ix = Math.min.apply(
-        null,
-        tiles.map((item) => item.x)
-      );
-      const iy = Math.min.apply(
-        null,
-        tiles.map((item) => item.y)
-      );
-      const lx = Math.max.apply(
-        null,
-        tiles.map((item) => item.x)
-      );
-      const ly = Math.max.apply(
-        null,
-        tiles.map((item) => item.y)
-      );
+      let x = Infinity,
+        y = Infinity,
+        right = -Infinity,
+        bottom = -Infinity;
+      for (const tile of tiles) {
+        x = Math.min(x, tile.x);
+        y = Math.min(y, tile.y);
+        right = Math.max(right, tile.x);
+        bottom = Math.max(bottom, tile.y);
+      }
       return [
-        { x: ix, y: iy },
-        { x: lx, y: ly },
+        { x, y },
+        { x: right, y: bottom },
       ];
     },
     getBrush(event, layer, preview) {
@@ -752,7 +704,7 @@ export default {
     },
     getShape(event, ellipse) {
       const { tx, ty } = this.getTileLocation(event);
-      const at = pattern(this.selectedTiles);
+      const at = pattern(toRaw(this.selectedTiles));
       const left = Math.min(this.ix, tx),
         top = Math.min(this.iy, ty);
       const preview = [];
@@ -768,13 +720,23 @@ export default {
     },
     getFill(event, layer) {
       const { tx, ty } = this.getTileLocation(event);
-      const at = pattern(this.selectedTiles);
+      const at = pattern(toRaw(this.selectedTiles));
       const preview = [];
+      const width = layer[0].length;
+      const available = toRaw(this.autotiles);
       for (const index of connectedArea(layer, tx, ty)) {
-        const x = index % layer[0].length,
-          y = Math.floor(index / layer[0].length);
+        const x = index % width,
+          y = Math.floor(index / width);
         const tile = at(x - tx, y - ty);
-        if (tile) preview.push(this.patternTile(tile, event, x, y));
+        if (!tile) continue;
+        const group = Math.floor(tile.id / 48);
+        const id =
+          tile.id >= 384 || tile.shiftKey
+            ? tile.id
+            : available[group - 1]
+              ? group * 48
+              : 0;
+        preview.push({ id, x, y });
       }
       return preview;
     },
@@ -815,47 +777,54 @@ export default {
       }
       return newSelection;
     },
-    writeTile(x, y, id) {
-      if (!this.beforeEdit) return;
-      if (writeCell(this.beforeEdit, this.layer, x, y, id))
-        this.invalidateTile?.(x, y);
-    },
     rollbackPreview() {
       if (!this.beforeEdit) return;
+      const layer = this.layer,
+        width = this.beforeEdit.width,
+        chunks = new Set();
       for (const [index, change] of this.beforeEdit.changes) {
-        const x = index % this.beforeEdit.width,
-          y = Math.floor(index / this.beforeEdit.width);
-        this.layer[y][x] = change.before;
-        this.invalidateTile?.(x, y);
+        const x = index % width,
+          y = Math.floor(index / width);
+        layer[y][x] = change.before;
+        chunks.add(
+          `${Math.floor(x / CHUNK_TILES)},${Math.floor(y / CHUNK_TILES)}:`
+        );
       }
+      for (const key of this.cache.entries.keys())
+        if (chunks.has(key.split(":")[0] + ":")) this.cache.delete(key);
       this.beforeEdit.changes.clear();
     },
     addTiles(event, layer, preview) {
-      const affected = new Set();
+      const edit = this.beforeEdit;
       const width = layer[0].length;
-      for (const tile of preview) {
-        this.writeTile(tile.x, tile.y, tile.id);
-        if (!event.shiftKey) {
+      const chunks = new Set();
+      const write = (x, y, id) => {
+        if (writeCell(edit, layer, x, y, id))
+          chunks.add(
+            `${Math.floor(x / CHUNK_TILES)},${Math.floor(y / CHUNK_TILES)}:`
+          );
+      };
+      for (const tile of preview) write(tile.x, tile.y, tile.id);
+      if (!event.shiftKey) {
+        const affected = new Set();
+        for (const tile of preview) {
           for (let dy = -1; dy <= 1; dy++)
             for (let dx = -1; dx <= 1; dx++) {
               const x = tile.x + dx,
                 y = tile.y + dy;
-              if (x >= 0 && x < width && y >= 0 && y < layer.length)
-                affected.add(y * width + x);
+              if (x < 0 || x >= width || y < 0 || y >= layer.length) continue;
+              const id = layer[y][x];
+              if (id >= 48 && id < 384) affected.add(y * width + x);
             }
         }
+        for (const index of affected) {
+          const x = index % width,
+            y = Math.floor(index / width);
+          write(x, y, autotileId(layer, Math.floor(layer[y][x] / 48), x, y));
+        }
       }
-      for (const index of affected) {
-        const x = index % width,
-          y = Math.floor(index / width),
-          id = layer[y][x];
-        if (id >= 48 && id < 384)
-          this.writeTile(
-            x,
-            y,
-            this.getAutotileId(layer, Math.floor(id / 48), x, y)
-          );
-      }
+      for (const key of this.cache.entries.keys())
+        if (chunks.has(key.split(":")[0] + ":")) this.cache.delete(key);
     },
     getSelectedTile(event) {
       // const offset = 384;
@@ -907,30 +876,8 @@ export default {
         height * TILESIZE * this.zoom
       );
     },
-    getAutotileId(layer, _id, x, y) {
-      // 주변 타일을 비교하여 오토타일 id를 부여합니다.
-      const NW = Math.pow(2, 0);
-      const N = Math.pow(2, 1);
-      const NE = Math.pow(2, 2);
-      const W = Math.pow(2, 3);
-      const E = Math.pow(2, 4);
-      const SW = Math.pow(2, 5);
-      const S = Math.pow(2, 6);
-      const SE = Math.pow(2, 7);
-      if (!this.autotiles[_id - 1]) return 0;
-      // Empty cells and positions outside the map never connect.
-      const connected = (dx, dy) =>
-        _id === Math.floor(layer[y + dy]?.[x + dx] / 48);
-      const n = connected(0, -1);
-      const e = connected(1, 0);
-      const s = connected(0, 1);
-      const w = connected(-1, 0);
-      let sum = (n ? N : 0) + (e ? E : 0) + (s ? S : 0) + (w ? W : 0);
-      if (n && w && connected(-1, -1)) sum += NW;
-      if (n && e && connected(1, -1)) sum += NE;
-      if (s && w && connected(-1, 1)) sum += SW;
-      if (s && e && connected(1, 1)) sum += SE;
-      return BITMASK[sum] + 48 * _id;
+    getAutotileId(layer, id, x, y) {
+      return this.autotiles[id - 1] ? autotileId(layer, id, x, y) : 0;
     },
     applyHistory(item, after) {
       const layer = toRaw(this.maps[item.map].data[item.layer]);
@@ -1030,9 +977,7 @@ export default {
             this.tileAddStart = true;
             const preview = this.getPreview(e);
             this.addTiles(e, this.layer, preview);
-            this.preview = preview;
             this.draw();
-            // this.updateCanvas(this.context, preview);
           }
         } else if (this.mode === TOOLS.SELECT) {
           if (e.button === 2 || e.which === 3) return;
@@ -1122,9 +1067,7 @@ export default {
                   }
                 } else preview = this.getPreview(e);
                 this.addTiles(e, this.layer, preview);
-                this.preview = preview;
                 this.draw();
-                // this.updateCanvas(this.context, preview);
               } else {
                 this.previewSelectedTile(e);
               }
@@ -1132,12 +1075,24 @@ export default {
           } else if (this.mode === TOOLS.SELECT) {
             if (e.button === 2 || e.which === 3) return;
             if (this.selectStart) {
-              const selection = this.getSelect(e);
-              this.select = selection;
+              this.drawSelect(
+                Math.min(this.selectStart.x, point.tx),
+                Math.min(this.selectStart.y, point.ty),
+                Math.abs(this.selectStart.x - point.tx) + 1,
+                Math.abs(this.selectStart.y - point.ty) + 1
+              );
             }
           }
         }
       }
+    },
+    cancelStroke() {
+      this.rollbackPreview();
+      this.tileAddStart = false;
+      this.beforeEdit = null;
+      this.cursorTile = null;
+      this.overlayRect = null;
+      this.draw();
     },
     pointerUpEvent(e) {
       if (this.drawable && this.tileAddStart) {
@@ -1147,8 +1102,6 @@ export default {
           this.mode === TOOLS.CIRCLE ||
           this.mode === TOOLS.FILL
         ) {
-          // this.updateCanvas(this.context, this.preview);
-          this.preview = [];
           this.draw();
         }
         const item = pack(this.beforeEdit);
@@ -1206,11 +1159,9 @@ export default {
         if (e.shiftKey) {
           await this.redo(e);
           this.draw();
-          // this.updateCanvas(this.context, nextLayer);
         } else {
           await this.undo(e);
           this.draw();
-          // this.updateCanvas(this.context, prevLayer);
         }
       }
     },

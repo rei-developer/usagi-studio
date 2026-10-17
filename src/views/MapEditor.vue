@@ -21,7 +21,7 @@
       role="status"
       class="file-status"
     >
-      {{ fileMessage || $store.state.historyNotice }}
+      {{ fileMessage }} {{ $store.state.historyNotice }}
     </div>
     <div v-if="ready" class="row">
       <tileset-view
@@ -36,6 +36,7 @@
       />
       <map-view
         ref="mapView"
+        :autotileAtlases="autotileAtlases"
         :tileset="tileset"
         :activeMap="activeMap"
         :activeLayer="activeLayer"
@@ -66,6 +67,7 @@
 </style>
 
 <script>
+import { AUTOTILES, TILESIZE } from "@/utils/tileset";
 import { toRaw } from "vue";
 import { readProject, saveProject } from "@/utils/projectStorage";
 import { SAVE_KEY, serializeMap, restoreMaps } from "@/utils/mapFiles";
@@ -92,6 +94,7 @@ export default {
     tileset: null,
     selectedTile: [],
     autotiles: [],
+    autotileAtlases: [],
     activeTool: 0,
     activeLayer: 1,
     backgroundColor: "#333",
@@ -154,6 +157,30 @@ export default {
           )
         ),
       ]);
+      this.autotileAtlases = this.autotiles.map((image) => {
+        if (!image) return null;
+        const canvas = document.createElement("canvas");
+        canvas.width = TILESIZE * 8;
+        canvas.height = TILESIZE * 6;
+        const context = canvas.getContext("2d");
+        AUTOTILES.flat().forEach((parts, index) =>
+          parts.forEach((part, i) => {
+            const source = part - 1;
+            context.drawImage(
+              image,
+              (source % 6) * 16,
+              Math.floor(source / 6) * 16,
+              16,
+              16,
+              (index % 8) * TILESIZE + (i % 2) * 16,
+              Math.floor(index / 8) * TILESIZE + Math.floor(i / 2) * 16,
+              16,
+              16
+            );
+          })
+        );
+        return canvas;
+      });
       this.ready = true;
     } catch {
       this.fileMessage =

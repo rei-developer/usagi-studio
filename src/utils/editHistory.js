@@ -18,14 +18,18 @@ export function writeCell(edit, data, x, y, value) {
 }
 
 export function pack(edit) {
-  const changed = [...edit.changes].filter(
-    ([, value]) => value.before !== value.after
-  );
-  if (!changed.length) return null;
-  const cells = new Uint32Array(changed.length * 3);
-  changed.forEach(([index, value], i) =>
-    cells.set([index, value.before, value.after], i * 3)
-  );
+  let count = 0;
+  for (const value of edit.changes.values())
+    if (value.before !== value.after) count++;
+  if (!count) return null;
+  const cells = new Uint32Array(count * 3);
+  let i = 0;
+  for (const [index, value] of edit.changes) {
+    if (value.before === value.after) continue;
+    cells[i++] = index;
+    cells[i++] = value.before;
+    cells[i++] = value.after;
+  }
   return { map: edit.map, layer: edit.layer, width: edit.width, cells };
 }
 

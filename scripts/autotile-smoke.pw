@@ -36,7 +36,13 @@ async (page) => {
     }
     const draws=[];
     editor.drawTile({drawImage:(...args)=>draws.push(args)},94,1,1);
-    assert(draws.length===4 && draws.every(args=>args.slice(1).every(Number.isFinite)),"render exactly four finite quadrants");
+    assert(draws.length===1 && draws.every(args=>args.slice(1).every(Number.isFinite)),"render exactly one finite cached autotile");
+    const expectedCanvas=document.createElement("canvas"), actualCanvas=document.createElement("canvas");
+    expectedCanvas.width=actualCanvas.width=32;expectedCanvas.height=actualCanvas.height=32;
+    const expected=expectedCanvas.getContext("2d");
+    [13,18,43,48].forEach((part,i)=>expected.drawImage(editor.autotiles[0],(part-1)%6*16,Math.floor((part-1)/6)*16,16,16,i%2*16,Math.floor(i/2)*16,16,16));
+    editor.drawTile(actualCanvas.getContext("2d"),94,0,0,1);
+    assert(expectedCanvas.toDataURL()===actualCanvas.toDataURL(),"cached isolated autotile matches original four-part composition");
     return checks;
   });
   const icon = name=>page.locator(`svg[data-icon="${name}"]`).first();
