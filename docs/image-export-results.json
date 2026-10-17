@@ -1,0 +1,956 @@
+{
+  "environment": {
+    "date": "2026-10-17",
+    "cpu": "AMD Ryzen 7 7700",
+    "ramGiB": 31,
+    "node": "22.22.2",
+    "browser": "Playwright CLI Chromium",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "build": "6ee1f479298b08f1",
+    "baseline": "1870f26",
+    "map": {
+      "width": 256,
+      "height": 256,
+      "layers": 3,
+      "scale": 0.5
+    },
+    "warmups": 1,
+    "runs": 5
+  },
+  "comparison": {
+    "png": {
+      "before": [
+        {
+          "totalMs": 355.29999999701977,
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.7000000029802322,
+          "timerLagMaxMs": 3,
+          "rafGapP95Ms": 7.100000000000136,
+          "rafGapMaxMs": 10.700000000000045,
+          "longTasks": []
+        },
+        {
+          "totalMs": 367,
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.899999998509884,
+          "timerLagMaxMs": 5.399999998509884,
+          "rafGapP95Ms": 7,
+          "rafGapMaxMs": 10.600000000000136,
+          "longTasks": []
+        },
+        {
+          "totalMs": 428.3999999985099,
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.7000000029802322,
+          "timerLagMaxMs": 5.600000001490116,
+          "rafGapP95Ms": 3.700000000000273,
+          "rafGapMaxMs": 14.299999999999727,
+          "longTasks": []
+        },
+        {
+          "totalMs": 386.6000000014901,
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 3.399999998509884,
+          "rafGapP95Ms": 7.099999999999909,
+          "rafGapMaxMs": 10.700000000000273,
+          "longTasks": []
+        },
+        {
+          "totalMs": 428.5,
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 6.299999997019768,
+          "rafGapP95Ms": 7.100000000000364,
+          "rafGapMaxMs": 14.300000000000182,
+          "longTasks": []
+        }
+      ],
+      "after": [
+        {
+          "totalMs": 330.30000000447035,
+          "phases": {
+            "snapshotMs": 0.30000000447034836,
+            "assetsMs": 4.299999997019768,
+            "workerMs": 320.1000000014901,
+            "yieldMs": 0,
+            "drawMs": 142.39999999850988,
+            "tileCacheBytes": 2048,
+            "encodeMs": 169.70000000298023
+          },
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 2.8000000044703484,
+          "rafGapP95Ms": 3.7000000000000455,
+          "rafGapMaxMs": 10.699999999999818,
+          "longTasks": []
+        },
+        {
+          "totalMs": 357.8999999985099,
+          "phases": {
+            "snapshotMs": 0.30000000447034836,
+            "assetsMs": 5,
+            "workerMs": 347,
+            "yieldMs": 0,
+            "drawMs": 162.80000000447035,
+            "tileCacheBytes": 2048,
+            "encodeMs": 175.69999999552965
+          },
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.7000000029802322,
+          "timerLagMaxMs": 4,
+          "rafGapP95Ms": 3.700000000000273,
+          "rafGapMaxMs": 10.700000000000273,
+          "longTasks": []
+        },
+        {
+          "totalMs": 314.80000000447035,
+          "phases": {
+            "snapshotMs": 0.29999999701976776,
+            "assetsMs": 4.600000001490116,
+            "workerMs": 301.80000000447035,
+            "yieldMs": 0,
+            "drawMs": 128.5,
+            "tileCacheBytes": 2048,
+            "encodeMs": 166.5
+          },
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 4.100000001490116,
+          "timerLagMaxMs": 5.5,
+          "rafGapP95Ms": 7.099999999999909,
+          "rafGapMaxMs": 10.699999999999818,
+          "longTasks": []
+        },
+        {
+          "totalMs": 334,
+          "phases": {
+            "snapshotMs": 0.20000000298023224,
+            "assetsMs": 4.799999997019768,
+            "workerMs": 323.3999999985099,
+            "yieldMs": 0,
+            "drawMs": 142.5,
+            "tileCacheBytes": 2048,
+            "encodeMs": 172.89999999850988
+          },
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 3.3000000044703484,
+          "rafGapP95Ms": 7.100000000000364,
+          "rafGapMaxMs": 10.800000000000182,
+          "longTasks": []
+        },
+        {
+          "totalMs": 357.6000000014901,
+          "phases": {
+            "snapshotMs": 0.19999999552965164,
+            "assetsMs": 4.5,
+            "workerMs": 346,
+            "yieldMs": 0,
+            "drawMs": 167,
+            "tileCacheBytes": 2048,
+            "encodeMs": 172.30000000447035
+          },
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.7000000029802322,
+          "timerLagMaxMs": 3.8000000044703484,
+          "rafGapP95Ms": 3.699999999999818,
+          "rafGapMaxMs": 10.599999999999454,
+          "longTasks": []
+        }
+      ]
+    },
+    "jpg": {
+      "before": [
+        {
+          "totalMs": 501.20000000298023,
+          "blobBytes": 9079102,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 3.100000001490116,
+          "rafGapP95Ms": 3.7000000000007276,
+          "rafGapMaxMs": 10.5,
+          "longTasks": []
+        },
+        {
+          "totalMs": 487.69999999552965,
+          "blobBytes": 9079102,
+          "timerLagP95Ms": 2.8000000044703484,
+          "timerLagMaxMs": 4.299999997019768,
+          "rafGapP95Ms": 3.699999999999818,
+          "rafGapMaxMs": 14.400000000000546,
+          "longTasks": []
+        },
+        {
+          "totalMs": 484.20000000298023,
+          "blobBytes": 9079102,
+          "timerLagP95Ms": 2.7000000029802322,
+          "timerLagMaxMs": 2.899999998509884,
+          "rafGapP95Ms": 7,
+          "rafGapMaxMs": 10.799999999999272,
+          "longTasks": []
+        },
+        {
+          "totalMs": 503.5,
+          "blobBytes": 9079102,
+          "timerLagP95Ms": 2.8000000044703484,
+          "timerLagMaxMs": 10.100000001490116,
+          "rafGapP95Ms": 3.7000000000007276,
+          "rafGapMaxMs": 17.899999999999636,
+          "longTasks": []
+        },
+        {
+          "totalMs": 525.6000000014901,
+          "blobBytes": 9079102,
+          "timerLagP95Ms": 2.7000000029802322,
+          "timerLagMaxMs": 6.200000002980232,
+          "rafGapP95Ms": 3.7000000000007276,
+          "rafGapMaxMs": 10.800000000001091,
+          "longTasks": []
+        }
+      ],
+      "after": [
+        {
+          "totalMs": 459.29999999701977,
+          "phases": {
+            "snapshotMs": 0.19999999552965164,
+            "assetsMs": 6.300000004470348,
+            "workerMs": 443.19999999552965,
+            "yieldMs": 0,
+            "drawMs": 178.39999999850988,
+            "tileCacheBytes": 2048,
+            "encodeMs": 256.6000000014901
+          },
+          "blobBytes": 9079102,
+          "timerLagP95Ms": 4.200000002980232,
+          "timerLagMaxMs": 8.399999998509884,
+          "rafGapP95Ms": 7,
+          "rafGapMaxMs": 14.199999999999818,
+          "longTasks": []
+        },
+        {
+          "totalMs": 446.8999999985099,
+          "phases": {
+            "snapshotMs": 0.20000000298023224,
+            "assetsMs": 6.0999999940395355,
+            "workerMs": 430.80000000447035,
+            "yieldMs": 0,
+            "drawMs": 169.20000000298023,
+            "tileCacheBytes": 2048,
+            "encodeMs": 252.89999999850988
+          },
+          "blobBytes": 9079102,
+          "timerLagP95Ms": 2.8000000044703484,
+          "timerLagMaxMs": 8.399999998509884,
+          "rafGapP95Ms": 7.099999999998545,
+          "rafGapMaxMs": 14.200000000000728,
+          "longTasks": []
+        },
+        {
+          "totalMs": 451.20000000298023,
+          "phases": {
+            "snapshotMs": 0.10000000149011612,
+            "assetsMs": 5,
+            "workerMs": 436.5,
+            "yieldMs": 0,
+            "drawMs": 169.20000000298023,
+            "tileCacheBytes": 2048,
+            "encodeMs": 260
+          },
+          "blobBytes": 9079102,
+          "timerLagP95Ms": 2.7000000029802322,
+          "timerLagMaxMs": 7.100000001490116,
+          "rafGapP95Ms": 7.100000000000364,
+          "rafGapMaxMs": 14.300000000001091,
+          "longTasks": []
+        },
+        {
+          "totalMs": 455.40000000596046,
+          "phases": {
+            "snapshotMs": 0.30000000447034836,
+            "assetsMs": 6.299999997019768,
+            "workerMs": 438.30000000447035,
+            "yieldMs": 0,
+            "drawMs": 164.79999999701977,
+            "tileCacheBytes": 2048,
+            "encodeMs": 267
+          },
+          "blobBytes": 9079102,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 9.400000005960464,
+          "rafGapP95Ms": 3.7000000000007276,
+          "rafGapMaxMs": 17.799999999999272,
+          "longTasks": []
+        },
+        {
+          "totalMs": 441.80000000447035,
+          "phases": {
+            "snapshotMs": 0.20000000298023224,
+            "assetsMs": 4.699999995529652,
+            "workerMs": 431.20000000298023,
+            "yieldMs": 0,
+            "drawMs": 162.60000000149012,
+            "tileCacheBytes": 2048,
+            "encodeMs": 260.80000000447035
+          },
+          "blobBytes": 9079102,
+          "timerLagP95Ms": 2.9000000059604645,
+          "timerLagMaxMs": 3.100000001490116,
+          "rafGapP95Ms": 3.7000000000007276,
+          "rafGapMaxMs": 10.600000000000364,
+          "longTasks": []
+        }
+      ]
+    },
+    "webp": {
+      "before": [
+        {
+          "totalMs": 1953.1000000014901,
+          "blobBytes": 5962446,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 6.300000004470348,
+          "rafGapP95Ms": 3.7000000000007276,
+          "rafGapMaxMs": 14.299999999999272,
+          "longTasks": []
+        },
+        {
+          "totalMs": 1902.7999999970198,
+          "blobBytes": 5962446,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 6.399999998509884,
+          "rafGapP95Ms": 3.7000000000007276,
+          "rafGapMaxMs": 10.700000000000728,
+          "longTasks": []
+        },
+        {
+          "totalMs": 1869.3999999985099,
+          "blobBytes": 5962446,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 6.399999998509884,
+          "rafGapP95Ms": 3.7000000000007276,
+          "rafGapMaxMs": 10.600000000002183,
+          "longTasks": []
+        },
+        {
+          "totalMs": 1820.1000000014901,
+          "blobBytes": 5962446,
+          "timerLagP95Ms": 2.7000000029802322,
+          "timerLagMaxMs": 4.799999997019768,
+          "rafGapP95Ms": 3.7000000000007276,
+          "rafGapMaxMs": 10.700000000000728,
+          "longTasks": []
+        },
+        {
+          "totalMs": 1741,
+          "blobBytes": 5962446,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 3.1999999955296516,
+          "rafGapP95Ms": 3.6999999999970896,
+          "rafGapMaxMs": 10.69999999999709,
+          "longTasks": []
+        }
+      ],
+      "after": [
+        {
+          "totalMs": 1905,
+          "phases": {
+            "snapshotMs": 0.29999999701976776,
+            "assetsMs": 4.300000004470348,
+            "workerMs": 1891.8999999985099,
+            "yieldMs": 0,
+            "drawMs": 158.09999999403954,
+            "tileCacheBytes": 2048,
+            "encodeMs": 1726.6000000014901
+          },
+          "blobBytes": 5962446,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 6.200000002980232,
+          "rafGapP95Ms": 3.7000000000007276,
+          "rafGapMaxMs": 10.600000000000364,
+          "longTasks": []
+        },
+        {
+          "totalMs": 1863.6000000014901,
+          "phases": {
+            "snapshotMs": 0.20000000298023224,
+            "assetsMs": 4.299999997019768,
+            "workerMs": 1851.7000000029802,
+            "yieldMs": 0,
+            "drawMs": 159.09999999403954,
+            "tileCacheBytes": 2048,
+            "encodeMs": 1681.7000000029802
+          },
+          "blobBytes": 5962446,
+          "timerLagP95Ms": 2.7000000029802322,
+          "timerLagMaxMs": 4.200000002980232,
+          "rafGapP95Ms": 3.7000000000007276,
+          "rafGapMaxMs": 10.700000000000728,
+          "longTasks": []
+        },
+        {
+          "totalMs": 1808.3000000044703,
+          "phases": {
+            "snapshotMs": 0.29999999701976776,
+            "assetsMs": 4.300000004470348,
+            "workerMs": 1795.3999999985099,
+            "yieldMs": 0,
+            "drawMs": 135.10000000149012,
+            "tileCacheBytes": 2048,
+            "encodeMs": 1652.8999999985099
+          },
+          "blobBytes": 5962446,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 5.299999997019768,
+          "rafGapP95Ms": 3.7000000000007276,
+          "rafGapMaxMs": 10.69999999999709,
+          "longTasks": []
+        },
+        {
+          "totalMs": 1695.8999999985099,
+          "phases": {
+            "snapshotMs": 0.20000000298023224,
+            "assetsMs": 4.200000002980232,
+            "workerMs": 1685.7999999970198,
+            "yieldMs": 0,
+            "drawMs": 132.70000000298023,
+            "tileCacheBytes": 2048,
+            "encodeMs": 1546.5
+          },
+          "blobBytes": 5962446,
+          "timerLagP95Ms": 2.7000000029802322,
+          "timerLagMaxMs": 2.8000000044703484,
+          "rafGapP95Ms": 3.7000000000007276,
+          "rafGapMaxMs": 10.700000000000728,
+          "longTasks": []
+        },
+        {
+          "totalMs": 1696.3000000044703,
+          "phases": {
+            "snapshotMs": 0.30000000447034836,
+            "assetsMs": 4.5,
+            "workerMs": 1685.3999999985099,
+            "yieldMs": 0,
+            "drawMs": 169.19999999552965,
+            "tileCacheBytes": 2048,
+            "encodeMs": 1509.3000000044703
+          },
+          "blobBytes": 5962446,
+          "timerLagP95Ms": 2.8000000044703484,
+          "timerLagMaxMs": 6.4000000059604645,
+          "rafGapP95Ms": 3.7000000000007276,
+          "rafGapMaxMs": 10.700000000000728,
+          "longTasks": []
+        }
+      ]
+    }
+  },
+  "diagnosticBefore": {
+    "png": [
+      {
+        "totalMs": 301,
+        "phases": {
+          "snapshotMs": 0.20000000298023224,
+          "assetsMs": 4.299999997019768,
+          "workerMs": 291.40000000596046,
+          "yieldMs": 31.30000001937151,
+          "drawMs": 145.5,
+          "encodeMs": 140
+        },
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 1.8000000044703484,
+        "timerLagMaxMs": 1.8999999985098839,
+        "rafGapP95Ms": 3.699999999999932,
+        "rafGapMaxMs": 10.800000000000011,
+        "longTasks": []
+      },
+      {
+        "totalMs": 316.5,
+        "phases": {
+          "snapshotMs": 0.20000000298023224,
+          "assetsMs": 4,
+          "workerMs": 307.09999999403954,
+          "yieldMs": 36.400000013411045,
+          "drawMs": 163.29999999701977,
+          "encodeMs": 138.10000000149012
+        },
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 1.7999999970197678,
+        "timerLagMaxMs": 96.09999999403954,
+        "rafGapP95Ms": 3.7000000000000455,
+        "rafGapMaxMs": 103.59999999999991,
+        "longTasks": []
+      },
+      {
+        "totalMs": 315.59999999403954,
+        "phases": {
+          "snapshotMs": 0.10000000149011612,
+          "assetsMs": 4.299999997019768,
+          "workerMs": 305.5,
+          "yieldMs": 34.599999971687794,
+          "drawMs": 156.79999999701977,
+          "encodeMs": 143.10000000149012
+        },
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 1.6000000014901161,
+        "timerLagMaxMs": 2.2999999970197678,
+        "rafGapP95Ms": 3.7000000000000455,
+        "rafGapMaxMs": 10.700000000000045,
+        "longTasks": []
+      },
+      {
+        "totalMs": 312.30000000447035,
+        "phases": {
+          "snapshotMs": 0.10000000149011612,
+          "assetsMs": 4.100000001490116,
+          "workerMs": 302.8999999985099,
+          "yieldMs": 35.099999994039536,
+          "drawMs": 150.59999999403954,
+          "encodeMs": 146.5
+        },
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 1.3999999985098839,
+        "timerLagMaxMs": 1.7999999970197678,
+        "rafGapP95Ms": 3.699999999999818,
+        "rafGapMaxMs": 10.699999999999818,
+        "longTasks": []
+      },
+      {
+        "totalMs": 328.19999999552965,
+        "phases": {
+          "snapshotMs": 0.10000000149011612,
+          "assetsMs": 4.0999999940395355,
+          "workerMs": 318.40000000596046,
+          "yieldMs": 34.29999998211861,
+          "drawMs": 153.09999999403954,
+          "encodeMs": 159.20000000298023
+        },
+        "blobBytes": 2061427,
+        "timerLagP95Ms": 1.1000000014901161,
+        "timerLagMaxMs": 1.8999999985098839,
+        "rafGapP95Ms": 3.700000000000273,
+        "rafGapMaxMs": 7.2000000000000455,
+        "longTasks": []
+      }
+    ],
+    "jpg": [
+      {
+        "totalMs": 349.3999999985099,
+        "phases": {
+          "snapshotMs": 0.19999999552965164,
+          "assetsMs": 4.200000002980232,
+          "workerMs": 339.5,
+          "yieldMs": 32.30000000447035,
+          "drawMs": 154.5,
+          "encodeMs": 177.10000000149012
+        },
+        "blobBytes": 9079102,
+        "timerLagP95Ms": 1,
+        "timerLagMaxMs": 2.1999999955296516,
+        "rafGapP95Ms": 3.699999999999818,
+        "rafGapMaxMs": 7.099999999999909,
+        "longTasks": []
+      },
+      {
+        "totalMs": 354.3999999985099,
+        "phases": {
+          "snapshotMs": 0.19999999552965164,
+          "assetsMs": 4.100000001490116,
+          "workerMs": 344.70000000298023,
+          "yieldMs": 32.89999998360872,
+          "drawMs": 159.39999999850988,
+          "encodeMs": 177.89999999850988
+        },
+        "blobBytes": 9079102,
+        "timerLagP95Ms": 1.3000000044703484,
+        "timerLagMaxMs": 2,
+        "rafGapP95Ms": 3.700000000000273,
+        "rafGapMaxMs": 7.199999999999818,
+        "longTasks": []
+      },
+      {
+        "totalMs": 352.5,
+        "phases": {
+          "snapshotMs": 0.30000000447034836,
+          "assetsMs": 4,
+          "workerMs": 343,
+          "yieldMs": 32.400000005960464,
+          "drawMs": 160.39999999850988,
+          "encodeMs": 176.60000000149012
+        },
+        "blobBytes": 9079102,
+        "timerLagP95Ms": 1,
+        "timerLagMaxMs": 1.7999999970197678,
+        "rafGapP95Ms": 3.699999999999818,
+        "rafGapMaxMs": 10.699999999999818,
+        "longTasks": []
+      },
+      {
+        "totalMs": 328.79999999701977,
+        "phases": {
+          "snapshotMs": 0.19999999552965164,
+          "assetsMs": 4,
+          "workerMs": 319.5,
+          "yieldMs": 28.600000001490116,
+          "drawMs": 145.89999999850988,
+          "encodeMs": 167.60000000149012
+        },
+        "blobBytes": 9079102,
+        "timerLagP95Ms": 1.1000000014901161,
+        "timerLagMaxMs": 1.6000000014901161,
+        "rafGapP95Ms": 3.699999999999818,
+        "rafGapMaxMs": 10.699999999999818,
+        "longTasks": []
+      },
+      {
+        "totalMs": 332.5,
+        "phases": {
+          "snapshotMs": 0.20000000298023224,
+          "assetsMs": 4.399999998509884,
+          "workerMs": 322.70000000298023,
+          "yieldMs": 31.00000000745058,
+          "drawMs": 150.79999999701977,
+          "encodeMs": 165.39999999850988
+        },
+        "blobBytes": 9079102,
+        "timerLagP95Ms": 1.5,
+        "timerLagMaxMs": 2.1999999955296516,
+        "rafGapP95Ms": 3.600000000000364,
+        "rafGapMaxMs": 10.700000000000728,
+        "longTasks": []
+      }
+    ],
+    "webp": [
+      {
+        "totalMs": 1566.8999999985099,
+        "phases": {
+          "snapshotMs": 0.19999999552965164,
+          "assetsMs": 4.100000001490116,
+          "workerMs": 1557.7000000029802,
+          "yieldMs": 32.599999971687794,
+          "drawMs": 149.70000000298023,
+          "encodeMs": 1399.6999999955297
+        },
+        "blobBytes": 5962446,
+        "timerLagP95Ms": 1.1000000014901161,
+        "timerLagMaxMs": 1.8999999985098839,
+        "rafGapP95Ms": 3.699999999999818,
+        "rafGapMaxMs": 7.199999999999818,
+        "longTasks": []
+      },
+      {
+        "totalMs": 1576.1999999955297,
+        "phases": {
+          "snapshotMs": 0.10000000149011612,
+          "assetsMs": 4.200000002980232,
+          "workerMs": 1566.7999999970198,
+          "yieldMs": 31.499999977648258,
+          "drawMs": 145.09999999403954,
+          "encodeMs": 1415.7000000029802
+        },
+        "blobBytes": 5962446,
+        "timerLagP95Ms": 1.1000000014901161,
+        "timerLagMaxMs": 1.8000000044703484,
+        "rafGapP95Ms": 3.6999999999989086,
+        "rafGapMaxMs": 10.799999999999272,
+        "longTasks": []
+      },
+      {
+        "totalMs": 1567.7000000029802,
+        "phases": {
+          "snapshotMs": 0.20000000298023224,
+          "assetsMs": 3.899999998509884,
+          "workerMs": 1558.6000000014901,
+          "yieldMs": 33.700000025331974,
+          "drawMs": 145.79999999701977,
+          "encodeMs": 1406.8999999985099
+        },
+        "blobBytes": 5962446,
+        "timerLagP95Ms": 1.4000000059604645,
+        "timerLagMaxMs": 1.7000000029802322,
+        "rafGapP95Ms": 3.6999999999989086,
+        "rafGapMaxMs": 7.100000000000364,
+        "longTasks": []
+      },
+      {
+        "totalMs": 1741.2999999970198,
+        "phases": {
+          "snapshotMs": 0.20000000298023224,
+          "assetsMs": 4.5,
+          "workerMs": 1731.1999999955297,
+          "yieldMs": 34.599999979138374,
+          "drawMs": 157.70000000298023,
+          "encodeMs": 1563.5
+        },
+        "blobBytes": 5962446,
+        "timerLagP95Ms": 1,
+        "timerLagMaxMs": 2.399999998509884,
+        "rafGapP95Ms": 3.6999999999989086,
+        "rafGapMaxMs": 10.800000000001091,
+        "longTasks": []
+      },
+      {
+        "totalMs": 2050.7000000029802,
+        "phases": {
+          "snapshotMs": 0.20000000298023224,
+          "assetsMs": 4.299999997019768,
+          "workerMs": 2040.8000000044703,
+          "yieldMs": 48.99999999254942,
+          "drawMs": 202.79999999701977,
+          "encodeMs": 1831.3999999985099
+        },
+        "blobBytes": 5962446,
+        "timerLagP95Ms": 1.2000000029802322,
+        "timerLagMaxMs": 2.2000000029802322,
+        "rafGapP95Ms": 3.6999999999989086,
+        "rafGapMaxMs": 10.700000000000728,
+        "longTasks": []
+      }
+    ]
+  },
+  "preliminaryPng": {
+    "png": {
+      "before": [
+        {
+          "totalMs": 395.1000000014901,
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 5,
+          "timerLagMaxMs": 6.399999998509884,
+          "rafGapP95Ms": 7.099999999999909,
+          "rafGapMaxMs": 10.700000000000045,
+          "longTasks": []
+        },
+        {
+          "totalMs": 377.29999999701977,
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.7000000029802322,
+          "timerLagMaxMs": 5.799999997019768,
+          "rafGapP95Ms": 3.7000000000000455,
+          "rafGapMaxMs": 14.299999999999955,
+          "longTasks": []
+        },
+        {
+          "totalMs": 429.29999999701977,
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.7000000029802322,
+          "timerLagMaxMs": 4.799999997019768,
+          "rafGapP95Ms": 3.700000000000273,
+          "rafGapMaxMs": 14.199999999999818,
+          "longTasks": []
+        },
+        {
+          "totalMs": 403.3999999985099,
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 5.5999999940395355,
+          "timerLagMaxMs": 7,
+          "rafGapP95Ms": 7.099999999999909,
+          "rafGapMaxMs": 42.90000000000009,
+          "longTasks": []
+        },
+        {
+          "totalMs": 478.29999999701977,
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 3,
+          "rafGapP95Ms": 3.699999999999818,
+          "rafGapMaxMs": 10.700000000000728,
+          "longTasks": []
+        }
+      ],
+      "after": [
+        {
+          "totalMs": 360.20000000298023,
+          "phases": {
+            "snapshotMs": 0.20000000298023224,
+            "assetsMs": 4.5,
+            "workerMs": 347.3999999985099,
+            "yieldMs": 0,
+            "drawMs": 166,
+            "tileCacheBytes": 2048,
+            "encodeMs": 175.10000000149012
+          },
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.8000000044703484,
+          "timerLagMaxMs": 5.100000001490116,
+          "rafGapP95Ms": 3.7000000000000455,
+          "rafGapMaxMs": 14.200000000000045,
+          "longTasks": []
+        },
+        {
+          "totalMs": 368.29999999701977,
+          "phases": {
+            "snapshotMs": 0.19999999552965164,
+            "assetsMs": 4.5,
+            "workerMs": 358.1000000014901,
+            "yieldMs": 0,
+            "drawMs": 162.39999999850988,
+            "tileCacheBytes": 2048,
+            "encodeMs": 185.10000000149012
+          },
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.7000000029802322,
+          "timerLagMaxMs": 2.899999998509884,
+          "rafGapP95Ms": 3.699999999999818,
+          "rafGapMaxMs": 10.800000000000182,
+          "longTasks": []
+        },
+        {
+          "totalMs": 372.8999999985099,
+          "phases": {
+            "snapshotMs": 0.19999999552965164,
+            "assetsMs": 5.100000001490116,
+            "workerMs": 361.3999999985099,
+            "yieldMs": 0,
+            "drawMs": 170.5,
+            "tileCacheBytes": 2048,
+            "encodeMs": 183.5
+          },
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 3.7999999970197678,
+          "rafGapP95Ms": 3.700000000000273,
+          "rafGapMaxMs": 10.699999999999818,
+          "longTasks": []
+        },
+        {
+          "totalMs": 341.6000000014901,
+          "phases": {
+            "snapshotMs": 0.5,
+            "assetsMs": 4.5,
+            "workerMs": 330.69999999552965,
+            "yieldMs": 0,
+            "drawMs": 135.39999999850988,
+            "tileCacheBytes": 2048,
+            "encodeMs": 186
+          },
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.8000000044703484,
+          "timerLagMaxMs": 3.2999999970197678,
+          "rafGapP95Ms": 3.699999999999818,
+          "rafGapMaxMs": 10.700000000000728,
+          "longTasks": []
+        },
+        {
+          "totalMs": 406.29999999701977,
+          "phases": {
+            "snapshotMs": 0.29999999701976776,
+            "assetsMs": 6.100000001490116,
+            "workerMs": 388.3999999985099,
+            "yieldMs": 0,
+            "drawMs": 168.79999999701977,
+            "tileCacheBytes": 2048,
+            "encodeMs": 213.20000000298023
+          },
+          "blobBytes": 2061427,
+          "timerLagP95Ms": 2.7999999970197678,
+          "timerLagMaxMs": 10.399999998509884,
+          "rafGapP95Ms": 7.099999999999454,
+          "rafGapMaxMs": 17.800000000000182,
+          "longTasks": []
+        }
+      ]
+    }
+  },
+  "regressions": {
+    "worker-pixels": {
+      "passed": 21,
+      "checks": [
+        "png decoded pixels equal baseline",
+        "jpg decoded pixels equal baseline",
+        "webp decoded pixels equal baseline",
+        "PNG pixels equal baseline at scale 0.5",
+        "PNG pixels equal baseline at scale 0.25",
+        "PNG pixels equal baseline at scale 0.125",
+        "4096x4096 scaled PNG decoded pixels equal baseline",
+        "worker cancellation rejects without blob",
+        "export works after cancellation"
+      ],
+      "random": [
+        "random layered pixels and 256-tile cache bound at png 1",
+        "random layered pixels and 256-tile cache bound at png 0.5",
+        "random layered pixels and 256-tile cache bound at png 0.25",
+        "random layered pixels and 256-tile cache bound at png 0.125",
+        "random layered pixels and 256-tile cache bound at jpg 1",
+        "random layered pixels and 256-tile cache bound at jpg 0.5",
+        "random layered pixels and 256-tile cache bound at jpg 0.25",
+        "random layered pixels and 256-tile cache bound at jpg 0.125",
+        "random layered pixels and 256-tile cache bound at webp 1",
+        "random layered pixels and 256-tile cache bound at webp 0.5",
+        "random layered pixels and 256-tile cache bound at webp 0.25",
+        "random layered pixels and 256-tile cache bound at webp 0.125"
+      ]
+    },
+    "worker-export-smoke": {
+      "passed": 7,
+      "checks": [
+        "completed export terminates its worker",
+        "export preserves initial snapshot while user draws",
+        "editor accepts brush input during image export",
+        "cancel terminates worker immediately",
+        "missing OffscreenCanvas uses main-thread fallback",
+        "worker failure releases worker and shows error",
+        "worker error releases structure lock"
+      ]
+    },
+    "image-export-smoke": {
+      "passed": 22,
+      "checks": [
+        "png filename",
+        "PNG signature",
+        "full resolution nonempty PNG",
+        "PNG transparent empty corner",
+        "PNG composites all layers exactly like full map preview",
+        "png filename",
+        "zoom and active layer do not alter exported pixels",
+        "png filename",
+        "preview and editing exports match",
+        "jpg filename",
+        "JPEG signature",
+        "JPEG original resolution",
+        "JPEG fills transparent area with editor background",
+        "webp filename",
+        "WebP signature",
+        "WebP size and transparency",
+        "png filename",
+        "unsaved drawing included in PNG",
+        "png filename",
+        "undo restores exported pixels",
+        "fallback encoding failure is visible",
+        "no runtime errors: "
+      ]
+    },
+    "production-smoke": {
+      "passed": 8,
+      "checks": [
+        "production brush changes canvas",
+        "production undo restores exact canvas pixels",
+        "production redo restores exact canvas pixels",
+        "production cross-layer undo",
+        "production zoom dimensions",
+        "production reset zoom",
+        "production database renders",
+        "no production errors or warnings: "
+      ]
+    },
+    "large-map-smoke": {
+      "passed": 15,
+      "checks": [
+        "256 map uses viewport sized canvas",
+        "256 map defaults to safe 50% image",
+        "unsafe original export disabled",
+        "output dimensions shown",
+        "large fill commits entire region",
+        "fast brush interpolates all crossed cells",
+        "drawing after scroll uses map coordinates",
+        "zoom and scroll coordinate mapping",
+        "large map saved to IndexedDB",
+        "large PNG is directly rendered at 4096 square",
+        "large image export can be cancelled",
+        "256 fill under 500ms",
+        "brush frame p95 under 33ms",
+        "scroll frame p95 under 33ms",
+        "no runtime errors: "
+      ]
+    }
+  }
+}

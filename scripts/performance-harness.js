@@ -22,12 +22,7 @@ async function setup() {
     maps: { sample },
   }).sample;
   const assets = await loadAssets(map);
-  const start = performance.now();
-  const kernel = await createKernel(
-    await (await fetch("/tile-kernel.wasm")).arrayBuffer()
-  );
-  const loadMs = performance.now() - start;
-  return { map, assets, kernel, loadMs };
+  return { map, assets };
 }
 const ready = setup();
 const largeMap = (map, size = 256) => ({
@@ -50,7 +45,12 @@ const largeMap = (map, size = 256) => ({
 });
 
 async function kernelBenchmark() {
-  const { kernel, loadMs } = await ready;
+  await ready;
+  const start = performance.now();
+  const kernel = await createKernel(
+    await (await fetch("/tile-kernel.wasm")).arrayBuffer()
+  );
+  const loadMs = performance.now() - start;
   const results = [];
   for (const size of [50, 256, 512])
     for (const dense of [false, true]) {
@@ -163,7 +163,8 @@ async function exportOnce(
   size = 256,
   signal,
   onProgress = () => {},
-  scale = size === 256 ? 0.5 : 1
+  scale = size === 256 ? 0.5 : 1,
+  onTiming
 ) {
   const { map, assets } = await ready;
   const fixture = largeMap(map, size);
@@ -188,10 +189,11 @@ async function exportOnce(
     signal,
     onProgress,
     mode,
+    onTiming,
   });
 }
 
-async function measureExport(mode) {
+async function measureExport(mode, format = "png") {
   const intervals = [],
     rafGaps = [],
     longTasks = [];
@@ -214,7 +216,18 @@ async function measureExport(mode) {
   );
   observer.observe({ type: "longtask" });
   const start = performance.now();
-  const blob = await exportOnce(mode);
+  let phases;
+  const blob = await exportOnce(
+    mode,
+    format,
+    256,
+    undefined,
+    undefined,
+    undefined,
+    (timing) => {
+      phases = timing;
+    }
+  );
   const totalMs = performance.now() - start;
   clearInterval(timer);
   cancelAnimationFrame(frame);
@@ -223,6 +236,7 @@ async function measureExport(mode) {
   observer.disconnect();
   return {
     totalMs,
+    phases,
     blobBytes: blob.size,
     timerLagP95Ms: percentile(intervals, 0.95),
     timerLagMaxMs: Math.max(0, ...intervals),
@@ -286,7 +300,69 @@ async function exportChecks() {
   checks.push("export works after cancellation");
   return checks;
 }
+
+async function workerParity() {
+  const checks = [];
+  const { map, assets } = await ready;
+  let seed = 17;
+  const fixture = {
+    ...map,
+    width: 41,
+    height: 29,
+    data: Array.from({ length: 3 }, () =>
+      Array.from({ length: 29 }, () =>
+        Array.from({ length: 41 }, () => {
+          seed = (seed * 1664525 + 1013904223) >>> 0;
+          return seed % 4 === 0
+            ? 0
+            : 384 + (seed % ((assets.tileset.height / 32) * 8));
+        })
+      )
+    ),
+  };
+  for (const format of ["png", "jpg", "webp"])
+    for (const scale of [1, 0.5, 0.25, 0.125]) {
+      const original = await pixels(
+        await window.usagiBefore.exportFixture(fixture, {
+          format,
+          scale,
+          background: "#333",
+        })
+      );
+      let timing;
+      const actual = await pixels(
+        await exportMapImage(fixture, assets, {
+          format,
+          scale,
+          background: "#333",
+          onTiming: (value) => {
+            timing = value;
+          },
+        })
+      );
+      if (
+        original.length !== actual.length ||
+        original.some((v, i) => v !== actual[i])
+      )
+        throw Error(
+          "Random layered tile pixels differ at " + format + " " + scale
+        );
+      if (timing.tileCacheBytes !== 256 * (32 * scale) ** 2 * 4)
+        throw Error("Tile cache bound was not exercised");
+      checks.push(
+        "random layered pixels and 256-tile cache bound at " +
+          format +
+          " " +
+          scale
+      );
+    }
+
+  return checks;
+}
 window.usagiBenchmark = {
+  workerParity,
+  exportFixture: async (fixture, options) =>
+    exportMapImage(fixture, (await ready).assets, options),
   kernelBenchmark,
   measureExport,
   exportChecks,

@@ -1,0 +1,7 @@
+async (page) => {
+ await page.setViewportSize({width:1920,height:1080}); await page.reload(); await page.locator('#mapCanvas').waitFor(); await page.locator('.logo-wrapper').waitFor({state:'hidden'});
+ await page.addScriptTag({url:'/performance-before.js'}); await page.evaluate(async()=>{await window.usagiBenchmark.ready;window.usagiBefore=window.usagiBenchmark;});
+ await page.addScriptTag({url:'/performance-harness.js'}); await page.evaluate(()=>window.usagiBenchmark.ready);
+ const results={};for(const format of ['png','jpg','webp']){results[format]={before:[],after:[]};for(let i=0;i<6;i++)for(const version of i%2?['after','before']:['before','after']){const result=await page.evaluate(({version,format})=>(version==='before'?window.usagiBefore:window.usagiBenchmark).measureExport('worker',format),{version,format});if(i)results[format][version].push(result);}}
+ return results;
+}

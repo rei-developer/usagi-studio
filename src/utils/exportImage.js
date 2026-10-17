@@ -15,8 +15,17 @@ export function supportsWorkerExport() {
 export async function exportMapImage(
   map,
   assets,
-  { format, scale, background, onProgress = () => {}, signal, mode = "auto" }
+  {
+    format,
+    scale,
+    background,
+    onProgress = () => {},
+    signal,
+    mode = "auto",
+    onTiming,
+  }
 ) {
+  const started = performance.now();
   const check = () => {
     if (signal?.aborted) throw new DOMException("취소", "AbortError");
   };
@@ -35,6 +44,7 @@ export async function exportMapImage(
       return flat;
     }),
   };
+  const copied = performance.now();
   if (mode === "main" || !supportsWorkerExport())
     return renderImage(
       document.createElement("canvas"),
@@ -86,6 +96,7 @@ export async function exportMapImage(
       }
       check();
     }
+    const prepared = performance.now();
     worker = new Worker(
       new URL("../workers/imageExport.worker.js", import.meta.url)
     );
@@ -110,8 +121,15 @@ export async function exportMapImage(
       worker.onmessage = ({ data }) => {
         if (settled) return;
         if (data.error) finish(new Error(data.error));
-        else if (data.blob) finish(null, data.blob);
-        else onProgress(data.progress);
+        else if (data.blob) {
+          onTiming?.({
+            snapshotMs: copied - started,
+            assetsMs: prepared - copied,
+            workerMs: performance.now() - prepared,
+            ...data.timing,
+          });
+          finish(null, data.blob);
+        } else onProgress(data.progress);
       };
       try {
         worker.postMessage(

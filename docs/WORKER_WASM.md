@@ -2,6 +2,8 @@
 
 2026-10-17. **이미지 Worker는 적용하고, Rust는 실험 빌드로 보관한다.** 일반 `yarn build`는 Rust 설치나 WASM 파일을 요구하지 않는다. 별도 백엔드는 필요 없으며 기존 정적 HTTP 호스팅을 사용한다. 원본 측정값은 [worker-wasm-results.json](worker-wasm-results.json)에 있다.
 
+이 문서는 최초 Worker 도입 결과다. 타일 캐시와 불필요한 대기 제거를 적용한 최신 비교는 [이미지 출력 추가 최적화](IMAGE_EXPORT_PERFORMANCE.md)를 참고한다.
+
 ## 적용 범위
 
 - [exportImage.js](../src/utils/exportImage.js)가 출력 시작 시 세 레이어를 독립적인 `Uint32Array`로 복사한다. 버퍼와 `ImageBitmap`을 Worker로 이전하고 [imageExport.worker.js](../src/workers/imageExport.worker.js)가 출력 크기의 OffscreenCanvas에 합성·인코딩한다.
