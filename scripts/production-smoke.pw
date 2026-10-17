@@ -1,0 +1,54 @@
+async (page) => {
+  const checks = [];
+  const errors = [];
+  const onError = error => errors.push(error.message);
+  const onConsole = message => {
+    if (["warning", "error"].includes(message.type())) errors.push(message.text());
+  };
+  page.on("pageerror", onError);
+  page.on("console", onConsole);
+  const assert = (condition, message) => {
+    if (!condition) throw new Error(message);
+    checks.push(message);
+  };
+  const icon = name => page.locator(`svg[data-icon="${name}"]`).first();
+  const canvas = page.locator("#mapCanvas");
+  const pixels = async () => {
+    await page.mouse.move(1900, 950);
+    return canvas.evaluate(el => el.toDataURL());
+  };
+  try {
+    await page.setViewportSize({width: 1920, height: 1000});
+    await page.reload();
+    await canvas.waitFor();
+    await page.locator(".logo-wrapper").waitFor({state: "hidden"});
+    const palette = await page.locator("#tilesetCanvas").boundingBox();
+    await page.mouse.click(palette.x + palette.width * 1.5 / 8, palette.y + 48 * palette.width / 256);
+    const before = await pixels();
+    const map = await canvas.boundingBox();
+    await page.mouse.click(map.x + 176, map.y + 176);
+    const painted = await pixels();
+    assert(painted !== before, "production brush changes canvas");
+    await icon("arrow-rotate-left").click();
+    assert(await pixels() === before, "production undo restores exact canvas pixels");
+    await icon("arrow-rotate-right").click();
+    assert(await pixels() === painted, "production redo restores exact canvas pixels");
+    await page.getByText("Layer 2", {exact: true}).click();
+    await icon("arrow-rotate-left").click();
+    await page.getByText("Layer 1", {exact: true}).click();
+    assert(await pixels() === before, "production cross-layer undo");
+    await page.getByRole("slider").fill("0.5");
+    assert(await canvas.evaluate(el => el.width) === 800, "production zoom dimensions");
+    await icon("bullseye").click();
+    assert(await canvas.evaluate(el => el.width) === 1600, "production reset zoom");
+    await page.getByText("Database", {exact: true}).click();
+    await page.getByText("타일셋", {exact: true}).first().waitFor();
+    assert(await page.getByRole("listbox").count() > 0, "production database renders");
+    await page.screenshot({path: "output/playwright/production-smoke.png"});
+    assert(errors.length === 0, `no production errors or warnings: ${errors.join("; ")}`);
+    return {passed: checks.length, checks};
+  } finally {
+    page.off("pageerror", onError);
+    page.off("console", onConsole);
+  }
+}

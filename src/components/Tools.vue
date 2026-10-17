@@ -72,7 +72,7 @@ import UiButton from "@/components/common/Button";
 import UiButtonGroup from "@/components/common/ButtonGroup";
 
 export default {
-  name: "Tools",
+  name: "EditorTools",
   components: {
     DatabasePopup,
     InfoPopup,
@@ -243,7 +243,7 @@ export default {
         },
         {
           description: "선택하기",
-          icon: "vector-square",
+          icon: "vector-polygon",
           active: this.ACTIVE_TOOL === TOOLS.SELECT,
           disabled: this.isNotPossibleEditMap,
           click: () => this.setActiveTool(4),

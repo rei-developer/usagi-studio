@@ -85,11 +85,12 @@
 </style>
 
 <script>
+import "@/icons";
 import MapEditor from "@/views/MapEditor";
 import { mapGetters } from "vuex";
 
 export default {
-  name: "Index",
+  name: "StudioIndex",
   components: { MapEditor },
   computed: {
     ...mapGetters(["loading"]),

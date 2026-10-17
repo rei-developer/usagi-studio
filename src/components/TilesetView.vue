@@ -419,9 +419,20 @@ export default {
       }
     },
     getTileLocation(event) {
-      const { x, y } = event.target.getBoundingClientRect();
-      const tx = Math.floor(Math.max(event.clientX - x, 0) / TILESIZE);
-      const ty = Math.floor(Math.max(event.clientY - y, 0) / TILESIZE);
+      const canvas = event.target;
+      const { x, y, width, height } = canvas.getBoundingClientRect();
+      const tx = Math.min(
+        Math.ceil(canvas.width / TILESIZE) - 1,
+        Math.floor(
+          (Math.max(event.clientX - x, 0) * canvas.width) / width / TILESIZE
+        )
+      );
+      const ty = Math.min(
+        Math.ceil(canvas.height / TILESIZE) - 1,
+        Math.floor(
+          (Math.max(event.clientY - y, 0) * canvas.height) / height / TILESIZE
+        )
+      );
       return { tx, ty };
     },
     drawSelectedTile(x, y, width, height) {

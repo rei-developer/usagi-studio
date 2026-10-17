@@ -129,21 +129,17 @@ export default {
   methods: {
     onInput(event) {
       let value = event.target.value;
-      try {
-        if (this.type === "number") {
-          if (this.min && Number(value) < this.min) {
-            value = this.min.toString();
-            event.target.value = this.min;
-          }
-          if (this.max && Number(value) > this.max) {
-            value = this.max.toString();
-            event.target.value = this.max;
-          }
+      if (this.type === "number") {
+        if (this.min && Number(value) < this.min) {
+          value = this.min.toString();
+          event.target.value = this.min;
         }
-        this.$emit("onInput", value);
-      } catch (error) {
-        throw new Error(error);
+        if (this.max && Number(value) > this.max) {
+          value = this.max.toString();
+          event.target.value = this.max;
+        }
       }
+      this.$emit("onInput", value);
     },
     focus() {
       this.$refs.input.focus();

@@ -14,7 +14,7 @@
         </ui-button-group>
       </div>
       <div class="container">
-        <div v-is="component" />
+        <component :is="component" />
       </div>
     </div>
   </ui-dialog>

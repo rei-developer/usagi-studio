@@ -131,7 +131,7 @@ export default {
     mouseY: undefined,
     previewOnDrawing: false,
     preview: [],
-    prevLayer: [],
+    beforeEdit: null,
     select: [[], [], []],
     isMove: false,
   }),
@@ -454,14 +454,14 @@ export default {
           tileOffsetX - repeatX < 0
             ? width + tileOffsetX - repeatX
             : tileOffsetX - repeatX >= width
-            ? Math.abs(width - tileOffsetX + repeatX)
-            : tileOffsetX - repeatX;
+              ? Math.abs(width - tileOffsetX + repeatX)
+              : tileOffsetX - repeatX;
         const dy =
           tileOffsetY - repeatY < 0
             ? height + tileOffsetY - repeatY
             : tileOffsetY - repeatY >= height
-            ? Math.abs(height - tileOffsetY + repeatY)
-            : tileOffsetY - repeatY;
+              ? Math.abs(height - tileOffsetY + repeatY)
+              : tileOffsetY - repeatY;
         if (
           tx + dx >= 0 &&
           ty + dy >= 0 &&
@@ -473,13 +473,13 @@ export default {
               tile.id >= 384 || tile.shiftKey
                 ? tile.id
                 : event.shiftKey
-                ? parseInt(tile.id / 48) * 48
-                : this.getAutotileId(
-                    this.layer,
-                    parseInt(tile.id / 48),
-                    tx + dx,
-                    ty + dy
-                  ),
+                  ? parseInt(tile.id / 48) * 48
+                  : this.getAutotileId(
+                      this.layer,
+                      parseInt(tile.id / 48),
+                      tx + dx,
+                      ty + dy
+                    ),
             x: tx + dx,
             y: ty + dy,
           });
@@ -507,13 +507,13 @@ export default {
                   tile.id >= 384 || tile.shiftKey
                     ? tile.id
                     : event.shiftKey
-                    ? parseInt(tile.id / 48) * 48
-                    : this.getAutotileId(
-                        this.layer,
-                        parseInt(tile.id / 48),
-                        x,
-                        y
-                      ),
+                      ? parseInt(tile.id / 48) * 48
+                      : this.getAutotileId(
+                          this.layer,
+                          parseInt(tile.id / 48),
+                          x,
+                          y
+                        ),
                 x: x,
                 y: y,
               });
@@ -567,13 +567,13 @@ export default {
                   tile.id >= 384 || tile.shiftKey
                     ? tile.id
                     : event.shiftKey
-                    ? parseInt(tile.id / 48) * 48
-                    : this.getAutotileId(
-                        this.layer,
-                        parseInt(tile.id / 48),
-                        x,
-                        y
-                      ),
+                      ? parseInt(tile.id / 48) * 48
+                      : this.getAutotileId(
+                          this.layer,
+                          parseInt(tile.id / 48),
+                          x,
+                          y
+                        ),
                 x: x,
                 y: y,
               });
@@ -665,13 +665,13 @@ export default {
                 tile.id >= 384 || tile.shiftKey
                   ? tile.id
                   : event.shiftKey
-                  ? parseInt(tile.id / 48) * 48
-                  : this.getAutotileId(
-                      this.layer,
-                      parseInt(tile.id / 48),
-                      prev.x,
-                      prev.y
-                    ),
+                    ? parseInt(tile.id / 48) * 48
+                    : this.getAutotileId(
+                        this.layer,
+                        parseInt(tile.id / 48),
+                        prev.x,
+                        prev.y
+                      ),
               x: prev.x,
               y: prev.y,
             });
@@ -717,13 +717,6 @@ export default {
         });
       }
       return newSelection;
-    },
-    getPrevLayer(layer, preview) {
-      const prevLayer = [];
-      preview.forEach((tile) => {
-        prevLayer.push({ id: layer[tile.y][tile.x], x: tile.x, y: tile.y });
-      });
-      return prevLayer;
     },
     addTiles(event, layer, preview) {
       const prevLayer = [];
@@ -953,21 +946,34 @@ export default {
         sum += SE;
       return BITMASK[sum] + 48 * _id;
     },
-    async undo(e) {
-      const prevLayer = await this.removeMapHistory();
-      if (prevLayer) {
-        const nextLayer = this.addTiles(e, this.layer, prevLayer);
-        this.ADD_MAP_FUTURE(nextLayer);
-      }
-      return prevLayer;
+    captureMap(map = this.activeMap) {
+      // shortcut: snapshot whole maps; use tile diffs if large maps exhaust memory.
+      return {
+        map,
+        data: this.maps[map].data.map((layer) =>
+          layer.map((row) => row.slice())
+        ),
+      };
     },
-    async redo(e) {
-      const nextLayer = await this.removeMapFuture();
-      if (nextLayer) {
-        const prevLayer = this.addTiles(e, this.layer, nextLayer);
-        this.ADD_MAP_HISTORY(prevLayer);
+    restoreMap(snapshot) {
+      const map = this.maps[snapshot.map];
+      map.data = snapshot.data.map((layer) => layer.map((row) => row.slice()));
+    },
+    async undo() {
+      const previous = await this.removeMapHistory();
+      if (previous) {
+        this.ADD_MAP_FUTURE(this.captureMap(previous.map));
+        this.restoreMap(previous);
       }
-      return nextLayer;
+      return previous;
+    },
+    async redo() {
+      const next = await this.removeMapFuture();
+      if (next) {
+        this.ADD_MAP_HISTORY(this.captureMap(next.map));
+        this.restoreMap(next);
+      }
+      return next;
     },
     getEventHandler(id, event, callback) {
       return this.$el.querySelector(id).addEventListener(event, callback);
@@ -1030,14 +1036,14 @@ export default {
             this.tileSelectStart = this.getSelectedTile(e)[0];
           } else {
             // 좌클릭
+            this.beforeEdit = this.captureMap();
             this.tileAddStart = true;
             const preview = this.getPreview(e);
-            this.prevLayer = this.getPrevLayer(this.layer, preview);
             this.addTiles(e, this.layer, preview);
             this.preview = preview;
             this.draw();
             // this.updateCanvas(this.context, preview);
-            this.addTiles(e, this.layer, this.prevLayer);
+            this.restoreMap(this.beforeEdit);
           }
         } else if (this.mode === TOOLS.SELECT) {
           if (e.button === 2 || e.which === 3) return;
@@ -1096,13 +1102,11 @@ export default {
             } else {
               if (this.tileAddStart && this.mode !== TOOLS.FILL) {
                 const preview = this.getPreview(e);
-                this.prevLayer = this.getPrevLayer(this.layer, preview);
                 this.addTiles(e, this.layer, preview);
                 this.preview = preview;
                 this.draw();
-                // this.updateCanvas(this.context, this.prevLayer);
                 // this.updateCanvas(this.context, preview);
-                this.addTiles(e, this.layer, this.prevLayer);
+                this.restoreMap(this.beforeEdit);
               } else {
                 this.draw();
                 this.previewSelectedTile(e);
@@ -1131,13 +1135,14 @@ export default {
           this.preview = [];
           this.draw();
         }
-        this.ADD_MAP_HISTORY(this.prevLayer);
+        this.ADD_MAP_HISTORY(this.beforeEdit);
         this.INIT_MAP_FUTURE();
         this.previewSelectedTile(e);
       }
       this.tileAddStart = false;
+      this.beforeEdit = null;
       // 마우스 우클릭
-      if (e.button === 2 || e.which === 3) {
+      if (this.drawable && (e.button === 2 || e.which === 3)) {
         const selection = this.getSelectedTile(e);
         this.tileSelectStart = null;
         const width = selection[selection.length - 1].x - selection[0].x + 1;
@@ -1168,9 +1173,9 @@ export default {
     },
     isCtrlZ(e) {
       return (
-        ((e.ctrlKey && navigator.userAgentData.platform !== "macOS") ||
+        ((e.ctrlKey && navigator.userAgentData?.platform !== "macOS") ||
           e.metaKey) &&
-        e.key === "z"
+        e.key?.toLowerCase() === "z"
       );
     },
     async keyDownEvent(e) {
