@@ -42,3 +42,12 @@ assert.equal(state.mapFuture.length, 1);
 console.log(
   "History: deduplication, no-op, layer, count and byte limits passed"
 );
+state.mapHistory = Array.from({ length: 500 }, (_, index) => ({
+  ...record,
+  sequence: index + 2,
+}));
+state.mapFuture = [{ ...record, sequence: 1 }];
+trimHistory(state);
+assert.equal(state.mapFuture.length, 0);
+assert.equal(state.mapHistory.length, 500);
+console.log("History: oldest record is evicted across undo and redo lists");

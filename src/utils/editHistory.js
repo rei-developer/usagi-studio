@@ -43,9 +43,13 @@ export function trimHistory(state) {
     bytes > HISTORY_BYTES ||
     state.mapHistory.length + state.mapFuture.length > HISTORY_COUNT
   ) {
-    const item = state.mapHistory.length
-      ? state.mapHistory.shift()
-      : state.mapFuture.shift();
+    const oldest = [...state.mapHistory, ...state.mapFuture].reduce((a, b) =>
+      (b.sequence ?? Infinity) < (a.sequence ?? Infinity) ? b : a
+    );
+    const list = state.mapHistory.includes(oldest)
+      ? state.mapHistory
+      : state.mapFuture;
+    const [item] = list.splice(list.indexOf(oldest), 1);
     bytes -= item.cells.byteLength;
     trimmed = true;
   }

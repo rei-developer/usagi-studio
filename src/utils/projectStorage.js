@@ -2,13 +2,20 @@ export const DATABASE_NAME = "usagi-studio";
 
 function openDatabase() {
   return new Promise((resolve, reject) => {
+    let blocked = false;
     const request = indexedDB.open(DATABASE_NAME, 1);
     request.onupgradeneeded = () =>
       request.result.createObjectStore("projects");
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => {
+      if (blocked) return request.result.close();
+      request.result.onversionchange = () => request.result.close();
+      resolve(request.result);
+    };
     request.onerror = () => reject(request.error);
-    request.onblocked = () =>
+    request.onblocked = () => {
+      blocked = true;
       reject(new Error("다른 탭에서 저장소를 사용 중입니다."));
+    };
   });
 }
 
