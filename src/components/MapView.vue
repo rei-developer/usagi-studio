@@ -81,7 +81,8 @@
   display: flex;
   flex-direction: column;
   width: calc(100% - 267px);
-  height: calc(100vh - 50px);
+  height: 100%;
+  min-height: 0;
   border-left: 1px solid #333;
   > .content {
     flex: 1;
@@ -110,6 +111,8 @@
         padding: 0 3px 0 2px;
       }
       > .range-wrapper {
+        display: flex;
+        align-items: center;
         padding: 2px 0;
       }
     }
@@ -140,6 +143,7 @@ export default {
   name: "MapView",
   components: { UiInputRange },
   props: {
+    locked: Boolean,
     tileset: { type: Object, default: null },
     autotileAtlases: { type: Array, default: () => [] },
     activeMap: {
@@ -187,6 +191,7 @@ export default {
   }),
   watch: {
     activeLayer() {
+      this.cancelStroke();
       this.draw();
     },
     zoom() {
@@ -221,8 +226,11 @@ export default {
     this.getEventHandler(MAP_CANVAS_ID, "mouseleave", this.mouseLeaveEvent);
     this.getEventHandler(MAP_CANVAS_ID, "contextmenu", this.contextMenuEvent);
     document.addEventListener("keydown", this.keyDownEvent);
+    window.addEventListener("blur", this.cancelStroke);
   },
   beforeUnmount() {
+    this.cancelStroke();
+    window.removeEventListener("blur", this.cancelStroke);
     this.observer.disconnect();
     cancelAnimationFrame(this.frame);
     this.cache.clear();
@@ -779,7 +787,9 @@ export default {
     },
     rollbackPreview() {
       if (!this.beforeEdit) return;
-      const layer = this.layer,
+      const layer = toRaw(
+          this.maps[this.beforeEdit.map].data[this.beforeEdit.layer]
+        ),
         width = this.beforeEdit.width,
         chunks = new Set();
       for (const [index, change] of this.beforeEdit.changes) {
@@ -889,8 +899,8 @@ export default {
       }
     },
     async undo() {
-      if (this.tileAddStart) return null;
-      const item = await this.removeMapHistory();
+      if (this.tileAddStart || this.locked) return null;
+      const item = await this.removeMapHistory(this.activeMap);
       if (item) {
         this.applyHistory(item, false);
         this.ADD_MAP_FUTURE(item);
@@ -898,8 +908,8 @@ export default {
       return item;
     },
     async redo() {
-      if (this.tileAddStart) return null;
-      const item = await this.removeMapFuture();
+      if (this.tileAddStart || this.locked) return null;
+      const item = await this.removeMapFuture(this.activeMap);
       if (item) {
         this.applyHistory(item, true);
         this.ADD_MAP_HISTORY(item);
@@ -942,6 +952,7 @@ export default {
       return preview;
     },
     pointerDownEvent(e) {
+      if (this.locked) return;
       e.target.setPointerCapture?.(e.pointerId);
       const point = this.getTileLocation(e);
       e = {
@@ -1001,6 +1012,7 @@ export default {
       }
     },
     pointerMoveEvent(e) {
+      if (this.locked) return;
       const point = this.getTileLocation(e);
       const previousX = this.mouseX,
         previousY = this.mouseY;
@@ -1089,12 +1101,17 @@ export default {
     cancelStroke() {
       this.rollbackPreview();
       this.tileAddStart = false;
+      this.tileSelectStart = null;
+      this.selectStart = null;
+      this.select = [[], [], []];
+      this.isMove = false;
       this.beforeEdit = null;
       this.cursorTile = null;
       this.overlayRect = null;
       this.draw();
     },
     pointerUpEvent(e) {
+      if (this.locked) return;
       if (this.drawable && this.tileAddStart) {
         if (
           this.mode === TOOLS.BRUSH ||
@@ -1106,7 +1123,7 @@ export default {
         }
         const item = pack(this.beforeEdit);
         if (item) {
-          this.INIT_MAP_FUTURE();
+          this.INIT_MAP_FUTURE(this.activeMap);
           this.ADD_MAP_HISTORY(item);
         }
         this.previewSelectedTile(e);
@@ -1153,6 +1170,13 @@ export default {
       );
     },
     async keyDownEvent(e) {
+      if (
+        this.locked ||
+        e.target?.closest?.(
+          "input, textarea, select, [contenteditable], [role=dialog]"
+        )
+      )
+        return;
       // undo
       if (this.isCtrlZ(e)) {
         e.preventDefault();

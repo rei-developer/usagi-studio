@@ -27,11 +27,13 @@
   display: flex;
   flex-direction: column;
   width: 266px;
-  height: calc(100vh - 50px);
+  height: 100%;
+  min-height: 0;
   > .content {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     background: #000;
     overflow-y: auto;
   }
@@ -63,6 +65,7 @@ export default {
   name: "TilesetView",
   components: { AutotilePopup },
   props: {
+    locked: Boolean,
     tileset: { type: Object, default: null },
     mapName: {
       type: String,
@@ -90,6 +93,7 @@ export default {
     },
   },
   data: () => ({
+    lastPosition: null,
     mouseX: null,
     mouseY: null,
 
@@ -147,6 +151,9 @@ export default {
       this.autotileDoubleClickEvent
     );
     document.addEventListener("keydown", this.keyDownEvent);
+    window.addEventListener("blur", this.cancelSelection);
+    for (const id of [TILESET_CANVAS_ID, AUTOTILE_CANVAS_ID])
+      this.getEventHandler(id, "pointercancel", this.cancelSelection);
   },
   beforeUnmount() {
     this.removeEventHandler(
@@ -185,6 +192,9 @@ export default {
       this.autotileDoubleClickEvent
     );
     document.removeEventListener("keydown", this.keyDownEvent);
+    window.removeEventListener("blur", this.cancelSelection);
+    for (const id of [TILESET_CANVAS_ID, AUTOTILE_CANVAS_ID])
+      this.removeEventHandler(id, "pointercancel", this.cancelSelection);
   },
   computed: {
     ...mapGetters(["fields"]),
@@ -202,6 +212,10 @@ export default {
     },
   },
   methods: {
+    cancelSelection() {
+      this.tileSelectStart = null;
+      this.lastPosition = null;
+    },
     ...mapMutations(["UPDATE_FIELDS"]),
     init() {
       this.drawSelectedAutotile(0, 0);
@@ -241,9 +255,9 @@ export default {
         : this.$el.querySelector(TILESET_CANVAS_ID);
       return canvas.getContext("2d");
     },
-    getSelectedTile(event) {
+    getSelectedTile(event, point = this.getTileLocation(event)) {
       const offset = 384;
-      const { tx, ty } = this.getTileLocation(event);
+      const { tx, ty } = point;
       const newSelection = [];
       if (this.tileSelectStart) {
         for (
@@ -265,8 +279,8 @@ export default {
       const tileid = ty * 8 + tx + offset;
       return [{ id: tileid, x: tx, y: ty }];
     },
-    getSelectedAutotile(event) {
-      const { tx, ty } = this.getTileLocation(event);
+    getSelectedAutotile(event, point = this.getTileLocation(event)) {
+      const { tx, ty } = point;
       return [{ id: tx * 48 + 47, x: tx, y: ty }];
     },
     focusSelectedTile() {
@@ -481,10 +495,12 @@ export default {
       return this.$el.querySelector(id).removeEventListener(event, callback);
     },
     tilesetPointerDownEvent(e) {
+      if (this.locked) return;
       this.lastPosition = null;
       this.tileSelectStart = this.getSelectedTile(e)[0];
     },
     tilesetPointerMoveEvent(e) {
+      if (this.locked) return;
       const point = this.getTileLocation(e);
       if (
         this.lastPosition?.tx === point.tx &&
@@ -493,7 +509,7 @@ export default {
         return;
       this.lastPosition = point;
       if (this.tileSelectStart) {
-        const selection = this.getSelectedTile(e);
+        const selection = this.getSelectedTile(e, point);
         const width = selection[selection.length - 1].x - selection[0].x + 1;
         const height = selection[selection.length - 1].y - selection[0].y + 1;
         this.drawSelectedTile(selection[0].x, selection[0].y, width, height);
@@ -505,6 +521,7 @@ export default {
       }
     },
     tilesetPointerUpEvent(e) {
+      if (this.locked) return;
       const selection = this.getSelectedTile(e);
       this.tileSelectStart = null;
       const width = selection[selection.length - 1].x - selection[0].x + 1;
@@ -517,8 +534,16 @@ export default {
       this.$emit("selectionChanged", selection);
     },
     autotilePointerMoveEvent(e) {
+      if (this.locked) return;
+      const point = this.getTileLocation(e);
+      if (
+        this.lastPosition?.tx === point.tx &&
+        this.lastPosition?.ty === point.ty
+      )
+        return;
+      this.lastPosition = point;
       if (this.tileSelectStart) {
-        const selection = this.getSelectedAutotile(e);
+        const selection = this.getSelectedAutotile(e, point);
         this.drawSelectedAutotile(selection[0].x, selection[0].y);
         this.UPDATE_FIELDS({
           selectedTiles: selection,
@@ -528,6 +553,7 @@ export default {
       }
     },
     autotilePointerUpEvent(e) {
+      if (this.locked) return;
       const selection = this.getSelectedAutotile(e);
       this.tileSelectStart = null;
       this.drawSelectedAutotile(selection[0].x, selection[0].y);
@@ -547,7 +573,14 @@ export default {
       }
     },
     keyDownEvent(e) {
-      const _id = this.fields.selectedTiles[0].id;
+      if (this.locked) return;
+      if (
+        e.target?.closest?.(
+          "input, textarea, select, [contenteditable], [role=dialog]"
+        )
+      )
+        return;
+      const _id = this.fields.selectedTiles?.[0]?.id;
       switch (e.key) {
         case "ArrowUp":
           this.moveSelectedTile(e, D.UP);

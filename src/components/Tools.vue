@@ -120,6 +120,9 @@ export default {
     saving: Boolean,
     exporting: Boolean,
     ready: Boolean,
+    busy: Boolean,
+    activeMap: String,
+    resetKey: Number,
   },
   data: () => ({
     scales: EXPORT_SCALES,
@@ -131,6 +134,14 @@ export default {
     isInfoPopupOpened: false,
   }),
   watch: {
+    resetKey() {
+      this.ACTIVE_LAYER = 1;
+      this.ACTIVE_TOOL = 0;
+    },
+    activeMap() {
+      this.ACTIVE_LAYER = 1;
+      this.ACTIVE_TOOL = 0;
+    },
     mapWidth: {
       immediate: true,
       handler() {
@@ -168,14 +179,16 @@ export default {
         {
           description: "맵 가져오기",
           icon: "file-import",
+          disabled: this.busy || !this.ready || this.exporting,
           active: null,
-          click: () => {},
+          click: () => this.$emit("import"),
         },
         {
           description: "선택한 형식으로 현재 맵 내보내기",
           icon: "file-export",
           disabled:
             !this.ready ||
+            this.busy ||
             this.exporting ||
             (this.exportFormat !== "json" &&
               !canExport(this.mapWidth, this.mapHeight, this.exportScale)),
@@ -186,7 +199,7 @@ export default {
         {
           description: "모두 저장 (Ctrl+S)",
           icon: "save",
-          disabled: !this.ready || this.saving,
+          disabled: !this.ready || this.saving || this.busy,
           active: null,
           click: () => this.$emit("save"),
         },
@@ -226,14 +239,14 @@ export default {
           description: "실행 취소",
           icon: "undo",
           active: null,
-          disabled: !this.hasMapHistory,
+          disabled: this.busy || !this.hasMapHistory,
           click: (e) => this.undo(e),
         },
         {
           description: "다시 실행",
           icon: "redo",
           active: null,
-          disabled: !this.hasMapFuture,
+          disabled: this.busy || !this.hasMapFuture,
           click: (e) => this.redo(e),
         },
       ];

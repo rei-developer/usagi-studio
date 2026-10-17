@@ -2,6 +2,10 @@
   <div class="backdrop" @click.self="onClosePopup">
     <div class="dialog-wrapper" :style="{ left: `${x}px`, top: `${y}px` }">
       <div
+        role="dialog"
+        aria-modal="true"
+        :aria-label="header"
+        tabindex="-1"
         ref="dialog"
         class="dialog"
         :style="{ width: `${width}px`, height: height && `${height}px` }"
@@ -9,16 +13,25 @@
         <div class="header">
           <font-awesome-icon :icon="icon" v-if="icon" />
           {{ header }}
-          <div class="close" @click="onClosePopup">
+          <button
+            type="button"
+            aria-label="닫기"
+            class="close"
+            @click="onClosePopup"
+          >
             <font-awesome-icon icon="times" />
-          </div>
+          </button>
         </div>
         <div class="content">
           <slot />
         </div>
         <div class="footer">
-          <ui-button @onClick="onSubmitPopup">Submit</ui-button>
-          <ui-button @onClick="onClosePopup">Close</ui-button>
+          <button type="button" :disabled="submitting" @click="onSubmitPopup">
+            {{ confirmLabel }}
+          </button>
+          <button type="button" :disabled="submitting" @click="onClosePopup">
+            {{ cancelLabel }}
+          </button>
         </div>
       </div>
     </div>
@@ -26,12 +39,12 @@
 </template>
 
 <script>
-import UiButton from "@/components/common/Button";
-
 export default {
   name: "UiDialog",
-  components: { UiButton },
+
   props: {
+    confirmLabel: { type: String, default: "확인" },
+    cancelLabel: { type: String, default: "취소" },
     header: {
       type: String,
       default: null,
@@ -62,6 +75,7 @@ export default {
     },
   },
   data: () => ({
+    submitting: false,
     x: 0,
     y: 0,
   }),
@@ -76,22 +90,69 @@ export default {
       this.x = this.mouseX;
       this.y = this.mouseY;
     }
+    this.previousFocus = document.activeElement;
+    (
+      this.$refs.dialog.querySelector("input, select, textarea") ||
+      this.$refs.dialog
+    ).focus();
     window.addEventListener("keydown", this.onKeyDownEvent);
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.onKeyDownEvent);
+    this.previousFocus?.focus();
   },
   methods: {
-    onSubmitPopup() {
-      if (this.callback) this.callback();
-      this.onClosePopup();
+    async onSubmitPopup() {
+      if (this.submitting) return;
+      this.submitting = true;
+      try {
+        if (this.callback && (await this.callback()) === false) return;
+        this.$emit("onClosePopup");
+      } finally {
+        this.submitting = false;
+      }
     },
     onClosePopup() {
-      this.$emit("onClosePopup");
+      if (!this.submitting) this.$emit("onClosePopup");
     },
     onKeyDownEvent(e) {
-      if (e.key === "Esc") this.close();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        this.onClosePopup();
+      }
+      if (e.key !== "Tab") return;
+      const elements = [
+        ...this.$refs.dialog.querySelectorAll(
+          "button, input, select, textarea, [tabindex='0']"
+        ),
+      ].filter((el) => !el.disabled);
+      const first = elements[0],
+        last = elements.at(-1);
+      if (
+        e.shiftKey &&
+        (document.activeElement === first ||
+          document.activeElement === this.$refs.dialog)
+      ) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
     },
   },
 };
 </script>
+
+<style scoped>
+.header > .close {
+  flex: 0;
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.footer {
+  gap: 6px;
+}
+</style>
