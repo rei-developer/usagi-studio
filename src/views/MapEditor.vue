@@ -2,6 +2,12 @@
   <div class="container">
     <div class="row">
       <tools
+        :mapWidth="maps[activeMap]?.width || 1"
+        :mapHeight="maps[activeMap]?.height || 1"
+        :saving="saving"
+        :exporting="exporting"
+        :ready="ready"
+        @cancelExport="cancelExport"
         @toolSelected="getSelectedTool"
         @activeLayer="getActiveLayer"
         @undo="undo"
@@ -60,6 +66,8 @@
 </style>
 
 <script>
+import { toRaw } from "vue";
+import { readProject, saveProject } from "@/utils/projectStorage";
 import { SAVE_KEY, serializeMap, restoreMaps } from "@/utils/mapFiles";
 import Tools from "@/components/Tools.vue";
 import TilesetView from "@/components/TilesetView.vue";
@@ -74,6 +82,8 @@ export default {
   },
   data: () => ({
     ready: false,
+    saving: false,
+    exporting: false,
     fileMessage: "",
     activeMap: "",
     maps: {},
@@ -94,17 +104,38 @@ export default {
       activeMap: this.activeMap,
       maps: { Map001: sample },
     });
+    let saved;
     try {
-      const raw = localStorage.getItem(SAVE_KEY);
-      if (raw) {
-        const saved = JSON.parse(raw);
+      saved = await readProject();
+      if (saved) {
         this.maps = restoreMaps(saved);
         this.activeMap = saved.activeMap;
         this.fileMessage = "저장한 맵을 복원했습니다.";
       }
     } catch {
+      saved = undefined;
       this.fileMessage =
-        "저장 데이터를 복원하지 못했습니다. 기본 맵을 표시합니다. 기존 저장 데이터는 유지됩니다.";
+        "저장 데이터를 복원하지 못했습니다. 기존 저장 데이터는 유지됩니다.";
+    }
+    if (!saved) {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (raw) {
+          const legacy = JSON.parse(raw);
+          this.maps = restoreMaps(legacy);
+          this.activeMap = legacy.activeMap;
+          try {
+            await saveProject(legacy);
+            this.fileMessage = "기존 저장 데이터를 새 저장소로 이전했습니다.";
+          } catch {
+            this.fileMessage =
+              "기존 맵을 복원했지만 저장소 이전에 실패했습니다. 기존 저장 데이터는 유지됩니다.";
+          }
+        }
+      } catch {
+        this.fileMessage =
+          "저장 데이터를 복원하지 못했습니다. 기본 맵을 표시합니다. 기존 저장 데이터는 유지됩니다.";
+      }
     }
     this.mapName = this.maps[this.activeMap].name;
     this.tilesetName = this.maps[this.activeMap].tileset;
@@ -134,6 +165,7 @@ export default {
     document.addEventListener("keydown", this.saveShortcut);
   },
   beforeUnmount() {
+    this.cancelExport();
     document.removeEventListener("keydown", this.saveShortcut);
   },
   methods: {
@@ -149,22 +181,35 @@ export default {
         this.saveMaps();
       }
     },
-    saveMaps() {
+    async saveMaps() {
+      if (this.saving || !this.ready) return;
+      this.saving = true;
+      this.fileMessage = "맵을 저장하는 중입니다…";
       try {
         const maps = Object.fromEntries(
-          Object.entries(this.maps).map(([id, map]) => [id, serializeMap(map)])
+          Object.entries(this.maps).map(([id, map]) => [
+            id,
+            serializeMap(toRaw(map)),
+          ])
         );
-        localStorage.setItem(
-          SAVE_KEY,
-          JSON.stringify({ version: 1, activeMap: this.activeMap, maps })
-        );
+        await saveProject({ version: 1, activeMap: this.activeMap, maps });
         this.fileMessage = "모든 맵을 이 브라우저에 저장했습니다.";
       } catch {
         this.fileMessage =
           "저장하지 못했습니다. 브라우저 저장 공간 또는 권한을 확인하고 JSON으로 내보내세요.";
+      } finally {
+        this.saving = false;
       }
     },
-    async exportMap(format = "json") {
+    cancelExport() {
+      this.exportController?.abort();
+    },
+    async exportMap(format = "json", scale = 1) {
+      if (this.exporting || !this.ready) return;
+      this.exporting = true;
+      this.exportController = new AbortController();
+      const signal = this.exportController.signal;
+      this.fileMessage = "내보내기 준비 중…";
       let url;
       try {
         const blob =
@@ -172,14 +217,22 @@ export default {
             ? new Blob(
                 [
                   JSON.stringify(
-                    serializeMap(this.maps[this.activeMap]),
+                    serializeMap(toRaw(this.maps[this.activeMap])),
                     null,
                     2
                   ),
                 ],
                 { type: "application/json" }
               )
-            : await this.$refs.mapView.exportImage(format);
+            : await this.$refs.mapView.exportImage(
+                format,
+                scale,
+                (progress) => {
+                  this.fileMessage = `이미지 내보내기 ${progress}%`;
+                },
+                signal
+              );
+        if (signal.aborted) throw new DOMException("취소", "AbortError");
         url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -188,10 +241,14 @@ export default {
         link.click();
         link.remove();
         this.fileMessage = `현재 맵 ${format.toUpperCase()} 다운로드를 요청했습니다.`;
-      } catch {
+      } catch (error) {
         this.fileMessage =
-          "맵을 내보내지 못했습니다. 이미지 로딩과 브라우저의 형식 지원을 확인하고 다시 시도해주세요.";
+          error.name === "AbortError"
+            ? "내보내기를 취소했습니다."
+            : "맵을 내보내지 못했습니다. 이미지 로딩과 브라우저의 형식 지원을 확인하고 다시 시도해주세요.";
       } finally {
+        this.exporting = false;
+        this.exportController = null;
         if (url) setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
     },

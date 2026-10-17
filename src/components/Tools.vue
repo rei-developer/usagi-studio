@@ -28,6 +28,27 @@
           <option value="webp">WebP</option>
         </ui-select>
       </div>
+      <div v-if="exportFormat !== 'json'" class="item">
+        <ui-select
+          aria-label="이미지 배율"
+          :value="exportScale"
+          @onChange="exportScale = Number($event)"
+          :disabled="exporting"
+        >
+          <option
+            v-for="scale in scales"
+            :key="scale"
+            :value="scale"
+            :disabled="!canExport(mapWidth, mapHeight, scale)"
+          >
+            {{ scale * 100 }}%
+          </option>
+        </ui-select>
+        <span>{{ outputSize.width }} × {{ outputSize.height }} px</span>
+        <ui-button v-if="exporting" @click="$emit('cancelExport')"
+          >취소</ui-button
+        >
+      </div>
       <div class="item">
         <font-awesome-icon icon="music" />
         Field of your story 재생중...
@@ -76,6 +97,7 @@
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
+import { EXPORT_SCALES, canExport, imageSize } from "@/utils/imageExport";
 import { TOOLS } from "@/utils/tools";
 import DatabasePopup from "@/components/popups/database/DatabasePopup";
 import InfoPopup from "@/components/popups/InfoPopup";
@@ -92,7 +114,16 @@ export default {
     UiButtonGroup,
     UiSelect,
   },
+  props: {
+    mapWidth: Number,
+    mapHeight: Number,
+    saving: Boolean,
+    exporting: Boolean,
+    ready: Boolean,
+  },
   data: () => ({
+    scales: EXPORT_SCALES,
+    exportScale: 1,
     exportFormat: "json",
     ACTIVE_TOOL: 0,
     ACTIVE_LAYER: 1,
@@ -100,6 +131,15 @@ export default {
     isInfoPopupOpened: false,
   }),
   watch: {
+    mapWidth: {
+      immediate: true,
+      handler() {
+        this.chooseScale();
+      },
+    },
+    mapHeight() {
+      this.chooseScale();
+    },
     ACTIVE_TOOL() {
       this.$emit("toolSelected", this.ACTIVE_TOOL);
     },
@@ -108,6 +148,9 @@ export default {
     },
   },
   computed: {
+    outputSize() {
+      return imageSize(this.mapWidth, this.mapHeight, this.exportScale);
+    },
     ...mapGetters(["hasMapHistory", "hasMapFuture"]),
     menuGroup() {
       return [
@@ -131,12 +174,19 @@ export default {
         {
           description: "선택한 형식으로 현재 맵 내보내기",
           icon: "file-export",
+          disabled:
+            !this.ready ||
+            this.exporting ||
+            (this.exportFormat !== "json" &&
+              !canExport(this.mapWidth, this.mapHeight, this.exportScale)),
           active: null,
-          click: () => this.$emit("export", this.exportFormat),
+          click: () =>
+            this.$emit("export", this.exportFormat, this.exportScale),
         },
         {
           description: "모두 저장 (Ctrl+S)",
           icon: "save",
+          disabled: !this.ready || this.saving,
           active: null,
           click: () => this.$emit("save"),
         },
@@ -324,6 +374,13 @@ export default {
     },
   },
   methods: {
+    canExport,
+    chooseScale() {
+      this.exportScale =
+        EXPORT_SCALES.find((scale) =>
+          canExport(this.mapWidth, this.mapHeight, scale)
+        ) || 0.125;
+    },
     ...mapMutations(["UPDATE_FIELDS"]),
     setActiveTool(tool) {
       this.ACTIVE_TOOL = tool;

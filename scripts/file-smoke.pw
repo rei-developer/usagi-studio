@@ -18,10 +18,22 @@ async (page) => {
     return JSON.stringify(JSON.parse(text));
   };
   const icon = name => page.locator(`svg[data-icon="${name}"]`).first();
+  const database = (mode, value) => page.evaluate(({mode,value}) => new Promise((resolve,reject) => {
+    const request=indexedDB.open("usagi-studio",1);
+    request.onupgradeneeded=()=>request.result.createObjectStore("projects");
+    request.onerror=()=>reject(request.error);
+    request.onsuccess=()=>{
+      const db=request.result,tx=db.transaction("projects",mode==="read"?"readonly":"readwrite"),store=tx.objectStore("projects");
+      const op=mode==="read"?store.get("current"):mode==="clear"?store.delete("current"):store.put(value,"current");
+      tx.oncomplete=()=>{db.close();resolve(op.result ?? null);};tx.onerror=()=>{db.close();reject(tx.error);};
+    };
+  }),{mode,value});
+  const originalDatabase = await database("read");
   const original = await page.evaluate(key => localStorage.getItem(key), key);
   try {
     await page.setViewportSize({width:1920,height:1000});
     await page.evaluate(key => localStorage.removeItem(key), key);
+    await database("clear");
     await page.reload(); await ready();
     const before = await state();
     const palette = await page.locator("#tilesetCanvas").boundingBox();
@@ -31,8 +43,9 @@ async (page) => {
     const edited = await state();
     assert(edited !== before, "real brush edit changes map");
     await icon("floppy-disk").click();
+    await page.getByRole("status").filter({hasText:"저장했습니다"}).waitFor();
     assert((await page.getByRole("status").textContent()).includes("저장했습니다"), "save button succeeds");
-    const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), key);
+    const saved = await database("read");
     const flat = JSON.parse(edited);
     assert(JSON.stringify(saved.maps.Map001)===JSON.stringify(flat), "save preserves all map data and metadata");
     await page.reload(); await ready();
@@ -46,21 +59,33 @@ async (page) => {
     for await (const chunk of stream) text += chunk.toString("utf8");
     assert(JSON.stringify(JSON.parse(text))===JSON.stringify(flat), "download contains all layers and metadata");
     await page.keyboard.press("Control+s");
+    await page.getByRole("status").filter({hasText:"저장했습니다"}).waitFor();
     assert((await page.getByRole("status").textContent()).includes("저장했습니다"), "Ctrl+S saves");
-    await page.evaluate(() => { Storage.prototype.setItem = () => { throw new DOMException("Full", "QuotaExceededError"); }; });
+    await page.evaluate(() => { IDBObjectStore.prototype.put = () => { throw new DOMException("Full", "QuotaExceededError"); }; });
     await icon("floppy-disk").click();
+    await page.getByRole("status").filter({hasText:"저장하지 못했습니다"}).waitFor();
     assert((await page.getByRole("status").textContent()).includes("저장하지 못했습니다"), "quota failure is visible");
     assert(await state()===edited, "failed save preserves edits");
     await page.reload(); await ready();
-    await page.evaluate(key=>localStorage.setItem(key, '{"version":1,"activeMap":"Map001","maps":{"Map001":{}}}'), key);
+    await database("write",{version:1,activeMap:"Map001",maps:{Map001:{}}});
     await page.reload(); await ready();
     assert((await page.getByRole("status").textContent()).includes("복원하지 못했습니다"), "malformed save handled");
     assert(await state()===before, "malformed save falls back to intact sample");
-    assert((await page.evaluate(key=>localStorage.getItem(key),key)).includes('"Map001":{}'), "malformed save is retained");
+    assert(JSON.stringify(await database("read")).includes('"Map001":{}'), "malformed save is retained");
+    await database("clear");
+    await page.evaluate(({key,saved})=>localStorage.setItem(key,JSON.stringify(saved)),{key,saved});
+    await page.reload(); await ready();
+    assert(await state()===edited,"legacy save migrated without changing map");
+    assert(JSON.stringify(await database("read"))===JSON.stringify(saved),"migration persists IndexedDB snapshot");
+    assert(await page.evaluate(key=>localStorage.getItem(key)!==null,key),"migration retains original backup");
+    await page.evaluate(key=>localStorage.setItem(key,"invalid"),key);
+    await page.reload(); await ready();
+    assert(await state()===edited,"IndexedDB takes precedence over legacy storage");
     assert(errors.length===0, `no runtime errors: ${errors.join("; ")}`);
     return {passed:checks.length,checks};
   } finally {
     await page.reload();
+    await database(originalDatabase===null?"clear":"write",originalDatabase);
     await page.evaluate(({key,original}) => { if(original===null) localStorage.removeItem(key); else localStorage.setItem(key,original); },{key,original});
     page.off("pageerror",onError);
   }

@@ -122,6 +122,7 @@
 
 <script>
 import { markRaw, toRaw } from "vue";
+import { canExport, imageSize } from "@/utils/imageExport";
 import { ChunkCache, CHUNK_TILES } from "@/utils/chunkCache";
 import { transaction, writeCell, pack } from "@/utils/editHistory";
 import { mapGetters, mapMutations, mapActions } from "vuex";
@@ -550,37 +551,60 @@ export default {
         }
       }
     },
-    async exportImage(format) {
+    async exportImage(format, scale = 1, onProgress = () => {}, signal) {
       const mime = { png: "image/png", jpg: "image/jpeg", webp: "image/webp" }[
         format
       ];
-      if (!mime) throw new Error("지원하지 않는 이미지 형식입니다.");
+      const map = toRaw(this.maps[this.activeMap]);
+      if (!mime || !canExport(map.width, map.height, scale))
+        throw new Error("이미지 출력 한도를 초과했습니다.");
+      const layers = map.data.map((layer) => layer.map((row) => row.slice()));
+      const check = () => {
+        if (signal?.aborted) throw new DOMException("취소", "AbortError");
+      };
       await Promise.all(
         [this.tileset, ...this.autotiles]
           .filter(Boolean)
           .map((image) => image.decode())
       );
-      const map = this.maps[this.activeMap];
+      check();
       const canvas = document.createElement("canvas");
-      canvas.width = map.width * TILESIZE;
-      canvas.height = map.height * TILESIZE;
-      const context = canvas.getContext("2d");
-      context.imageSmoothingEnabled = false;
-      if (format === "jpg") {
-        context.fillStyle = this.backgroundColor;
-        context.fillRect(0, 0, canvas.width, canvas.height);
+      Object.assign(canvas, imageSize(map.width, map.height, scale));
+      try {
+        const context = canvas.getContext("2d");
+        context.imageSmoothingEnabled = false;
+        if (format === "jpg") {
+          context.fillStyle = this.backgroundColor;
+          context.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        const total = layers.length * map.width * map.height;
+        let done = 0,
+          start = performance.now();
+        for (const layer of layers)
+          for (let y = 0; y < map.height; y++)
+            for (let x = 0; x < map.width; x++) {
+              this.drawTile(context, layer[y][x], x, y, scale);
+              done++;
+              if (done % 256 === 0 && performance.now() - start >= 8) {
+                onProgress(Math.floor((done / total) * 95));
+                await new Promise((resolve) => setTimeout(resolve, 0));
+                check();
+                start = performance.now();
+              }
+            }
+        check();
+        onProgress(95);
+        const blob = await new Promise((resolve) =>
+          canvas.toBlob(resolve, mime, 0.95)
+        );
+        check();
+        if (!blob || blob.type !== mime)
+          throw new Error("이미지 인코딩을 지원하지 않습니다.");
+        onProgress(100);
+        return blob;
+      } finally {
+        canvas.width = canvas.height = 0;
       }
-      map.data.forEach((layer) =>
-        layer.forEach((row, y) =>
-          row.forEach((tile, x) => this.drawTile(context, tile, x, y, 1))
-        )
-      );
-      const blob = await new Promise((resolve) =>
-        canvas.toBlob(resolve, mime, 0.95)
-      );
-      if (!blob || blob.type !== mime)
-        throw new Error("이미지 인코딩을 지원하지 않습니다.");
-      return blob;
     },
     drawBorder(context, x, y) {
       context.globalAlpha = 0.6;
